@@ -16,6 +16,7 @@ import { GuestForm } from "@/components/GuestForm";
 import { GuestsList } from "@/components/GuestsList";
 import { CSVUploader } from "@/components/CSVUploader";
 import { TableManager } from "@/components/TableManager";
+import { CheckInManager } from "@/components/CheckInManager";
 import { ParsedGuest } from "@/lib/csvParser";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -90,9 +91,10 @@ export default function EventDetails() {
         </Card>
 
         <Tabs defaultValue="guests" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="guests">Convidados</TabsTrigger>
-            <TabsTrigger value="tables">Organização de Mesas</TabsTrigger>
+            <TabsTrigger value="tables">Mesas</TabsTrigger>
+            <TabsTrigger value="checkin">Check-in</TabsTrigger>
           </TabsList>
 
           <TabsContent value="guests">
@@ -133,6 +135,10 @@ export default function EventDetails() {
 
           <TabsContent value="tables">
             <TableManager eventId={eventId!} />
+          </TabsContent>
+
+          <TabsContent value="checkin">
+            <CheckInManager eventId={eventId!} />
           </TabsContent>
         </Tabs>
 

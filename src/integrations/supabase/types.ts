@@ -52,6 +52,7 @@ export type Database = {
       }
       guests: {
         Row: {
+          checked_in_at: string | null
           confirmed: boolean | null
           created_at: string
           email: string | null
@@ -62,6 +63,7 @@ export type Database = {
           table_number: number | null
         }
         Insert: {
+          checked_in_at?: string | null
           confirmed?: boolean | null
           created_at?: string
           email?: string | null
@@ -72,6 +74,7 @@ export type Database = {
           table_number?: number | null
         }
         Update: {
+          checked_in_at?: string | null
           confirmed?: boolean | null
           created_at?: string
           email?: string | null

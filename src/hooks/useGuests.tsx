@@ -10,6 +10,7 @@ export interface Guest {
   confirmed?: boolean;
   table_number?: number;
   qr_code?: string;
+  checked_in_at?: string | null;
   created_at: string;
 }
 
@@ -42,11 +43,15 @@ export const useGuests = (eventId: string | undefined) => {
 
   const addGuest = useMutation({
     mutationFn: async ({ eventId, guest }: { eventId: string; guest: GuestInput }) => {
+      // Generate unique QR code
+      const qrCode = crypto.randomUUID();
+      
       const { data, error } = await supabase
         .from("guests")
         .insert({
           event_id: eventId,
           ...guest,
+          qr_code: qrCode,
         })
         .select()
         .single();
@@ -75,6 +80,7 @@ export const useGuests = (eventId: string | undefined) => {
       const guestsWithEventId = guests.map(guest => ({
         event_id: eventId,
         ...guest,
+        qr_code: crypto.randomUUID(), // Generate unique QR code for each guest
       }));
 
       const { data, error } = await supabase
@@ -154,6 +160,34 @@ export const useGuests = (eventId: string | undefined) => {
     },
   });
 
+  const checkInGuest = useMutation({
+    mutationFn: async (guestId: string) => {
+      const { data, error } = await supabase
+        .from("guests")
+        .update({ checked_in_at: new Date().toISOString() })
+        .eq("id", guestId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
+      toast({
+        title: "Check-in realizado!",
+        description: "Presença confirmada com sucesso.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao fazer check-in",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     guests: guests || [],
     isLoading,
@@ -161,5 +195,6 @@ export const useGuests = (eventId: string | undefined) => {
     addMultipleGuests: addMultipleGuests.mutate,
     updateGuest: updateGuest.mutate,
     deleteGuest: deleteGuest.mutate,
+    checkInGuest: checkInGuest.mutate,
   };
 };
