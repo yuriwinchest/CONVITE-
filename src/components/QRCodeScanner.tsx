@@ -8,9 +8,10 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 interface QRCodeScannerProps {
   onScan: (qrCode: string) => Promise<void>;
   isProcessing: boolean;
+  mode?: "checkin" | "event-access";
 }
 
-export function QRCodeScanner({ onScan, isProcessing }: QRCodeScannerProps) {
+export function QRCodeScanner({ onScan, isProcessing, mode = "checkin" }: QRCodeScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [lastScanned, setLastScanned] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -80,12 +81,20 @@ export function QRCodeScanner({ onScan, isProcessing }: QRCodeScannerProps) {
     };
   }, []);
 
+  const title = mode === "event-access" 
+    ? "Escanear QR Code do Evento" 
+    : "Scanner de QR Code";
+  
+  const description = mode === "event-access"
+    ? "Escaneie o QR Code fornecido pelo organizador do evento"
+    : "Posicione o QR code do convidado dentro da área de leitura";
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Camera className="h-5 w-5" />
-          Scanner de QR Code
+          {title}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -137,7 +146,7 @@ export function QRCodeScanner({ onScan, isProcessing }: QRCodeScannerProps) {
         </div>
 
         <div className="text-xs text-muted-foreground text-center">
-          Posicione o QR code do convidado dentro da área de leitura
+          {description}
         </div>
       </CardContent>
     </Card>

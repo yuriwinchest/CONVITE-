@@ -30,6 +30,7 @@ import { GuestsList } from "@/components/GuestsList";
 import { CSVUploader } from "@/components/CSVUploader";
 import { TableManager } from "@/components/TableManager";
 import { CheckInManager } from "@/components/CheckInManager";
+import { EventQRCode } from "@/components/EventQRCode";
 import { ParsedGuest } from "@/lib/csvParser";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -174,9 +175,10 @@ export default function EventDetails() {
         </Card>
 
         <Tabs defaultValue="guests" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="guests">Convidados</TabsTrigger>
             <TabsTrigger value="tables">Mesas</TabsTrigger>
+            <TabsTrigger value="qrcode">QR Code</TabsTrigger>
             <TabsTrigger value="checkin">Check-in</TabsTrigger>
           </TabsList>
 
@@ -222,6 +224,10 @@ export default function EventDetails() {
 
           <TabsContent value="tables">
             <TableManager eventId={eventId!} />
+          </TabsContent>
+
+          <TabsContent value="qrcode">
+            <EventQRCode eventId={eventId!} eventName={event.name} />
           </TabsContent>
 
           <TabsContent value="checkin">

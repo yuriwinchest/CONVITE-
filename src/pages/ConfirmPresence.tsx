@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useGuestConfirmation } from "@/hooks/useGuestConfirmation";
-import { Loader2, CheckCircle2, XCircle, MapPin, Calendar, Users, Download, ZoomIn } from "lucide-react";
+import { QRCodeScanner } from "@/components/QRCodeScanner";
+import { Loader2, CheckCircle2, XCircle, MapPin, Calendar, Users, Download, ZoomIn, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -16,9 +17,51 @@ export default function ConfirmPresence() {
   const [guestName, setGuestName] = useState("");
   const [searchState, setSearchState] = useState<"idle" | "searching" | "found" | "not-found" | "confirmed">("idle");
   const [guestData, setGuestData] = useState<any>(null);
-  const [eventCode, setEventCode] = useState("");
+  const [isProcessingQR, setIsProcessingQR] = useState(false);
 
   const { searchGuest, confirmPresence, getEventDetails, eventDetails, isLoadingEvent } = useGuestConfirmation(eventId || "");
+
+  const handleQRScan = async (scannedData: string) => {
+    setIsProcessingQR(true);
+    try {
+      let extractedEventId = "";
+      
+      try {
+        const url = new URL(scannedData);
+        const pathParts = url.pathname.split('/').filter(Boolean);
+        const confirmIndex = pathParts.indexOf('confirm');
+        if (confirmIndex !== -1 && pathParts[confirmIndex + 1]) {
+          extractedEventId = pathParts[confirmIndex + 1];
+        }
+      } catch {
+        extractedEventId = scannedData;
+      }
+
+      if (!extractedEventId) {
+        toast({
+          title: "QR Code inválido",
+          description: "O QR Code escaneado não contém um evento válido.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      navigate(`/confirm/${extractedEventId}`);
+      toast({
+        title: "QR Code escaneado!",
+        description: "Carregando informações do evento...",
+      });
+    } catch (error) {
+      console.error("Erro ao processar QR Code:", error);
+      toast({
+        title: "Erro ao processar QR Code",
+        description: "Não foi possível processar o QR Code escaneado.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingQR(false);
+    }
+  };
 
   const handleSearch = async () => {
     if (!guestName.trim() || !eventId) {
@@ -95,37 +138,62 @@ export default function ConfirmPresence() {
     );
   }
 
+  // Quando não tem eventId, mostrar scanner
+  if (!eventId) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-2xl space-y-6">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" onClick={() => navigate("/")}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Voltar
+            </Button>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-6 w-6" />
+                Confirmar Presença no Evento
+              </CardTitle>
+              <CardDescription>
+                Escaneie o QR Code fornecido pelo organizador do evento para acessar a página de confirmação
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <QRCodeScanner 
+                onScan={handleQRScan} 
+                isProcessing={isProcessingQR}
+                mode="event-access"
+              />
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Não tem um QR Code?</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              <p>Entre em contato com o organizador do evento para obter o QR Code de acesso ou o link direto para confirmação.</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Quando tem eventId mas o evento não existe
   if (!eventDetails) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle className="text-destructive">{eventId ? "Evento não encontrado" : "Acesse seu evento"}</CardTitle>
+            <CardTitle className="text-destructive">Evento não encontrado</CardTitle>
             <CardDescription>
-              {eventId
-                ? "O evento que você está procurando não existe ou foi removido."
-                : "Cole abaixo o código do evento (ID) enviado no convite para confirmar sua presença."}
+              O evento que você está procurando não existe ou foi removido.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {!eventId && (
-              <>
-                <Input
-                  placeholder="Código do evento (UUID)"
-                  value={eventCode}
-                  onChange={(e) => setEventCode(e.target.value)}
-                />
-                <Button
-                  className="w-full"
-                  onClick={() => {
-                    if (!eventCode.trim()) return;
-                    navigate(`/confirm/${eventCode.trim()}`);
-                  }}
-                >
-                  Ir para o evento
-                </Button>
-              </>
-            )}
+          <CardContent>
             <Button onClick={() => navigate("/")} variant="outline" className="w-full">
               Voltar para o início
             </Button>
