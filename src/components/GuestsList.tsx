@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Mail, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -32,12 +32,15 @@ import { GuestForm } from "./GuestForm";
 
 interface GuestsListProps {
   guests: Guest[];
+  eventId: string;
   onEdit: (guestId: string, data: { name: string; table_number?: number }) => void;
   onDelete: (guestId: string) => void;
   onDeleteMultiple: (guestIds: string[]) => void;
+  onSendInvite: (guestId: string) => void;
+  onSendMultipleInvites: (guestIds: string[]) => void;
 }
 
-export function GuestsList({ guests, onEdit, onDelete, onDeleteMultiple }: GuestsListProps) {
+export function GuestsList({ guests, eventId, onEdit, onDelete, onDeleteMultiple, onSendInvite, onSendMultipleInvites }: GuestsListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -100,6 +103,11 @@ export function GuestsList({ guests, onEdit, onDelete, onDeleteMultiple }: Guest
     setSelectedIds([]);
   };
 
+  const handleSendInvites = () => {
+    onSendMultipleInvites(selectedIds);
+    setSelectedIds([]);
+  };
+
   if (guests.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -122,6 +130,10 @@ export function GuestsList({ guests, onEdit, onDelete, onDeleteMultiple }: Guest
             <Button variant="outline" onClick={handleCancelSelection}>
               Cancelar
             </Button>
+            <Button variant="default" onClick={handleSendInvites}>
+              <Send className="mr-2 h-4 w-4" />
+              Enviar Convites
+            </Button>
             <Button variant="destructive" onClick={handleBulkDelete}>
               <Trash2 className="mr-2 h-4 w-4" />
               Deletar Selecionados
@@ -143,6 +155,7 @@ export function GuestsList({ guests, onEdit, onDelete, onDeleteMultiple }: Guest
                 />
               </TableHead>
               <TableHead>Nome</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead>Mesa</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
@@ -159,6 +172,14 @@ export function GuestsList({ guests, onEdit, onDelete, onDeleteMultiple }: Guest
                   />
                 </TableCell>
                 <TableCell className="font-medium">{guest.name}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm">{guest.email || "-"}</span>
+                    {!guest.email && (
+                      <span className="text-xs text-muted-foreground">(sem email)</span>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>{guest.table_number ? `Mesa ${guest.table_number}` : "-"}</TableCell>
                 <TableCell>
                   {guest.confirmed ? (
@@ -168,6 +189,16 @@ export function GuestsList({ guests, onEdit, onDelete, onDeleteMultiple }: Guest
                   )}
                 </TableCell>
                 <TableCell className="text-right space-x-2">
+                  {guest.email && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onSendInvite(guest.id)}
+                      title="Enviar convite por email"
+                    >
+                      <Mail className="h-4 w-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="ghost"
                     size="icon"

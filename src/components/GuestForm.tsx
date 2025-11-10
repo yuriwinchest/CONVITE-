@@ -14,6 +14,7 @@ import {
 
 const guestSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(100, "Nome muito longo"),
+  email: z.string().email("Email inválido").optional().or(z.literal("")),
   table_number: z.number().int().positive("Número da mesa deve ser positivo").optional().or(z.literal(0).transform(() => undefined)),
 });
 
@@ -31,6 +32,7 @@ export function GuestForm({ onSubmit, onCancel, defaultValues, isLoading }: Gues
     resolver: zodResolver(guestSchema),
     defaultValues: {
       name: defaultValues?.name || "",
+      email: (defaultValues as any)?.email || "",
       table_number: defaultValues?.table_number || undefined,
     },
   });
@@ -38,19 +40,33 @@ export function GuestForm({ onSubmit, onCancel, defaultValues, isLoading }: Gues
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nome</FormLabel>
-              <FormControl>
-                <Input placeholder="Nome do convidado" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nome</FormLabel>
+                <FormControl>
+                  <Input placeholder="Nome do convidado" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email (opcional)</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="email@exemplo.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
         <FormField
           control={form.control}

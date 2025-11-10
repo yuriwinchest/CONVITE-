@@ -33,6 +33,8 @@ import { CheckInManager } from "@/components/CheckInManager";
 import { ParsedGuest } from "@/lib/csvParser";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 export default function EventDetails() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -50,10 +52,57 @@ export default function EventDetails() {
   const { guests, isLoading, addGuest, addMultipleGuests, updateGuest, deleteGuest, deleteMultipleGuests } =
     useGuests(eventId);
 
-  const handleAddGuest = (data: { name: string; table_number?: number }) => {
+  const handleAddGuest = (data: { name: string; email?: string; table_number?: number }) => {
     if (!eventId) return;
     addGuest({ eventId, guest: data });
     setAddGuestDialogOpen(false);
+  };
+
+  const handleSendInvite = async (guestId: string) => {
+    if (!eventId) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("send-invite", {
+        body: { guestId, eventId },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Convite enviado!",
+        description: "O convite foi enviado por email com sucesso.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar convite",
+        description: error.message || "Não foi possível enviar o convite.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSendMultipleInvites = async (guestIds: string[]) => {
+    if (!eventId) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("send-invite", {
+        body: { guestIds, eventId },
+      });
+
+      if (error) throw error;
+
+      const results = data?.results;
+      if (results) {
+        toast({
+          title: "Convites enviados!",
+          description: `${results.success?.length || 0} convites enviados. ${results.failed?.length > 0 ? `${results.failed.length} falharam.` : ""}`,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar convites",
+        description: error.message || "Não foi possível enviar os convites.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCSVParsed = (guests: ParsedGuest[]) => {
@@ -159,9 +208,12 @@ export default function EventDetails() {
                 ) : (
                   <GuestsList
                     guests={guests}
+                    eventId={eventId!}
                     onEdit={(guestId, data) => updateGuest({ guestId, guest: data })}
                     onDelete={deleteGuest}
                     onDeleteMultiple={deleteMultipleGuests}
+                    onSendInvite={handleSendInvite}
+                    onSendMultipleInvites={handleSendMultipleInvites}
                   />
                 )}
               </CardContent>
