@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, MapPin, Sparkles, ArrowLeft, Plus, X } from "lucide-react";
+import { CalendarIcon, MapPin, Sparkles, ArrowLeft, Plus, X, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,6 +46,8 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
   const [tempGuests, setTempGuests] = useState<ParsedGuest[]>([]);
   const [guestName, setGuestName] = useState("");
   const [guestTableNumber, setGuestTableNumber] = useState("");
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -104,6 +106,41 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
     });
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    
+    if (!file) return;
+    
+    // Verificar tipo de arquivo
+    if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
+      toast({ 
+        title: "Formato inválido", 
+        description: "Apenas PNG e JPG são aceitos", 
+        variant: "destructive" 
+      });
+      return;
+    }
+    
+    // Verificar tamanho (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ 
+        title: "Arquivo muito grande", 
+        description: "Máximo 5MB", 
+        variant: "destructive" 
+      });
+      return;
+    }
+    
+    setSelectedImage(file);
+    
+    // Criar preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const onSubmit = async (data: EventFormData) => {
     setIsLoading(true);
     try {
@@ -126,6 +163,42 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
       }).select().single();
 
       if (error) throw error;
+
+      let tableMapUrl = null;
+      
+      // Se houver imagem selecionada, fazer upload
+      if (selectedImage && eventData) {
+        const fileExt = selectedImage.name.split('.').pop();
+        const fileName = `${user.id}/${eventData.id}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('event-maps')
+          .upload(fileName, selectedImage, {
+            cacheControl: '3600',
+            upsert: true
+          });
+        
+        if (uploadError) {
+          console.error("Upload error:", uploadError);
+          toast({ 
+            title: "Evento criado com aviso", 
+            description: "Evento criado, mas o mapa não foi enviado.", 
+            variant: "destructive" 
+          });
+        } else {
+          // Obter URL pública
+          const { data: urlData } = supabase.storage
+            .from('event-maps')
+            .getPublicUrl(fileName);
+          
+          tableMapUrl = urlData.publicUrl;
+          
+          // Atualizar evento com URL da imagem
+          await supabase.from('events')
+            .update({ table_map_url: tableMapUrl })
+            .eq('id', eventData.id);
+        }
+      }
 
       // Se houver convidados temporários, adicioná-los ao evento
       if (tempGuests.length > 0 && eventData) {
@@ -168,6 +241,8 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
       setTempGuests([]);
       setGuestName("");
       setGuestTableNumber("");
+      setSelectedImage(null);
+      setImagePreview(null);
       onOpenChange(false);
     } catch (error) {
       console.error("Error creating event:", error);
@@ -282,6 +357,59 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
                 {errors.location && (
                   <p className="text-sm text-destructive">{errors.location.message}</p>
                 )}
+              </div>
+
+              <div className="space-y-2 mt-6">
+                <Label htmlFor="tableMap">Mapa das Mesas (opcional)</Label>
+                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
+                  {imagePreview ? (
+                    <div className="space-y-3">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview do mapa" 
+                        className="mx-auto max-h-48 rounded-lg object-contain"
+                      />
+                      <div className="flex gap-2 justify-center">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedImage(null);
+                            setImagePreview(null);
+                          }}
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          Remover
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground">
+                        Clique para selecionar ou arraste a imagem
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        PNG ou JPG, máximo 5MB
+                      </p>
+                      <Input
+                        id="tableMap"
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('tableMap')?.click()}
+                      >
+                        Selecionar Imagem
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 

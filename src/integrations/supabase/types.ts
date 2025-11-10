@@ -23,6 +23,7 @@ export type Database = {
           id: string
           location: string | null
           name: string
+          table_map_url: string | null
           updated_at: string
           user_id: string
         }
@@ -34,6 +35,7 @@ export type Database = {
           id?: string
           location?: string | null
           name: string
+          table_map_url?: string | null
           updated_at?: string
           user_id: string
         }
@@ -45,6 +47,7 @@ export type Database = {
           id?: string
           location?: string | null
           name?: string
+          table_map_url?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -164,6 +167,7 @@ export type Database = {
           id: string
           location: string
           name: string
+          table_map_url: string
         }[]
       }
       search_guest_by_name: {

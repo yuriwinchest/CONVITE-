@@ -8,6 +8,7 @@ interface EventDetails {
   date: string;
   location: string | null;
   description: string | null;
+  table_map_url: string | null;
 }
 
 interface GuestSearchResult {

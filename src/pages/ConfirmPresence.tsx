@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useGuestConfirmation } from "@/hooks/useGuestConfirmation";
-import { Loader2, CheckCircle2, XCircle, MapPin, Calendar, Users } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, MapPin, Calendar, Users, Download, ZoomIn } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -247,6 +247,45 @@ export default function ConfirmPresence() {
                   Aguardamos você no evento! 🎉
                 </p>
               </div>
+
+              {/* Mapa das Mesas */}
+              {eventDetails.table_map_url && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-lg">📍 Localização da sua mesa</h4>
+                  <div className="border rounded-lg overflow-hidden">
+                    <img 
+                      src={eventDetails.table_map_url} 
+                      alt="Mapa das mesas"
+                      className="w-full h-auto"
+                    />
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = eventDetails.table_map_url!;
+                        link.download = `mapa-mesas-${eventDetails.name}.jpg`;
+                        link.click();
+                      }}
+                    >
+                      <Download className="mr-2 h-4 w-4" />
+                      Baixar Mapa
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => window.open(eventDetails.table_map_url, '_blank')}
+                    >
+                      <ZoomIn className="mr-2 h-4 w-4" />
+                      Ver em Tela Cheia
+                    </Button>
+                  </div>
+                </div>
+              )}
               
               <Button onClick={() => navigate("/")} variant="outline" className="w-full">
                 Voltar para o início
