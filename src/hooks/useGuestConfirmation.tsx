@@ -45,8 +45,11 @@ export function useGuestConfirmation(eventId: string) {
       if (error) throw error;
       
       if (data && data.length > 0) {
+        console.log("Event details loaded:", data[0]);
+        console.log("Table map URL:", data[0].table_map_url);
         setEventDetails(data[0]);
       } else {
+        console.log("No event data found");
         setEventDetails(null);
       }
     } catch (error: any) {

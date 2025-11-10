@@ -249,7 +249,7 @@ export default function ConfirmPresence() {
               </div>
 
               {/* Mapa das Mesas */}
-              {eventDetails.table_map_url && (
+              {eventDetails.table_map_url ? (
                 <div className="space-y-3">
                   <h4 className="font-semibold text-lg">📍 Localização da sua mesa</h4>
                   <div className="border rounded-lg overflow-hidden">
@@ -257,6 +257,10 @@ export default function ConfirmPresence() {
                       src={eventDetails.table_map_url} 
                       alt="Mapa das mesas"
                       className="w-full h-auto"
+                      onError={(e) => {
+                        console.error("Error loading image:", eventDetails.table_map_url);
+                        e.currentTarget.style.display = 'none';
+                      }}
                     />
                   </div>
                   
@@ -265,10 +269,25 @@ export default function ConfirmPresence() {
                       variant="outline"
                       className="flex-1"
                       onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = eventDetails.table_map_url!;
-                        link.download = `mapa-mesas-${eventDetails.name}.jpg`;
-                        link.click();
+                        console.log("Download button clicked, URL:", eventDetails.table_map_url);
+                        try {
+                          const link = document.createElement('a');
+                          link.href = eventDetails.table_map_url!;
+                          link.download = `mapa-mesas-${eventDetails.name}.jpg`;
+                          link.target = '_blank';
+                          link.rel = 'noopener noreferrer';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          console.log("Download link clicked successfully");
+                        } catch (error) {
+                          console.error("Error downloading map:", error);
+                          toast({
+                            title: "Erro ao baixar mapa",
+                            description: "Não foi possível baixar o mapa. Tente abrir em tela cheia.",
+                            variant: "destructive"
+                          });
+                        }
                       }}
                     >
                       <Download className="mr-2 h-4 w-4" />
@@ -278,12 +297,29 @@ export default function ConfirmPresence() {
                     <Button
                       variant="outline"
                       className="flex-1"
-                      onClick={() => window.open(eventDetails.table_map_url, '_blank')}
+                      onClick={() => {
+                        console.log("Fullscreen button clicked, URL:", eventDetails.table_map_url);
+                        try {
+                          window.open(eventDetails.table_map_url, '_blank', 'noopener,noreferrer');
+                          console.log("Window opened successfully");
+                        } catch (error) {
+                          console.error("Error opening fullscreen:", error);
+                          toast({
+                            title: "Erro ao abrir mapa",
+                            description: "Não foi possível abrir o mapa em tela cheia.",
+                            variant: "destructive"
+                          });
+                        }
+                      }}
                     >
                       <ZoomIn className="mr-2 h-4 w-4" />
                       Ver em Tela Cheia
                     </Button>
                   </div>
+                </div>
+              ) : (
+                <div className="bg-muted/50 rounded-lg p-4 text-center text-muted-foreground text-sm">
+                  O organizador não adicionou um mapa das mesas para este evento.
                 </div>
               )}
               
