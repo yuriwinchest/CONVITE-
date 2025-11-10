@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import DashboardHeader from "@/components/DashboardHeader";
 import DashboardStats from "@/components/DashboardStats";
 import EventsList from "@/components/EventsList";
+import Pricing from "@/components/Pricing";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Dashboard = () => {
@@ -53,6 +54,8 @@ const Dashboard = () => {
         <DashboardStats />
         <EventsList />
       </main>
+      
+      <Pricing />
     </div>
   );
 };
