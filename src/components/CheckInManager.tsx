@@ -19,11 +19,32 @@ export function CheckInManager({ eventId }: CheckInManagerProps) {
     setIsProcessing(true);
     
     try {
-      // Find guest by QR code
-      const guest = guests.find(g => g.qr_code === qrCode);
+      // Tentar decodificar QR Code estruturado (novo formato)
+      let guestId: string | null = null;
+      
+      try {
+        const decoded = atob(qrCode);
+        const data = JSON.parse(decoded);
+        
+        if (data.guestId && data.eventId === eventId) {
+          guestId = data.guestId;
+        }
+      } catch {
+        // Se não for QR Code estruturado, tentar buscar pelo campo qr_code (formato antigo)
+        const guestByQRCode = guests.find(g => g.qr_code === qrCode);
+        if (guestByQRCode) {
+          guestId = guestByQRCode.id;
+        }
+      }
+      
+      if (!guestId) {
+        throw new Error("QR Code inválido ou convidado não encontrado.");
+      }
+      
+      const guest = guests.find(g => g.id === guestId);
       
       if (!guest) {
-        throw new Error("QR Code inválido ou convidado não encontrado.");
+        throw new Error("Convidado não encontrado neste evento.");
       }
 
       if (guest.checked_in_at) {
@@ -38,7 +59,7 @@ export function CheckInManager({ eventId }: CheckInManagerProps) {
 
       toast({
         title: "Check-in realizado!",
-        description: `Presença confirmada para ${guest.name}.`,
+        description: `Presença confirmada para ${guest.name}${guest.table_number ? ` - Mesa ${guest.table_number}` : ''}.`,
       });
 
       // Reload to update the list

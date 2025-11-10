@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pencil, Trash2, Mail, Send } from "lucide-react";
+import { Pencil, Trash2, Mail, Send, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -29,10 +29,12 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Guest } from "@/hooks/useGuests";
 import { GuestForm } from "./GuestForm";
+import { GuestQRCodeDialog } from "./GuestQRCodeDialog";
 
 interface GuestsListProps {
   guests: Guest[];
   eventId: string;
+  eventName: string;
   onEdit: (guestId: string, data: { name: string; table_number?: number }) => void;
   onDelete: (guestId: string) => void;
   onDeleteMultiple: (guestIds: string[]) => void;
@@ -40,10 +42,11 @@ interface GuestsListProps {
   onSendMultipleInvites: (guestIds: string[]) => void;
 }
 
-export function GuestsList({ guests, eventId, onEdit, onDelete, onDeleteMultiple, onSendInvite, onSendMultipleInvites }: GuestsListProps) {
+export function GuestsList({ guests, eventId, eventName, onEdit, onDelete, onDeleteMultiple, onSendInvite, onSendMultipleInvites }: GuestsListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [qrCodeDialogOpen, setQrCodeDialogOpen] = useState(false);
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -55,6 +58,11 @@ export function GuestsList({ guests, eventId, onEdit, onDelete, onDeleteMultiple
   const handleEditClick = (guest: Guest) => {
     setSelectedGuest(guest);
     setEditDialogOpen(true);
+  };
+
+  const handleQRCodeClick = (guest: Guest) => {
+    setSelectedGuest(guest);
+    setQrCodeDialogOpen(true);
   };
 
   const handleDeleteConfirm = () => {
@@ -189,6 +197,14 @@ export function GuestsList({ guests, eventId, onEdit, onDelete, onDeleteMultiple
                   )}
                 </TableCell>
                 <TableCell className="text-right space-x-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleQRCodeClick(guest)}
+                    title="Ver QR Code do convidado"
+                  >
+                    <QrCode className="h-4 w-4" />
+                  </Button>
                   {guest.email && (
                     <Button
                       variant="ghost"
@@ -283,6 +299,13 @@ export function GuestsList({ guests, eventId, onEdit, onDelete, onDeleteMultiple
           )}
         </DialogContent>
       </Dialog>
+
+      <GuestQRCodeDialog
+        guest={selectedGuest}
+        eventName={eventName}
+        open={qrCodeDialogOpen}
+        onOpenChange={setQrCodeDialogOpen}
+      />
     </>
   );
 }

@@ -211,6 +211,7 @@ export default function EventDetails() {
                   <GuestsList
                     guests={guests}
                     eventId={eventId!}
+                    eventName={event.name}
                     onEdit={(guestId, data) => updateGuest({ guestId, guest: data })}
                     onDelete={deleteGuest}
                     onDeleteMultiple={deleteMultipleGuests}
