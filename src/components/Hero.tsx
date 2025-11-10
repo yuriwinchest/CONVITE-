@@ -1,7 +1,10 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 
 const Hero = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="py-20 px-6">
       <div className="container mx-auto max-w-4xl text-center">
@@ -21,7 +24,11 @@ const Hero = () => {
         </p>
         
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button size="lg" className="bg-primary hover:bg-accent text-primary-foreground px-8 py-6 text-base font-semibold">
+          <Button 
+            size="lg" 
+            onClick={() => navigate("/auth")}
+            className="bg-primary hover:bg-accent text-primary-foreground px-8 py-6 text-base font-semibold"
+          >
             Criar Meu Evento
           </Button>
           <Button size="lg" variant="outline" className="border-2 border-muted-foreground/30 px-8 py-6 text-base font-semibold">
