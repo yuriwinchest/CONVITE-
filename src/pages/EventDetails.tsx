@@ -9,11 +9,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEvents } from "@/hooks/useEvents";
 import { useGuests } from "@/hooks/useGuests";
 import { GuestForm } from "@/components/GuestForm";
 import { GuestsList } from "@/components/GuestsList";
 import { CSVUploader } from "@/components/CSVUploader";
+import { TableManager } from "@/components/TableManager";
 import { ParsedGuest } from "@/lib/csvParser";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -87,39 +89,52 @@ export default function EventDetails() {
           </CardHeader>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>
-                Convidados ({guests.length}
-                {event.capacity ? ` / ${event.capacity}` : ""})
-              </CardTitle>
-              <div className="flex gap-2">
-                <Button onClick={() => setCsvDialogOpen(true)}>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Importar CSV
-                </Button>
-                <Button onClick={() => setAddGuestDialogOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Adicionar Convidado
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground">
-                Carregando convidados...
-              </div>
-            ) : (
-              <GuestsList
-                guests={guests}
-                onEdit={(guestId, data) => updateGuest({ guestId, guest: data })}
-                onDelete={deleteGuest}
-              />
-            )}
-          </CardContent>
-        </Card>
+        <Tabs defaultValue="guests" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="guests">Convidados</TabsTrigger>
+            <TabsTrigger value="tables">Organização de Mesas</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="guests">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>
+                    Convidados ({guests.length}
+                    {event.capacity ? ` / ${event.capacity}` : ""})
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    <Button onClick={() => setCsvDialogOpen(true)}>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Importar CSV
+                    </Button>
+                    <Button onClick={() => setAddGuestDialogOpen(true)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Adicionar Convidado
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {isLoading ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Carregando convidados...
+                  </div>
+                ) : (
+                  <GuestsList
+                    guests={guests}
+                    onEdit={(guestId, data) => updateGuest({ guestId, guest: data })}
+                    onDelete={deleteGuest}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="tables">
+            <TableManager eventId={eventId!} />
+          </TabsContent>
+        </Tabs>
 
         <Dialog open={addGuestDialogOpen} onOpenChange={setAddGuestDialogOpen}>
           <DialogContent>
