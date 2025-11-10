@@ -155,7 +155,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      confirm_guest_presence: { Args: { p_guest_id: string }; Returns: Json }
+      get_public_event_details: {
+        Args: { p_event_id: string }
+        Returns: {
+          date: string
+          description: string
+          id: string
+          location: string
+          name: string
+        }[]
+      }
+      search_guest_by_name: {
+        Args: { p_event_id: string; p_name: string }
+        Returns: {
+          confirmed: boolean
+          email: string
+          event_date: string
+          event_location: string
+          event_name: string
+          id: string
+          name: string
+          table_number: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

@@ -100,6 +100,10 @@ const handler = async (req: Request): Promise<Response> => {
           minute: "2-digit",
         });
 
+        // Link de confirmação de presença (usando URL da aplicação)
+        const appUrl = Deno.env.get("APP_URL") || "http://localhost:5173";
+        const confirmationLink = `${appUrl}/confirm/${eventId}`;
+
         const emailHtml = `
           <!DOCTYPE html>
           <html>
@@ -192,6 +196,24 @@ const handler = async (req: Request): Promise<Response> => {
                   <img src="${qrCodeDataUrl}" alt="QR Code" style="max-width: 250px; height: auto;" />
                   <p style="color: #6b7280; font-size: 12px; margin-top: 15px;">
                     Você pode salvar esta imagem ou apresentar este email na entrada
+                  </p>
+                </div>
+
+                <div style="text-align: center; margin: 30px 0;">
+                  <a href="${confirmationLink}" 
+                     style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+                            color: white; 
+                            padding: 14px 32px; 
+                            text-decoration: none; 
+                            border-radius: 8px; 
+                            display: inline-block;
+                            font-weight: 600;
+                            font-size: 16px;
+                            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                    ✅ Confirmar Presença
+                  </a>
+                  <p style="color: #6b7280; font-size: 12px; margin-top: 12px;">
+                    Clique no botão acima para confirmar sua presença no evento
                   </p>
                 </div>
 
