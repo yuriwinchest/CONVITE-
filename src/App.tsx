@@ -23,6 +23,7 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/events/:eventId" element={<EventDetails />} />
+          <Route path="/confirm" element={<ConfirmPresence />} />
           <Route path="/confirm/:eventId" element={<ConfirmPresence />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
