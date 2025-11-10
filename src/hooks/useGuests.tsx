@@ -160,6 +160,31 @@ export const useGuests = (eventId: string | undefined) => {
     },
   });
 
+  const deleteMultipleGuests = useMutation({
+    mutationFn: async (guestIds: string[]) => {
+      const { error } = await supabase
+        .from("guests")
+        .delete()
+        .in("id", guestIds);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, guestIds) => {
+      queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
+      toast({
+        title: "Convidados removidos",
+        description: `${guestIds.length} convidados foram removidos com sucesso.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Erro ao remover convidados",
+        description: "Não foi possível remover os convidados.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const checkInGuest = useMutation({
     mutationFn: async (guestId: string) => {
       const { data, error } = await supabase
@@ -195,6 +220,7 @@ export const useGuests = (eventId: string | undefined) => {
     addMultipleGuests: addMultipleGuests.mutate,
     updateGuest: updateGuest.mutate,
     deleteGuest: deleteGuest.mutate,
+    deleteMultipleGuests: deleteMultipleGuests.mutate,
     checkInGuest: checkInGuest.mutate,
   };
 };

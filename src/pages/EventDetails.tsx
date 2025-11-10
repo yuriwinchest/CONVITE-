@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Upload } from "lucide-react";
+import { ArrowLeft, Plus, Upload, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,9 +8,22 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useEvents } from "@/hooks/useEvents";
+import { useEvents, useDeleteEvent } from "@/hooks/useEvents";
 import { useGuests } from "@/hooks/useGuests";
 import { GuestForm } from "@/components/GuestForm";
 import { GuestsList } from "@/components/GuestsList";
@@ -26,12 +39,15 @@ export default function EventDetails() {
   const navigate = useNavigate();
   const [addGuestDialogOpen, setAddGuestDialogOpen] = useState(false);
   const [csvDialogOpen, setCsvDialogOpen] = useState(false);
+  const [deleteEventDialogOpen, setDeleteEventDialogOpen] = useState(false);
+  const [confirmEventName, setConfirmEventName] = useState("");
   const [pendingGuests, setPendingGuests] = useState<ParsedGuest[]>([]);
 
   const { data: events } = useEvents();
   const event = events?.find((e) => e.id === eventId);
+  const { mutate: deleteEventMutation } = useDeleteEvent();
 
-  const { guests, isLoading, addGuest, addMultipleGuests, updateGuest, deleteGuest } =
+  const { guests, isLoading, addGuest, addMultipleGuests, updateGuest, deleteGuest, deleteMultipleGuests } =
     useGuests(eventId);
 
   const handleAddGuest = (data: { name: string; table_number?: number }) => {
@@ -49,6 +65,17 @@ export default function EventDetails() {
     addMultipleGuests({ eventId, guests: pendingGuests });
     setPendingGuests([]);
     setCsvDialogOpen(false);
+  };
+
+  const handleDeleteEvent = () => {
+    if (!eventId || !event) return;
+    if (confirmEventName !== event.name) return;
+    
+    deleteEventMutation(eventId, {
+      onSuccess: () => {
+        navigate("/dashboard");
+      },
+    });
   };
 
   if (!event) {
@@ -74,6 +101,13 @@ export default function EventDetails() {
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Voltar ao Dashboard
+          </Button>
+          <Button 
+            variant="destructive" 
+            onClick={() => setDeleteEventDialogOpen(true)}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Deletar Evento
           </Button>
         </div>
 
@@ -127,6 +161,7 @@ export default function EventDetails() {
                     guests={guests}
                     onEdit={(guestId, data) => updateGuest({ guestId, guest: data })}
                     onDelete={deleteGuest}
+                    onDeleteMultiple={deleteMultipleGuests}
                   />
                 )}
               </CardContent>
@@ -192,6 +227,41 @@ export default function EventDetails() {
             )}
           </DialogContent>
         </Dialog>
+
+        <AlertDialog open={deleteEventDialogOpen} onOpenChange={setDeleteEventDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>⚠️ Deletar evento permanentemente</AlertDialogTitle>
+              <AlertDialogDescription>
+                Isso removerá o evento "{event?.name}" e todos os {guests.length} convidado{guests.length !== 1 ? 's' : ''} associado{guests.length !== 1 ? 's' : ''}. 
+                Esta ação não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-name">
+                Digite o nome do evento para confirmar:
+              </Label>
+              <Input
+                id="confirm-name"
+                value={confirmEventName}
+                onChange={(e) => setConfirmEventName(e.target.value)}
+                placeholder={event?.name}
+              />
+            </div>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setConfirmEventName("")}>
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteEvent}
+                disabled={confirmEventName !== event?.name}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Deletar Permanentemente
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

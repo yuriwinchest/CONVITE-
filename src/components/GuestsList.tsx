@@ -26,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Guest } from "@/hooks/useGuests";
 import { GuestForm } from "./GuestForm";
 
@@ -33,12 +34,15 @@ interface GuestsListProps {
   guests: Guest[];
   onEdit: (guestId: string, data: { name: string; table_number?: number }) => void;
   onDelete: (guestId: string) => void;
+  onDeleteMultiple: (guestIds: string[]) => void;
 }
 
-export function GuestsList({ guests, onEdit, onDelete }: GuestsListProps) {
+export function GuestsList({ guests, onEdit, onDelete, onDeleteMultiple }: GuestsListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const handleDeleteClick = (guest: Guest) => {
     setSelectedGuest(guest);
@@ -66,6 +70,36 @@ export function GuestsList({ guests, onEdit, onDelete }: GuestsListProps) {
     }
   };
 
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(guests.map(g => g.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectGuest = (guestId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedIds(prev => [...prev, guestId]);
+    } else {
+      setSelectedIds(prev => prev.filter(id => id !== guestId));
+    }
+  };
+
+  const handleBulkDelete = () => {
+    setBulkDeleteDialogOpen(true);
+  };
+
+  const handleConfirmBulkDelete = () => {
+    onDeleteMultiple(selectedIds);
+    setSelectedIds([]);
+    setBulkDeleteDialogOpen(false);
+  };
+
+  const handleCancelSelection = () => {
+    setSelectedIds([]);
+  };
+
   if (guests.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -74,12 +108,40 @@ export function GuestsList({ guests, onEdit, onDelete }: GuestsListProps) {
     );
   }
 
+  const allSelected = guests.length > 0 && selectedIds.length === guests.length;
+  const someSelected = selectedIds.length > 0 && selectedIds.length < guests.length;
+
   return (
     <>
+      {selectedIds.length > 0 && (
+        <div className="mb-4 p-4 rounded-lg border bg-muted/50 flex items-center justify-between">
+          <span className="font-medium">
+            {selectedIds.length} convidado{selectedIds.length > 1 ? 's' : ''} selecionado{selectedIds.length > 1 ? 's' : ''}
+          </span>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleCancelSelection}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleBulkDelete}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              Deletar Selecionados
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-12">
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={handleSelectAll}
+                  aria-label="Selecionar todos"
+                  className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
+                />
+              </TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Mesa</TableHead>
               <TableHead>Status</TableHead>
@@ -89,6 +151,13 @@ export function GuestsList({ guests, onEdit, onDelete }: GuestsListProps) {
           <TableBody>
             {guests.map((guest) => (
               <TableRow key={guest.id}>
+                <TableCell>
+                  <Checkbox
+                    checked={selectedIds.includes(guest.id)}
+                    onCheckedChange={(checked) => handleSelectGuest(guest.id, checked as boolean)}
+                    aria-label={`Selecionar ${guest.name}`}
+                  />
+                </TableCell>
                 <TableCell className="font-medium">{guest.name}</TableCell>
                 <TableCell>{guest.table_number ? `Mesa ${guest.table_number}` : "-"}</TableCell>
                 <TableCell>
@@ -132,6 +201,35 @@ export function GuestsList({ guests, onEdit, onDelete }: GuestsListProps) {
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm}>
               Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deletar múltiplos convidados</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover {selectedIds.length} convidado{selectedIds.length > 1 ? 's' : ''}? 
+              Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {selectedIds.length > 0 && (
+            <div className="max-h-48 overflow-y-auto rounded-md border p-3 space-y-1">
+              {guests
+                .filter(g => selectedIds.includes(g.id))
+                .map(g => (
+                  <div key={g.id} className="text-sm">
+                    • {g.name}
+                  </div>
+                ))}
+            </div>
+          )}
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Deletar Todos
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
