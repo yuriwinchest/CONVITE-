@@ -82,9 +82,9 @@ export function CSVUploader({ onGuestsParsed }: CSVUploaderProps) {
       )}
 
       <div className="text-sm text-muted-foreground">
-        Formato esperado: <code className="bg-muted px-1 py-0.5 rounded">nome,email</code>
+        Formato esperado: <code className="bg-muted px-1 py-0.5 rounded">nome,mesa</code>
         <br />
-        Uma linha por convidado. O email é opcional.
+        Uma linha por convidado. O número da mesa é opcional.
       </div>
     </div>
   );

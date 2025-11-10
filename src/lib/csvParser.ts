@@ -1,6 +1,6 @@
 export interface ParsedGuest {
   name: string;
-  email?: string;
+  table_number?: number;
 }
 
 export interface CSVParseResult {
@@ -8,9 +8,9 @@ export interface CSVParseResult {
   errors: string[];
 }
 
-const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+const validateTableNumber = (table: string): number | null => {
+  const num = parseInt(table);
+  return !isNaN(num) && num > 0 ? num : null;
 };
 
 export const parseCSV = async (file: File): Promise<CSVParseResult> => {
@@ -25,13 +25,13 @@ export const parseCSV = async (file: File): Promise<CSVParseResult> => {
       const errors: string[] = [];
 
       // Skip header if it looks like a header
-      const startIndex = lines[0]?.toLowerCase().includes('nome') || lines[0]?.toLowerCase().includes('name') ? 1 : 0;
+      const startIndex = lines[0]?.toLowerCase().includes('nome') || lines[0]?.toLowerCase().includes('name') || lines[0]?.toLowerCase().includes('mesa') || lines[0]?.toLowerCase().includes('table') ? 1 : 0;
 
       for (let i = startIndex; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
 
-        const [name, email] = line.split(',').map(item => item.trim());
+        const [name, table] = line.split(',').map(item => item.trim());
 
         if (!name) {
           errors.push(`Linha ${i + 1}: Nome não pode estar vazio`);
@@ -40,11 +40,12 @@ export const parseCSV = async (file: File): Promise<CSVParseResult> => {
 
         const guest: ParsedGuest = { name };
 
-        if (email) {
-          if (validateEmail(email)) {
-            guest.email = email;
+        if (table) {
+          const tableNumber = validateTableNumber(table);
+          if (tableNumber) {
+            guest.table_number = tableNumber;
           } else {
-            errors.push(`Linha ${i + 1}: Email inválido "${email}"`);
+            errors.push(`Linha ${i + 1}: Número da mesa inválido "${table}"`);
           }
         }
 
@@ -70,7 +71,7 @@ export const parseCSV = async (file: File): Promise<CSVParseResult> => {
 };
 
 export const downloadCSVTemplate = () => {
-  const template = 'nome,email\nJoão Silva,joao@exemplo.com\nMaria Santos,maria@exemplo.com';
+  const template = 'nome,mesa\nJoão Silva,1\nMaria Santos,2\nPedro Costa,1\nAna Lima,3\nCarlos Souza,';
   const blob = new Blob([template], { type: 'text/csv' });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');

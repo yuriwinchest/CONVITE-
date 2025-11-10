@@ -45,7 +45,7 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [tempGuests, setTempGuests] = useState<ParsedGuest[]>([]);
   const [guestName, setGuestName] = useState("");
-  const [guestEmail, setGuestEmail] = useState("");
+  const [guestTableNumber, setGuestTableNumber] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -72,14 +72,24 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
       return;
     }
 
+    const tableNum = guestTableNumber.trim() ? parseInt(guestTableNumber.trim()) : undefined;
+    if (guestTableNumber.trim() && (!tableNum || tableNum < 1)) {
+      toast({
+        title: "Erro",
+        description: "Número da mesa deve ser um número positivo",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const newGuest: ParsedGuest = {
       name: guestName.trim(),
-      email: guestEmail.trim() || undefined,
+      table_number: tableNum,
     };
 
     setTempGuests([...tempGuests, newGuest]);
     setGuestName("");
-    setGuestEmail("");
+    setGuestTableNumber("");
   };
 
   const handleRemoveGuest = (index: number) => {
@@ -122,7 +132,7 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
         const guestsToInsert = tempGuests.map(guest => ({
           event_id: eventData.id,
           name: guest.name,
-          email: guest.email,
+          table_number: guest.table_number,
         }));
 
         const { error: guestsError } = await supabase
@@ -157,7 +167,7 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
       reset();
       setTempGuests([]);
       setGuestName("");
-      setGuestEmail("");
+      setGuestTableNumber("");
       onOpenChange(false);
     } catch (error) {
       console.error("Error creating event:", error);
@@ -173,8 +183,8 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] p-0 gap-0 max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="border-b border-border p-6">
+      <DialogContent className="sm:max-w-[700px] max-w-[95vw] p-0 gap-0 max-h-[85vh] flex flex-col">
+        <DialogHeader className="border-b border-border p-6 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button
@@ -202,158 +212,163 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6">
-          <div className="bg-card rounded-lg border border-border p-6 mb-6">
-            <h3 className="text-lg font-semibold mb-6">Detalhes do Evento</h3>
+        <div className="overflow-y-auto flex-1 p-6">
+          <form id="event-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="bg-card rounded-lg border border-border p-6">
+              <h3 className="text-lg font-semibold mb-6">Detalhes do Evento</h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome do Evento</Label>
-                <Input
-                  id="name"
-                  placeholder="Ex: Casamento de Maria e João"
-                  className="bg-primary/5 border-primary/20"
-                  {...register("name")}
-                  disabled={isLoading}
-                />
-                {errors.name && (
-                  <p className="text-sm text-destructive">{errors.name.message}</p>
-                )}
-              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nome do Evento</Label>
+                  <Input
+                    id="name"
+                    placeholder="Ex: Casamento de Maria e João"
+                    className="bg-primary/5 border-primary/20"
+                    {...register("name")}
+                    disabled={isLoading}
+                  />
+                  {errors.name && (
+                    <p className="text-sm text-destructive">{errors.name.message}</p>
+                  )}
+                </div>
 
-              <div className="space-y-2">
-                <Label>Data do Evento</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full justify-start text-left font-normal bg-primary/5 border-primary/20",
-                        !selectedDate && "text-muted-foreground"
-                      )}
-                      disabled={isLoading}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {selectedDate
-                        ? format(selectedDate, "dd/MM/yyyy", { locale: ptBR })
-                        : "Selecione a data"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={(date) => date && setValue("date", date)}
-                      initialFocus
-                      locale={ptBR}
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-                {errors.date && (
-                  <p className="text-sm text-destructive">{errors.date.message}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2 mt-6">
-              <Label htmlFor="location">Local</Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  id="location"
-                  placeholder="Ex: Brasília, Brasil"
-                  className="pl-10 bg-primary/5 border-primary/20"
-                  {...register("location")}
-                  disabled={isLoading}
-                />
-              </div>
-              {errors.location && (
-                <p className="text-sm text-destructive">{errors.location.message}</p>
-              )}
-            </div>
-          </div>
-
-          <Separator className="my-6" />
-
-          <div className="space-y-4">
-            <h3 className="font-semibold text-lg">Convidados (opcional)</h3>
-            
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <Input
-                  placeholder="Nome do convidado"
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddManualGuest();
-                    }
-                  }}
-                  disabled={isLoading}
-                />
-                <Input
-                  type="email"
-                  placeholder="Email (opcional)"
-                  value={guestEmail}
-                  onChange={(e) => setGuestEmail(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddManualGuest();
-                    }
-                  }}
-                  disabled={isLoading}
-                />
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleAddManualGuest}
-                className="w-full"
-                disabled={isLoading}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Adicionar Convidado
-              </Button>
-            </div>
-
-            <CSVUploader onGuestsParsed={handleCSVParsed} />
-
-            {tempGuests.length > 0 && (
-              <div className="rounded-md border p-4">
-                <h4 className="font-semibold mb-2">
-                  Convidados adicionados ({tempGuests.length})
-                </h4>
-                <div className="max-h-48 overflow-y-auto space-y-2">
-                  {tempGuests.map((guest, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between text-sm bg-muted p-2 rounded"
-                    >
-                      <span>
-                        {guest.name} {guest.email && `(${guest.email})`}
-                      </span>
+                <div className="space-y-2">
+                  <Label>Data do Evento</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
                       <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleRemoveGuest(index)}
+                        variant="outline"
+                        className={cn(
+                          "w-full justify-start text-left font-normal bg-primary/5 border-primary/20",
+                          !selectedDate && "text-muted-foreground"
+                        )}
                         disabled={isLoading}
                       >
-                        <X className="h-4 w-4" />
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {selectedDate
+                          ? format(selectedDate, "dd/MM/yyyy", { locale: ptBR })
+                          : "Selecione a data"}
                       </Button>
-                    </div>
-                  ))}
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={(date) => date && setValue("date", date)}
+                        initialFocus
+                        locale={ptBR}
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {errors.date && (
+                    <p className="text-sm text-destructive">{errors.date.message}</p>
+                  )}
                 </div>
               </div>
-            )}
-          </div>
 
+              <div className="space-y-2 mt-6">
+                <Label htmlFor="location">Local</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="location"
+                    placeholder="Ex: Brasília, Brasil"
+                    className="pl-10 bg-primary/5 border-primary/20"
+                    {...register("location")}
+                    disabled={isLoading}
+                  />
+                </div>
+                {errors.location && (
+                  <p className="text-sm text-destructive">{errors.location.message}</p>
+                )}
+              </div>
+            </div>
+
+            <Separator />
+
+            <div className="space-y-4">
+              <h3 className="font-semibold text-lg">Convidados (opcional)</h3>
+              
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    placeholder="Nome do convidado"
+                    value={guestName}
+                    onChange={(e) => setGuestName(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddManualGuest();
+                      }
+                    }}
+                    disabled={isLoading}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Número da mesa"
+                    value={guestTableNumber}
+                    onChange={(e) => setGuestTableNumber(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddManualGuest();
+                      }
+                    }}
+                    disabled={isLoading}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleAddManualGuest}
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Adicionar Convidado
+                </Button>
+              </div>
+
+              <CSVUploader onGuestsParsed={handleCSVParsed} />
+
+              {tempGuests.length > 0 && (
+                <div className="rounded-md border p-4">
+                  <h4 className="font-semibold mb-2">
+                    Convidados adicionados ({tempGuests.length})
+                  </h4>
+                  <div className="max-h-48 overflow-y-auto space-y-2">
+                    {tempGuests.map((guest, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between text-sm bg-muted p-2 rounded"
+                      >
+                        <span>
+                          {guest.name} {guest.table_number && `(Mesa ${guest.table_number})`}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleRemoveGuest(index)}
+                          disabled={isLoading}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </form>
+        </div>
+
+        <div className="border-t border-border p-6 flex-shrink-0">
           <Button
             type="submit"
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 text-base font-semibold mt-6"
+            form="event-form"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 text-base font-semibold"
             disabled={isLoading}
           >
             <Sparkles className="w-4 h-4 mr-2" />
@@ -364,7 +379,7 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
                 : "Criar Evento"
             }
           </Button>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

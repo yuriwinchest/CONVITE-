@@ -31,7 +31,7 @@ export default function EventDetails() {
   const { guests, isLoading, addGuest, addMultipleGuests, updateGuest, deleteGuest } =
     useGuests(eventId);
 
-  const handleAddGuest = (data: { name: string; email?: string }) => {
+  const handleAddGuest = (data: { name: string; table_number?: number }) => {
     if (!eventId) return;
     addGuest({ eventId, guest: data });
     setAddGuestDialogOpen(false);
@@ -148,7 +148,7 @@ export default function EventDetails() {
                   <div className="max-h-48 overflow-y-auto space-y-2">
                     {pendingGuests.map((guest, index) => (
                       <div key={index} className="text-sm">
-                        {guest.name} {guest.email && `(${guest.email})`}
+                        {guest.name} {guest.table_number && `(Mesa ${guest.table_number})`}
                       </div>
                     ))}
                   </div>

@@ -31,7 +31,7 @@ import { GuestForm } from "./GuestForm";
 
 interface GuestsListProps {
   guests: Guest[];
-  onEdit: (guestId: string, data: { name: string; email?: string }) => void;
+  onEdit: (guestId: string, data: { name: string; table_number?: number }) => void;
   onDelete: (guestId: string) => void;
 }
 
@@ -58,7 +58,7 @@ export function GuestsList({ guests, onEdit, onDelete }: GuestsListProps) {
     }
   };
 
-  const handleEditSubmit = (data: { name: string; email?: string }) => {
+  const handleEditSubmit = (data: { name: string; table_number?: number }) => {
     if (selectedGuest) {
       onEdit(selectedGuest.id, data);
       setEditDialogOpen(false);
@@ -81,7 +81,7 @@ export function GuestsList({ guests, onEdit, onDelete }: GuestsListProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
-              <TableHead>Email</TableHead>
+              <TableHead>Mesa</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
@@ -90,7 +90,7 @@ export function GuestsList({ guests, onEdit, onDelete }: GuestsListProps) {
             {guests.map((guest) => (
               <TableRow key={guest.id}>
                 <TableCell className="font-medium">{guest.name}</TableCell>
-                <TableCell>{guest.email || "-"}</TableCell>
+                <TableCell>{guest.table_number ? `Mesa ${guest.table_number}` : "-"}</TableCell>
                 <TableCell>
                   {guest.confirmed ? (
                     <Badge variant="default">Confirmado</Badge>
@@ -148,7 +148,7 @@ export function GuestsList({ guests, onEdit, onDelete }: GuestsListProps) {
               onCancel={() => setEditDialogOpen(false)}
               defaultValues={{
                 name: selectedGuest.name,
-                email: selectedGuest.email || "",
+                table_number: selectedGuest.table_number || undefined,
               }}
             />
           )}

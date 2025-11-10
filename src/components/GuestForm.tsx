@@ -14,7 +14,7 @@ import {
 
 const guestSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(100, "Nome muito longo"),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
+  table_number: z.number().int().positive("Número da mesa deve ser positivo").optional().or(z.literal(0).transform(() => undefined)),
 });
 
 type GuestFormData = z.infer<typeof guestSchema>;
@@ -31,7 +31,7 @@ export function GuestForm({ onSubmit, onCancel, defaultValues, isLoading }: Gues
     resolver: zodResolver(guestSchema),
     defaultValues: {
       name: defaultValues?.name || "",
-      email: defaultValues?.email || "",
+      table_number: defaultValues?.table_number || undefined,
     },
   });
 
@@ -54,12 +54,21 @@ export function GuestForm({ onSubmit, onCancel, defaultValues, isLoading }: Gues
 
         <FormField
           control={form.control}
-          name="email"
+          name="table_number"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email (opcional)</FormLabel>
+              <FormLabel>Número da Mesa (opcional)</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="email@exemplo.com" {...field} />
+                <Input 
+                  type="number" 
+                  placeholder="Ex: 1, 2, 3..." 
+                  {...field}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    field.onChange(value === "" ? undefined : parseInt(value));
+                  }}
+                  value={field.value || ""}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
