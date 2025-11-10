@@ -16,6 +16,7 @@ export default function ConfirmPresence() {
   const [guestName, setGuestName] = useState("");
   const [searchState, setSearchState] = useState<"idle" | "searching" | "found" | "not-found" | "confirmed">("idle");
   const [guestData, setGuestData] = useState<any>(null);
+  const [eventCode, setEventCode] = useState("");
 
   const { searchGuest, confirmPresence, getEventDetails, eventDetails, isLoadingEvent } = useGuestConfirmation(eventId || "");
 
@@ -99,11 +100,33 @@ export default function ConfirmPresence() {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader>
-            <CardTitle className="text-destructive">Evento não encontrado</CardTitle>
-            <CardDescription>O evento que você está procurando não existe ou foi removido.</CardDescription>
+            <CardTitle className="text-destructive">{eventId ? "Evento não encontrado" : "Acesse seu evento"}</CardTitle>
+            <CardDescription>
+              {eventId
+                ? "O evento que você está procurando não existe ou foi removido."
+                : "Cole abaixo o código do evento (ID) enviado no convite para confirmar sua presença."}
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button onClick={() => navigate("/")} className="w-full">
+          <CardContent className="space-y-3">
+            {!eventId && (
+              <>
+                <Input
+                  placeholder="Código do evento (UUID)"
+                  value={eventCode}
+                  onChange={(e) => setEventCode(e.target.value)}
+                />
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    if (!eventCode.trim()) return;
+                    navigate(`/confirm/${eventCode.trim()}`);
+                  }}
+                >
+                  Ir para o evento
+                </Button>
+              </>
+            )}
+            <Button onClick={() => navigate("/")} variant="outline" className="w-full">
               Voltar para o início
             </Button>
           </CardContent>
