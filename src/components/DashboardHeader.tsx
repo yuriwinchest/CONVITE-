@@ -24,7 +24,7 @@ const DashboardHeader = () => {
           <Button 
             variant="outline" 
             onClick={logout}
-            className="bg-accent/10 border-accent text-primary-foreground hover:bg-accent hover:text-accent-foreground"
+            className="bg-accent text-accent-foreground border-accent hover:bg-accent/90"
           >
             Sair
           </Button>

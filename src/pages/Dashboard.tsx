@@ -20,15 +20,15 @@ const Dashboard = () => {
     return (
       <div className="min-h-screen bg-background">
         <DashboardHeader />
-        <main className="container mx-auto px-6 py-8">
-          <Skeleton className="h-16 w-96 mb-8" />
+        <div className="container mx-auto px-6 py-8">
+          <Skeleton className="h-8 w-64 mb-2" />
+          <Skeleton className="h-4 w-96 mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-32" />
             ))}
           </div>
-          <Skeleton className="h-64" />
-        </main>
+        </div>
       </div>
     );
   }
