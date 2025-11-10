@@ -41,7 +41,7 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      const redirectUrl = `${window.location.origin}/dashboard`;
       
       const { error } = await supabase.auth.signUp({
         email: data.email,
@@ -76,7 +76,7 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
         description: "Redirecionando...",
       });
       
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       toast({
         title: "Erro inesperado",

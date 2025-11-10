@@ -63,7 +63,7 @@ const LoginForm = ({ onToggleForm }: LoginFormProps) => {
         description: "Redirecionando...",
       });
       
-      navigate("/");
+      navigate("/dashboard");
     } catch (error) {
       toast({
         title: "Erro inesperado",

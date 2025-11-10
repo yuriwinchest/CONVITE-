@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      events: {
+        Row: {
+          capacity: number | null
+          created_at: string
+          date: string
+          description: string | null
+          id: string
+          location: string | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          capacity?: number | null
+          created_at?: string
+          date: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          capacity?: number | null
+          created_at?: string
+          date?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      guests: {
+        Row: {
+          confirmed: boolean | null
+          created_at: string
+          email: string | null
+          event_id: string
+          id: string
+          name: string
+          qr_code: string | null
+          table_number: number | null
+        }
+        Insert: {
+          confirmed?: boolean | null
+          created_at?: string
+          email?: string | null
+          event_id: string
+          id?: string
+          name: string
+          qr_code?: string | null
+          table_number?: number | null
+        }
+        Update: {
+          confirmed?: boolean | null
+          created_at?: string
+          email?: string | null
+          event_id?: string
+          id?: string
+          name?: string
+          qr_code?: string | null
+          table_number?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guests_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -37,6 +114,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      tables: {
+        Row: {
+          capacity: number
+          created_at: string
+          event_id: string
+          id: string
+          table_number: number
+        }
+        Insert: {
+          capacity: number
+          created_at?: string
+          event_id: string
+          id?: string
+          table_number: number
+        }
+        Update: {
+          capacity?: number
+          created_at?: string
+          event_id?: string
+          id?: string
+          table_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tables_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
