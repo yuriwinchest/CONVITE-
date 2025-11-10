@@ -3,9 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEvents } from "@/hooks/useEvents";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useState } from "react";
+import CreateEventDialog from "@/components/CreateEventDialog";
 
 const EventsList = () => {
   const { data: events, isLoading } = useEvents();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -26,7 +29,10 @@ const EventsList = () => {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-foreground">Seus Eventos</h2>
         {hasEvents && (
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+          <Button 
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            onClick={() => setIsCreateDialogOpen(true)}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Criar Novo Evento
           </Button>
@@ -45,7 +51,10 @@ const EventsList = () => {
             <p className="text-muted-foreground text-center mb-8 max-w-md">
               Crie seu primeiro evento e comece a organizar com sofisticação
             </p>
-            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              onClick={() => setIsCreateDialogOpen(true)}
+            >
               <Plus className="w-4 h-4 mr-2" />
               Criar Primeiro Evento
             </Button>
@@ -74,6 +83,11 @@ const EventsList = () => {
           ))}
         </div>
       )}
+
+      <CreateEventDialog 
+        open={isCreateDialogOpen} 
+        onOpenChange={setIsCreateDialogOpen} 
+      />
     </div>
   );
 };
