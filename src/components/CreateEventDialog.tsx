@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, MapPin, Sparkles, ArrowLeft } from "lucide-react";
+import { CalendarIcon, MapPin, Sparkles, ArrowLeft, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,10 +20,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { CSVUploader } from "./CSVUploader";
+import { ParsedGuest } from "@/lib/csvParser";
 
 const eventSchema = z.object({
   name: z.string().min(3, { message: "Nome deve ter no mínimo 3 caracteres" }),
@@ -40,6 +43,9 @@ interface CreateEventDialogProps {
 
 const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [tempGuests, setTempGuests] = useState<ParsedGuest[]>([]);
+  const [guestName, setGuestName] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -56,6 +62,38 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
 
   const selectedDate = watch("date");
 
+  const handleAddManualGuest = () => {
+    if (!guestName.trim()) {
+      toast({
+        title: "Erro",
+        description: "Nome do convidado é obrigatório",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newGuest: ParsedGuest = {
+      name: guestName.trim(),
+      email: guestEmail.trim() || undefined,
+    };
+
+    setTempGuests([...tempGuests, newGuest]);
+    setGuestName("");
+    setGuestEmail("");
+  };
+
+  const handleRemoveGuest = (index: number) => {
+    setTempGuests(tempGuests.filter((_, i) => i !== index));
+  };
+
+  const handleCSVParsed = (guests: ParsedGuest[]) => {
+    setTempGuests([...tempGuests, ...guests]);
+    toast({
+      title: "Convidados carregados",
+      description: `${guests.length} convidados adicionados da lista CSV`,
+    });
+  };
+
   const onSubmit = async (data: EventFormData) => {
     setIsLoading(true);
     try {
@@ -70,26 +108,56 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
         return;
       }
 
-      const { error } = await supabase.from("events").insert({
+      const { data: eventData, error } = await supabase.from("events").insert({
         user_id: user.id,
         name: data.name,
         date: data.date.toISOString(),
         location: data.location,
-      });
+      }).select().single();
 
       if (error) throw error;
 
-      toast({
-        title: "Evento criado com sucesso!",
-        description: "Seu evento foi cadastrado.",
-      });
+      // Se houver convidados temporários, adicioná-los ao evento
+      if (tempGuests.length > 0 && eventData) {
+        const guestsToInsert = tempGuests.map(guest => ({
+          event_id: eventData.id,
+          name: guest.name,
+          email: guest.email,
+        }));
+
+        const { error: guestsError } = await supabase
+          .from("guests")
+          .insert(guestsToInsert);
+
+        if (guestsError) {
+          toast({
+            title: "Evento criado com aviso",
+            description: "O evento foi criado, mas houve erro ao adicionar alguns convidados.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Evento criado!",
+            description: `Evento criado com ${tempGuests.length} convidados.`,
+          });
+        }
+      } else {
+        toast({
+          title: "Evento criado com sucesso!",
+          description: "Seu evento foi cadastrado.",
+        });
+      }
 
       // Invalidate queries to refresh the list
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["guests"] });
 
       // Reset form and close dialog
       reset();
+      setTempGuests([]);
+      setGuestName("");
+      setGuestEmail("");
       onOpenChange(false);
     } catch (error) {
       console.error("Error creating event:", error);
@@ -105,7 +173,7 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] p-0 gap-0">
+      <DialogContent className="sm:max-w-[700px] p-0 gap-0 max-h-[90vh] overflow-y-auto">
         <DialogHeader className="border-b border-border p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -206,13 +274,95 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
             </div>
           </div>
 
+          <Separator className="my-6" />
+
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Convidados (opcional)</h3>
+            
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  placeholder="Nome do convidado"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddManualGuest();
+                    }
+                  }}
+                  disabled={isLoading}
+                />
+                <Input
+                  type="email"
+                  placeholder="Email (opcional)"
+                  value={guestEmail}
+                  onChange={(e) => setGuestEmail(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddManualGuest();
+                    }
+                  }}
+                  disabled={isLoading}
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleAddManualGuest}
+                className="w-full"
+                disabled={isLoading}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Adicionar Convidado
+              </Button>
+            </div>
+
+            <CSVUploader onGuestsParsed={handleCSVParsed} />
+
+            {tempGuests.length > 0 && (
+              <div className="rounded-md border p-4">
+                <h4 className="font-semibold mb-2">
+                  Convidados adicionados ({tempGuests.length})
+                </h4>
+                <div className="max-h-48 overflow-y-auto space-y-2">
+                  {tempGuests.map((guest, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between text-sm bg-muted p-2 rounded"
+                    >
+                      <span>
+                        {guest.name} {guest.email && `(${guest.email})`}
+                      </span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRemoveGuest(index)}
+                        disabled={isLoading}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           <Button
             type="submit"
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 text-base font-semibold"
+            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 text-base font-semibold mt-6"
             disabled={isLoading}
           >
             <Sparkles className="w-4 h-4 mr-2" />
-            {isLoading ? "Criando..." : "Criar Evento"}
+            {isLoading 
+              ? "Criando..." 
+              : tempGuests.length > 0 
+                ? `Criar Evento com ${tempGuests.length} convidados`
+                : "Criar Evento"
+            }
           </Button>
         </form>
       </DialogContent>

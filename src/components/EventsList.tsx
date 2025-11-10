@@ -4,11 +4,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useEvents } from "@/hooks/useEvents";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CreateEventDialog from "@/components/CreateEventDialog";
 
 const EventsList = () => {
   const { data: events, isLoading } = useEvents();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -63,7 +65,11 @@ const EventsList = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event) => (
-            <Card key={event.id} className="border-border/40 hover:shadow-lg transition-shadow">
+            <Card 
+              key={event.id} 
+              className="border-border/40 hover:shadow-lg transition-shadow cursor-pointer"
+              onClick={() => navigate(`/events/${event.id}`)}
+            >
               <CardContent className="p-6">
                 <h3 className="text-lg font-semibold text-foreground mb-2">
                   {event.name}
