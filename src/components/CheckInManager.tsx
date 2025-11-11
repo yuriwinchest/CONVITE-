@@ -61,7 +61,10 @@ export function CheckInManager({ eventId }: CheckInManagerProps) {
         .eq("id", guest.id);
 
       // Invalidate queries to update UI
-      queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
+      await queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
+
+      console.log(`✅ Check-in realizado para ${guest.name} (ID: ${guest.id})`);
+      console.log(`📊 Atualizando lista de check-ins...`);
 
       toast({
         title: "Check-in realizado!",
@@ -81,9 +84,11 @@ export function CheckInManager({ eventId }: CheckInManagerProps) {
         .update({ checked_in_at: new Date().toISOString() })
         .eq("id", guestId);
 
-      queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
+      await queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
 
       const guest = guests.find(g => g.id === guestId);
+      console.log(`✅ Check-in manual realizado para ${guest?.name} (ID: ${guestId})`);
+      
       toast({
         title: "Check-in realizado!",
         description: `Presença confirmada para ${guest?.name}.`,

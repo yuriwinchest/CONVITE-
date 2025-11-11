@@ -21,6 +21,9 @@ export function CheckedInGuestsList({ guests }: CheckedInGuestsListProps) {
       return new Date(b.checked_in_at).getTime() - new Date(a.checked_in_at).getTime();
     });
 
+  console.log(`📊 Total de convidados: ${guests.length}`);
+  console.log(`✅ Check-ins realizados: ${checkedInGuests.length}`);
+
   const filteredGuests = checkedInGuests.filter((guest) =>
     guest.name.toLowerCase().includes(searchTerm.toLowerCase())
   );

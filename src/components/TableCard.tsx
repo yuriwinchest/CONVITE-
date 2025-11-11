@@ -1,4 +1,4 @@
-import { Users, X, Pencil, Trash2, CheckCircle2 } from "lucide-react";
+import { Users, X, Pencil, Trash2, CheckCircle2, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +33,7 @@ interface TableCardProps {
   onRemoveGuest: (guestId: string) => void;
   onDeleteTable: (tableId: string) => void;
   onEditCapacity: (tableId: string, newCapacity: number) => void;
+  onMoveGuest?: (guestId: string, currentTableNumber: number) => void;
 }
 
 export function TableCard({
@@ -41,6 +42,7 @@ export function TableCard({
   onRemoveGuest,
   onDeleteTable,
   onEditCapacity,
+  onMoveGuest,
 }: TableCardProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingCapacity, setEditingCapacity] = useState(false);
@@ -190,18 +192,32 @@ export function TableCard({
                     {guest.checked_in_at && (
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
                     )}
-                    <span className={`text-sm ${guest.checked_in_at ? 'text-green-900 font-medium' : ''}`}>
+                     <span className={`text-sm ${guest.checked_in_at ? 'text-green-900 font-medium' : ''}`}>
                       {guest.name}
                     </span>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => onRemoveGuest(guest.id)}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    {onMoveGuest && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6"
+                        onClick={() => onMoveGuest(guest.id, table.table_number)}
+                        title="Mover para outra mesa"
+                      >
+                        <ArrowRightLeft className="h-3 w-3" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={() => onRemoveGuest(guest.id)}
+                      title="Remover da mesa"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>

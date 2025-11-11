@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pencil, Trash2, Mail, Send, QrCode } from "lucide-react";
+import { Pencil, Trash2, Mail, Send, QrCode, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import { Guest } from "@/hooks/useGuests";
 import { GuestForm } from "./GuestForm";
 import { GuestQRCodeDialog } from "./GuestQRCodeDialog";
@@ -49,6 +50,8 @@ export function GuestsList({ guests, eventId, eventName, onEdit, onDelete, onDel
   const [qrCodeDialogOpen, setQrCodeDialogOpen] = useState(false);
   const [selectedGuest, setSelectedGuest] = useState<Guest | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "confirmed" | "pending">("all");
 
   const handleDeleteClick = (guest: Guest) => {
     setSelectedGuest(guest);
@@ -116,6 +119,21 @@ export function GuestsList({ guests, eventId, eventName, onEdit, onDelete, onDel
     setSelectedIds([]);
   };
 
+  // Filter guests based on search and status
+  const filteredGuests = guests.filter((guest) => {
+    const matchesSearch = guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          guest.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = 
+      statusFilter === "all" || 
+      (statusFilter === "confirmed" && guest.confirmed) ||
+      (statusFilter === "pending" && !guest.confirmed);
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  const confirmedCount = guests.filter(g => g.confirmed).length;
+  const pendingCount = guests.length - confirmedCount;
+
   if (guests.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -124,11 +142,47 @@ export function GuestsList({ guests, eventId, eventName, onEdit, onDelete, onDel
     );
   }
 
-  const allSelected = guests.length > 0 && selectedIds.length === guests.length;
-  const someSelected = selectedIds.length > 0 && selectedIds.length < guests.length;
+  const allSelected = filteredGuests.length > 0 && selectedIds.length === filteredGuests.length;
+  const someSelected = selectedIds.length > 0 && selectedIds.length < filteredGuests.length;
 
   return (
     <>
+      <div className="space-y-4 mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nome ou email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant={statusFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setStatusFilter("all")}
+          >
+            Todos ({guests.length})
+          </Button>
+          <Button
+            variant={statusFilter === "confirmed" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setStatusFilter("confirmed")}
+          >
+            Confirmados ({confirmedCount})
+          </Button>
+          <Button
+            variant={statusFilter === "pending" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setStatusFilter("pending")}
+          >
+            Pendentes ({pendingCount})
+          </Button>
+        </div>
+      </div>
+
       {selectedIds.length > 0 && (
         <div className="mb-4 p-4 rounded-lg border bg-muted/50 flex items-center justify-between">
           <span className="font-medium">
@@ -170,7 +224,16 @@ export function GuestsList({ guests, eventId, eventName, onEdit, onDelete, onDel
             </TableRow>
           </TableHeader>
           <TableBody>
-            {guests.map((guest) => (
+            {filteredGuests.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  {searchTerm || statusFilter !== "all" 
+                    ? "Nenhum convidado encontrado com os filtros aplicados"
+                    : "Nenhum convidado adicionado ainda"}
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredGuests.map((guest) => (
               <TableRow key={guest.id}>
                 <TableCell>
                   <Checkbox
@@ -231,7 +294,8 @@ export function GuestsList({ guests, eventId, eventName, onEdit, onDelete, onDel
                   </Button>
                 </TableCell>
               </TableRow>
-            ))}
+              ))
+            )}
           </TableBody>
         </Table>
       </div>

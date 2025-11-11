@@ -7,6 +7,7 @@ import { TableDialog } from "./TableDialog";
 import { TableCard } from "./TableCard";
 import { GuestPoolList } from "./GuestPoolList";
 import { TableStatsCard } from "./TableStatsCard";
+import { MoveGuestDialog } from "./MoveGuestDialog";
 import { useTables } from "@/hooks/useTables";
 import {
   autoDistributeGuests,
@@ -37,6 +38,8 @@ interface TableManagerProps {
 export function TableManager({ eventId }: TableManagerProps) {
   const [tableDialogOpen, setTableDialogOpen] = useState(false);
   const [redistributeDialogOpen, setRedistributeDialogOpen] = useState(false);
+  const [moveGuestDialogOpen, setMoveGuestDialogOpen] = useState(false);
+  const [selectedGuestForMove, setSelectedGuestForMove] = useState<{ guestId: string; currentTableNumber: number } | null>(null);
   const [isDistributing, setIsDistributing] = useState(false);
   const queryClient = useQueryClient();
 
@@ -216,11 +219,54 @@ export function TableManager({ eventId }: TableManagerProps) {
     }
   };
 
+  const handleMoveGuestOpen = (guestId: string, currentTableNumber: number) => {
+    setSelectedGuestForMove({ guestId, currentTableNumber });
+    setMoveGuestDialogOpen(true);
+  };
+
+  const handleMoveGuest = async (guestId: string, newTableNumber: number) => {
+    const validation = validateTableAssignment(guestId, newTableNumber, guests, tables);
+    
+    if (!validation.valid) {
+      toast({
+        title: "Não foi possível mover",
+        description: validation.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await supabase
+        .from("guests")
+        .update({ table_number: newTableNumber })
+        .eq("id", guestId);
+
+      const guest = guests.find(g => g.id === guestId);
+      toast({
+        title: "Convidado movido!",
+        description: `${guest?.name} foi movido para a Mesa ${newTableNumber}.`,
+      });
+
+      // Invalidate queries to update UI
+      queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao mover convidado",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   const getOccupancy = (tableNumber: number) => {
     return getTableOccupancy(tableNumber, guests, tables);
   };
 
   const unassignedCount = getUnassignedGuestsCount(guests);
+  const selectedGuest = selectedGuestForMove 
+    ? guests.find(g => g.id === selectedGuestForMove.guestId) 
+    : null;
 
   if (isLoading) {
     return <div className="text-center py-8">Carregando...</div>;
@@ -272,6 +318,7 @@ export function TableManager({ eventId }: TableManagerProps) {
                   onEditCapacity={(tableId, newCapacity) =>
                     updateTable({ tableId, capacity: newCapacity })
                   }
+                  onMoveGuest={handleMoveGuestOpen}
                 />
               ))}
             </div>
@@ -349,6 +396,7 @@ export function TableManager({ eventId }: TableManagerProps) {
                     onEditCapacity={(tableId, newCapacity) =>
                       updateTable({ tableId, capacity: newCapacity })
                     }
+                    onMoveGuest={handleMoveGuestOpen}
                   />
                 ))}
               </div>
@@ -356,6 +404,16 @@ export function TableManager({ eventId }: TableManagerProps) {
           </div>
         </TabsContent>
       </Tabs>
+
+      <MoveGuestDialog
+        open={moveGuestDialogOpen}
+        onOpenChange={setMoveGuestDialogOpen}
+        guest={selectedGuest || null}
+        currentTableNumber={selectedGuestForMove?.currentTableNumber || 0}
+        availableTables={tables}
+        guests={guests}
+        onMove={handleMoveGuest}
+      />
 
       <TableDialog
         open={tableDialogOpen}
