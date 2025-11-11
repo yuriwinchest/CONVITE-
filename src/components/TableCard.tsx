@@ -192,9 +192,14 @@ export function TableCard({
                     {guest.checked_in_at && (
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
                     )}
-                     <span className={`text-sm ${guest.checked_in_at ? 'text-green-900 font-medium' : ''}`}>
-                      {guest.name}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className={`text-sm ${guest.checked_in_at ? 'text-green-900 font-medium' : ''}`}>
+                        {guest.name}
+                      </span>
+                      {guest.checked_in_at && (
+                        <span className="text-xs text-green-600">Check-in confirmado</span>
+                      )}
+                    </div>
                   </div>
                   <div className="flex items-center gap-1">
                     {onMoveGuest && (
