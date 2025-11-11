@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface EventDetails {
   id: string;
@@ -122,11 +124,32 @@ export function useGuestConfirmation(eventId: string) {
     return eventDetails;
   };
 
+  const isCheckInAllowed = (): { allowed: boolean; message?: string; timeUntil?: number } => {
+    if (!eventDetails) {
+      return { allowed: false, message: "Evento não encontrado" };
+    }
+
+    const now = new Date().getTime();
+    const eventTime = new Date(eventDetails.date).getTime();
+    
+    if (now < eventTime) {
+      const timeUntil = eventTime - now;
+      return { 
+        allowed: false, 
+        message: `Check-in disponível apenas a partir de ${format(new Date(eventDetails.date), "PPP 'às' HH:mm", { locale: ptBR })}`,
+        timeUntil 
+      };
+    }
+
+    return { allowed: true };
+  };
+
   return {
     searchGuest,
     confirmPresence,
     getEventDetails,
     eventDetails,
     isLoadingEvent,
+    isCheckInAllowed,
   };
 }

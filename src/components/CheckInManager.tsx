@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QRCodeScanner } from "./QRCodeScanner";
 import { CheckInList } from "./CheckInList";
@@ -8,6 +8,8 @@ import { useGuests } from "@/hooks/useGuests";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface CheckInManagerProps {
   eventId: string;
@@ -15,13 +17,60 @@ interface CheckInManagerProps {
 
 export function CheckInManager({ eventId }: CheckInManagerProps) {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [eventDate, setEventDate] = useState<string | null>(null);
   const { guests, checkInGuest } = useGuests(eventId);
   const queryClient = useQueryClient();
+
+  // Fetch event date
+  useEffect(() => {
+    const fetchEventDate = async () => {
+      const { data, error } = await supabase
+        .from("events")
+        .select("date")
+        .eq("id", eventId)
+        .single();
+      
+      if (data && !error) {
+        setEventDate(data.date);
+      }
+    };
+    
+    fetchEventDate();
+  }, [eventId]);
+
+  const isCheckInAllowed = (): { allowed: boolean; message?: string } => {
+    if (!eventDate) {
+      return { allowed: true }; // Allow if we can't fetch date
+    }
+
+    const now = new Date().getTime();
+    const eventTime = new Date(eventDate).getTime();
+    
+    if (now < eventTime) {
+      return { 
+        allowed: false, 
+        message: `Check-in disponível apenas a partir de ${format(new Date(eventDate), "PPP 'às' HH:mm", { locale: ptBR })}`
+      };
+    }
+
+    return { allowed: true };
+  };
 
   const handleQRCodeScan = async (qrCode: string) => {
     setIsProcessing(true);
     
     try {
+      // Check if check-in is allowed
+      const checkInStatus = isCheckInAllowed();
+      if (!checkInStatus.allowed) {
+        toast({
+          title: "Check-in não disponível",
+          description: checkInStatus.message,
+          variant: "destructive",
+        });
+        setIsProcessing(false);
+        return;
+      }
       // Tentar decodificar QR Code estruturado (novo formato)
       let guestId: string | null = null;
       
@@ -84,6 +133,16 @@ export function CheckInManager({ eventId }: CheckInManagerProps) {
 
   const handleManualCheckIn = async (guestId: string) => {
     try {
+      // Check if check-in is allowed
+      const checkInStatus = isCheckInAllowed();
+      if (!checkInStatus.allowed) {
+        toast({
+          title: "Check-in não disponível",
+          description: checkInStatus.message,
+          variant: "destructive",
+        });
+        return;
+      }
       const { error: updateError } = await supabase
         .from("guests")
         .update({ checked_in_at: new Date().toISOString() })

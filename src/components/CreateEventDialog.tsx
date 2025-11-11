@@ -29,6 +29,7 @@ import { useQueryClient } from "@tanstack/react-query";
 const eventSchema = z.object({
   name: z.string().min(3, { message: "Nome deve ter no mínimo 3 caracteres" }),
   date: z.date({ required_error: "Data do evento é obrigatória" }),
+  time: z.string().min(1, { message: "Hora do evento é obrigatória" }),
   location: z.string().min(3, { message: "Local deve ter no mínimo 3 caracteres" }),
   reminder_days_before: z.number().min(0).max(30).optional(),
 });
@@ -59,6 +60,7 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
   });
 
   const selectedDate = watch("date");
+  const selectedTime = watch("time");
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -109,10 +111,15 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
         return;
       }
 
+      // Combine date and time
+      const [hours, minutes] = data.time.split(':');
+      const eventDateTime = new Date(data.date);
+      eventDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
       const { data: eventData, error } = await supabase.from("events").insert({
         user_id: user.id,
         name: data.name,
-        date: data.date.toISOString(),
+        date: eventDateTime.toISOString(),
         location: data.location,
         reminder_days_before: data.reminder_days_before || null,
       }).select().single();
@@ -218,21 +225,21 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
             <div className="bg-card rounded-lg border border-border p-6">
               <h3 className="text-lg font-semibold mb-6">Detalhes do Evento</h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nome do Evento</Label>
-                  <Input
-                    id="name"
-                    placeholder="Ex: Casamento de Maria e João"
-                    className="bg-primary/5 border-primary/20"
-                    {...register("name")}
-                    disabled={isLoading}
-                  />
-                  {errors.name && (
-                    <p className="text-sm text-destructive">{errors.name.message}</p>
-                  )}
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="name">Nome do Evento</Label>
+                <Input
+                  id="name"
+                  placeholder="Ex: Casamento de Maria e João"
+                  className="bg-primary/5 border-primary/20"
+                  {...register("name")}
+                  disabled={isLoading}
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name.message}</p>
+                )}
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label>Data do Evento</Label>
                   <Popover>
@@ -264,6 +271,20 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
                   </Popover>
                   {errors.date && (
                     <p className="text-sm text-destructive">{errors.date.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="time">Hora do Evento</Label>
+                  <Input
+                    id="time"
+                    type="time"
+                    className="bg-primary/5 border-primary/20"
+                    {...register("time")}
+                    disabled={isLoading}
+                  />
+                  {errors.time && (
+                    <p className="text-sm text-destructive">{errors.time.message}</p>
                   )}
                 </div>
               </div>

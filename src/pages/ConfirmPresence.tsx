@@ -19,7 +19,8 @@ export default function ConfirmPresence() {
   const [guestData, setGuestData] = useState<any>(null);
   const [isProcessingQR, setIsProcessingQR] = useState(false);
 
-  const { searchGuest, confirmPresence, getEventDetails, eventDetails, isLoadingEvent } = useGuestConfirmation(eventId || "");
+  const { searchGuest, confirmPresence, getEventDetails, eventDetails, isLoadingEvent, isCheckInAllowed } = useGuestConfirmation(eventId || "");
+  const [timeUntilCheckIn, setTimeUntilCheckIn] = useState<number>(0);
 
   const handleQRScan = async (scannedData: string) => {
     setIsProcessingQR(true);
@@ -107,6 +108,17 @@ export default function ConfirmPresence() {
 
   const handleConfirm = async () => {
     if (!guestData?.id) return;
+
+    // Check if check-in is allowed
+    const checkInStatus = isCheckInAllowed();
+    if (!checkInStatus.allowed) {
+      toast({
+        title: "Check-in não disponível",
+        description: checkInStatus.message,
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       await confirmPresence(guestData.id);
@@ -297,6 +309,18 @@ export default function ConfirmPresence() {
                       </p>
                     </div>
                   )}
+
+                  {/* Check-in blocked message */}
+                  {!isCheckInAllowed().allowed && !guestData.confirmed && (
+                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-md p-3">
+                      <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
+                        ⏰ {isCheckInAllowed().message}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        O check-in será liberado automaticamente no horário do evento
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -305,7 +329,7 @@ export default function ConfirmPresence() {
                   onClick={handleConfirm} 
                   className="flex-1" 
                   size="lg"
-                  disabled={guestData.confirmed}
+                  disabled={guestData.confirmed || !isCheckInAllowed().allowed}
                 >
                   {guestData.confirmed ? "Já Confirmado" : "Confirmar Presença"}
                 </Button>
