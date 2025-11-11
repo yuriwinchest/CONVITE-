@@ -55,10 +55,15 @@ export function CheckInManager({ eventId }: CheckInManagerProps) {
       }
 
       // Perform check-in
-      await supabase
+      const { error: updateError } = await supabase
         .from("guests")
         .update({ checked_in_at: new Date().toISOString() })
         .eq("id", guest.id);
+
+      if (updateError) {
+        console.error("❌ Erro ao fazer check-in:", updateError);
+        throw new Error("Erro ao registrar check-in no banco de dados.");
+      }
 
       // Invalidate queries to update UI
       await queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
@@ -79,10 +84,15 @@ export function CheckInManager({ eventId }: CheckInManagerProps) {
 
   const handleManualCheckIn = async (guestId: string) => {
     try {
-      await supabase
+      const { error: updateError } = await supabase
         .from("guests")
         .update({ checked_in_at: new Date().toISOString() })
         .eq("id", guestId);
+
+      if (updateError) {
+        console.error("❌ Erro ao fazer check-in:", updateError);
+        throw new Error("Erro ao registrar check-in no banco de dados.");
+      }
 
       await queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
 
@@ -94,6 +104,7 @@ export function CheckInManager({ eventId }: CheckInManagerProps) {
         description: `Presença confirmada para ${guest?.name}.`,
       });
     } catch (error: any) {
+      console.error("❌ Erro no handleManualCheckIn:", error);
       toast({
         title: "Erro ao fazer check-in",
         description: error.message,
