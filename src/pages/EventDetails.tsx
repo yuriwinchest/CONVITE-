@@ -335,6 +335,69 @@ Nos vemos lá! 🎉`;
           </CardHeader>
         </Card>
 
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              ⏰ Lembretes Automáticos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <Label htmlFor="reminder-days">Enviar lembrete automático</Label>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    id="reminder-days"
+                    type="number"
+                    min="0"
+                    max="30"
+                    placeholder="Ex: 3"
+                    defaultValue={event.reminder_days_before || ""}
+                    className="w-32"
+                    onBlur={async (e) => {
+                      const value = e.target.value ? parseInt(e.target.value) : null;
+                      try {
+                        const { error } = await supabase
+                          .from("events")
+                          .update({ reminder_days_before: value })
+                          .eq("id", eventId!);
+                        
+                        if (error) throw error;
+                        
+                        toast({
+                          title: value 
+                            ? "Lembretes automáticos ativados!" 
+                            : "Lembretes automáticos desativados",
+                          description: value 
+                            ? `Lembretes serão enviados ${value} ${value === 1 ? 'dia' : 'dias'} antes do evento às 9h` 
+                            : "Lembretes automáticos foram desativados",
+                        });
+                      } catch (error: any) {
+                        toast({
+                          title: "Erro ao atualizar",
+                          description: error.message,
+                          variant: "destructive",
+                        });
+                      }
+                    }}
+                  />
+                  <span className="text-sm text-muted-foreground self-center">
+                    {event.reminder_days_before ? `${event.reminder_days_before} ${event.reminder_days_before === 1 ? 'dia' : 'dias'} antes` : 'dias antes do evento'}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  📧 Lembretes são enviados automaticamente por email todos os dias às 9h da manhã. Deixe vazio para desativar.
+                </p>
+                {event.last_reminder_sent_at && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    ✅ Último envio: {format(new Date(event.last_reminder_sent_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  </p>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Tabs defaultValue="guests" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="guests">Convidados</TabsTrigger>

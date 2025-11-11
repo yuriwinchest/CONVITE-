@@ -30,6 +30,7 @@ const eventSchema = z.object({
   name: z.string().min(3, { message: "Nome deve ter no mínimo 3 caracteres" }),
   date: z.date({ required_error: "Data do evento é obrigatória" }),
   location: z.string().min(3, { message: "Local deve ter no mínimo 3 caracteres" }),
+  reminder_days_before: z.number().min(0).max(30).optional(),
 });
 
 type EventFormData = z.infer<typeof eventSchema>;
@@ -113,6 +114,7 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
         name: data.name,
         date: data.date.toISOString(),
         location: data.location,
+        reminder_days_before: data.reminder_days_before || null,
       }).select().single();
 
       if (error) throw error;
@@ -280,6 +282,31 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
                 </div>
                 {errors.location && (
                   <p className="text-sm text-destructive">{errors.location.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2 mt-6">
+                <Label htmlFor="reminder_days_before">Lembrete Automático (opcional)</Label>
+                <div className="space-y-2">
+                  <Input
+                    id="reminder_days_before"
+                    type="number"
+                    min="0"
+                    max="30"
+                    placeholder="Ex: 3 (para enviar 3 dias antes)"
+                    className="bg-primary/5 border-primary/20"
+                    {...register("reminder_days_before", { 
+                      valueAsNumber: true,
+                      setValueAs: (v) => v === "" ? undefined : Number(v)
+                    })}
+                    disabled={isLoading}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    📧 Lembretes serão enviados automaticamente por email X dias antes do evento (deixe vazio para desativar)
+                  </p>
+                </div>
+                {errors.reminder_days_before && (
+                  <p className="text-sm text-destructive">{errors.reminder_days_before.message}</p>
                 )}
               </div>
 
