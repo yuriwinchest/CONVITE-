@@ -15,6 +15,7 @@ import {
 const guestSchema = z.object({
   name: z.string().min(1, "Nome é obrigatório").max(100, "Nome muito longo"),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
+  whatsapp: z.string().optional().or(z.literal("")),
   table_number: z.number().int().positive("Número da mesa deve ser positivo").optional().or(z.literal(0).transform(() => undefined)),
 });
 
@@ -33,6 +34,7 @@ export function GuestForm({ onSubmit, onCancel, defaultValues, isLoading }: Gues
     defaultValues: {
       name: defaultValues?.name || "",
       email: (defaultValues as any)?.email || "",
+      whatsapp: (defaultValues as any)?.whatsapp || "",
       table_number: defaultValues?.table_number || undefined,
     },
   });
@@ -62,6 +64,29 @@ export function GuestForm({ onSubmit, onCancel, defaultValues, isLoading }: Gues
                 <FormLabel>Email (opcional)</FormLabel>
                 <FormControl>
                   <Input type="email" placeholder="email@exemplo.com" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="whatsapp"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>WhatsApp (opcional)</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="tel" 
+                    placeholder="11999999999" 
+                    {...field}
+                    onChange={(e) => {
+                      // Remove caracteres não numéricos
+                      const value = e.target.value.replace(/\D/g, '');
+                      field.onChange(value);
+                    }}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

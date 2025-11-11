@@ -110,6 +110,69 @@ export default function EventDetails() {
     }
   };
 
+  const handleSendReminder = async (guestId: string) => {
+    if (!eventId) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("send-reminder", {
+        body: { guestId, eventId },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Lembrete enviado!",
+        description: "O lembrete foi enviado por email com sucesso.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar lembrete",
+        description: error.message || "Não foi possível enviar o lembrete.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSendWhatsAppReminder = (guestId: string) => {
+    const guest = guests.find(g => g.id === guestId);
+    if (!guest || !guest.whatsapp || !event) return;
+
+    // Remove caracteres não numéricos do WhatsApp
+    const cleanPhone = guest.whatsapp.replace(/\D/g, '');
+    
+    // Format date
+    const eventDate = new Date(event.date);
+    const formattedDate = eventDate.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    // Create WhatsApp message
+    const message = `Olá, ${guest.name}! 👋
+
+⏰ *Lembrete de Evento*
+
+📅 *${event.name}*
+📍 Data: ${formattedDate}
+${event.location ? `📍 Local: ${event.location}` : ''}
+${guest.table_number ? `🪑 Sua Mesa: Mesa ${guest.table_number}` : ''}
+
+✅ *Importante:* Não esqueça de fazer seu check-in ao chegar no evento!
+
+Nos vemos lá! 🎉`;
+
+    // Open WhatsApp with pre-filled message
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
+
+    toast({
+      title: "WhatsApp aberto",
+      description: "A mensagem foi preparada. Clique em enviar no WhatsApp.",
+    });
+  };
+
   const handleCSVParsed = (guests: ParsedGuest[]) => {
     setPendingGuests(guests);
   };
@@ -216,11 +279,15 @@ export default function EventDetails() {
                     guests={guests}
                     eventId={eventId!}
                     eventName={event.name}
+                    eventDate={event.date}
+                    eventLocation={event.location}
                     onEdit={(guestId, data) => updateGuest({ guestId, guest: data })}
                     onDelete={deleteGuest}
                     onDeleteMultiple={deleteMultipleGuests}
                     onSendInvite={handleSendInvite}
                     onSendMultipleInvites={handleSendMultipleInvites}
+                    onSendReminder={handleSendReminder}
+                    onSendWhatsAppReminder={handleSendWhatsAppReminder}
                   />
                 )}
               </CardContent>

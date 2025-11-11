@@ -7,6 +7,7 @@ export interface Guest {
   event_id: string;
   name: string;
   email?: string;
+  whatsapp?: string;
   confirmed?: boolean;
   table_number?: number;
   qr_code?: string;
@@ -17,6 +18,7 @@ export interface Guest {
 export interface GuestInput {
   name: string;
   email?: string;
+  whatsapp?: string;
   confirmed?: boolean;
   table_number?: number;
 }

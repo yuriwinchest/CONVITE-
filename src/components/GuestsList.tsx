@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pencil, Trash2, Mail, Send, QrCode, Search } from "lucide-react";
+import { Pencil, Trash2, Mail, Send, QrCode, Search, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -36,14 +36,18 @@ interface GuestsListProps {
   guests: Guest[];
   eventId: string;
   eventName: string;
-  onEdit: (guestId: string, data: { name: string; table_number?: number }) => void;
+  eventDate: string;
+  eventLocation?: string;
+  onEdit: (guestId: string, data: { name: string; email?: string; whatsapp?: string; table_number?: number }) => void;
   onDelete: (guestId: string) => void;
   onDeleteMultiple: (guestIds: string[]) => void;
   onSendInvite: (guestId: string) => void;
   onSendMultipleInvites: (guestIds: string[]) => void;
+  onSendReminder: (guestId: string) => void;
+  onSendWhatsAppReminder: (guestId: string) => void;
 }
 
-export function GuestsList({ guests, eventId, eventName, onEdit, onDelete, onDeleteMultiple, onSendInvite, onSendMultipleInvites }: GuestsListProps) {
+export function GuestsList({ guests, eventId, eventName, eventDate, eventLocation, onEdit, onDelete, onDeleteMultiple, onSendInvite, onSendMultipleInvites, onSendReminder, onSendWhatsAppReminder }: GuestsListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -76,7 +80,7 @@ export function GuestsList({ guests, eventId, eventName, onEdit, onDelete, onDel
     }
   };
 
-  const handleEditSubmit = (data: { name: string; table_number?: number }) => {
+  const handleEditSubmit = (data: { name: string; email?: string; whatsapp?: string; table_number?: number }) => {
     if (selectedGuest) {
       onEdit(selectedGuest.id, data);
       setEditDialogOpen(false);
@@ -122,7 +126,8 @@ export function GuestsList({ guests, eventId, eventName, onEdit, onDelete, onDel
   // Filter guests based on search and status
   const filteredGuests = guests.filter((guest) => {
     const matchesSearch = guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          guest.email?.toLowerCase().includes(searchTerm.toLowerCase());
+                          guest.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          guest.whatsapp?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = 
       statusFilter === "all" || 
       (statusFilter === "confirmed" && guest.confirmed) ||
@@ -218,6 +223,7 @@ export function GuestsList({ guests, eventId, eventName, onEdit, onDelete, onDel
               </TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>WhatsApp</TableHead>
               <TableHead>Mesa</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Ações</TableHead>
@@ -226,7 +232,7 @@ export function GuestsList({ guests, eventId, eventName, onEdit, onDelete, onDel
           <TableBody>
             {filteredGuests.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   {searchTerm || statusFilter !== "all" 
                     ? "Nenhum convidado encontrado com os filtros aplicados"
                     : "Nenhum convidado adicionado ainda"}
@@ -251,6 +257,14 @@ export function GuestsList({ guests, eventId, eventName, onEdit, onDelete, onDel
                     )}
                   </div>
                 </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm">{guest.whatsapp || "-"}</span>
+                    {!guest.whatsapp && (
+                      <span className="text-xs text-muted-foreground">(sem WhatsApp)</span>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>{guest.table_number ? `Mesa ${guest.table_number}` : "-"}</TableCell>
                 <TableCell>
                   {guest.confirmed ? (
@@ -272,10 +286,20 @@ export function GuestsList({ guests, eventId, eventName, onEdit, onDelete, onDel
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => onSendInvite(guest.id)}
-                      title="Enviar convite por email"
+                      onClick={() => onSendReminder(guest.id)}
+                      title="Enviar lembrete por email"
                     >
                       <Mail className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {guest.whatsapp && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onSendWhatsAppReminder(guest.id)}
+                      title="Enviar lembrete pelo WhatsApp"
+                    >
+                      <MessageCircle className="h-4 w-4" />
                     </Button>
                   )}
                   <Button
@@ -357,6 +381,8 @@ export function GuestsList({ guests, eventId, eventName, onEdit, onDelete, onDel
               onCancel={() => setEditDialogOpen(false)}
               defaultValues={{
                 name: selectedGuest.name,
+                email: selectedGuest.email,
+                whatsapp: selectedGuest.whatsapp,
                 table_number: selectedGuest.table_number || undefined,
               }}
             />

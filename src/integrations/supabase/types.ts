@@ -64,6 +64,7 @@ export type Database = {
           name: string
           qr_code: string | null
           table_number: number | null
+          whatsapp: string | null
         }
         Insert: {
           checked_in_at?: string | null
@@ -75,6 +76,7 @@ export type Database = {
           name: string
           qr_code?: string | null
           table_number?: number | null
+          whatsapp?: string | null
         }
         Update: {
           checked_in_at?: string | null
@@ -86,6 +88,7 @@ export type Database = {
           name?: string
           qr_code?: string | null
           table_number?: number | null
+          whatsapp?: string | null
         }
         Relationships: [
           {

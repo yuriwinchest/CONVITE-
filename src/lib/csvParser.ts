@@ -1,5 +1,7 @@
 export interface ParsedGuest {
   name: string;
+  email?: string;
+  whatsapp?: string;
   table_number?: number;
 }
 
@@ -24,6 +26,29 @@ const cleanValue = (value: string): string => {
   return value
     .replace(/^["'\s]+|["'\s]+$/g, '') // Remove aspas e espaços das pontas
     .trim();
+};
+
+const validateWhatsApp = (phone: string): string | null => {
+  // Remove todos os caracteres não numéricos
+  const cleaned = phone.replace(/\D/g, '');
+  
+  // Verifica se é um número brasileiro válido (11 dígitos: DDD + 9 dígitos)
+  if (cleaned.length === 11 && cleaned.startsWith('55')) {
+    return `+${cleaned}`;
+  }
+  if (cleaned.length === 11) {
+    return `+55${cleaned}`;
+  }
+  if (cleaned.length === 13 && cleaned.startsWith('55')) {
+    return `+${cleaned}`;
+  }
+  
+  // Se já tem + no início, mantém
+  if (phone.startsWith('+') && cleaned.length >= 10) {
+    return phone;
+  }
+  
+  return null;
 };
 
 export const parseCSV = async (file: File): Promise<CSVParseResult> => {
@@ -67,13 +92,13 @@ export const parseCSV = async (file: File): Promise<CSVParseResult> => {
 
         const parts = line.split(separator).map(cleanValue);
         
-        // Validar número de colunas
-        if (parts.length > 2) {
-          errors.push(`Linha ${i + 1}: Formato inválido - esperado máximo 2 colunas (nome${separator}mesa), encontrado ${parts.length}`);
+        // Validar número de colunas (nome, email, whatsapp, mesa)
+        if (parts.length > 4) {
+          errors.push(`Linha ${i + 1}: Formato inválido - esperado máximo 4 colunas (nome${separator}email${separator}whatsapp${separator}mesa), encontrado ${parts.length}`);
           continue;
         }
 
-        const [name, table] = parts;
+        const [name, email, whatsapp, table] = parts;
 
         if (!name) {
           errors.push(`Linha ${i + 1}: Nome não pode estar vazio`);
@@ -81,6 +106,19 @@ export const parseCSV = async (file: File): Promise<CSVParseResult> => {
         }
 
         const guest: ParsedGuest = { name };
+
+        if (email && email.includes('@')) {
+          guest.email = email;
+        }
+
+        if (whatsapp) {
+          const validatedWhatsApp = validateWhatsApp(whatsapp);
+          if (validatedWhatsApp) {
+            guest.whatsapp = validatedWhatsApp;
+          } else {
+            errors.push(`Linha ${i + 1}: WhatsApp inválido "${whatsapp}" - use formato brasileiro com DDD`);
+          }
+        }
 
         if (table) {
           const tableNumber = validateTableNumber(table);
@@ -113,7 +151,7 @@ export const parseCSV = async (file: File): Promise<CSVParseResult> => {
 };
 
 export const downloadCSVTemplate = () => {
-  const template = 'nome;mesa\nJoão Silva;1\nMaria Santos;2\nPedro Costa;1\nAna Lima;3\nCarlos Souza;\n\n--- OU com vírgula ---\n\nnome,mesa\nJoão Silva,1\nMaria Santos,2';
+  const template = 'nome;email;whatsapp;mesa\nJoão Silva;joao@email.com;11999999999;1\nMaria Santos;maria@email.com;11988888888;2\nPedro Costa;pedro@email.com;11977777777;1\nAna Lima;;11966666666;3\nCarlos Souza;carlos@email.com;;\n\n--- OU com vírgula ---\n\nnome,email,whatsapp,mesa\nJoão Silva,joao@email.com,11999999999,1\nMaria Santos,maria@email.com,11988888888,2';
   const blob = new Blob([template], { type: 'text/csv;charset=utf-8' });
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
