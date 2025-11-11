@@ -21,8 +21,10 @@ export type Database = {
           date: string
           description: string | null
           id: string
+          last_reminder_sent_at: string | null
           location: string | null
           name: string
+          reminder_days_before: number | null
           table_map_url: string | null
           updated_at: string
           user_id: string
@@ -33,8 +35,10 @@ export type Database = {
           date: string
           description?: string | null
           id?: string
+          last_reminder_sent_at?: string | null
           location?: string | null
           name: string
+          reminder_days_before?: number | null
           table_map_url?: string | null
           updated_at?: string
           user_id: string
@@ -45,8 +49,10 @@ export type Database = {
           date?: string
           description?: string | null
           id?: string
+          last_reminder_sent_at?: string | null
           location?: string | null
           name?: string
+          reminder_days_before?: number | null
           table_map_url?: string | null
           updated_at?: string
           user_id?: string
