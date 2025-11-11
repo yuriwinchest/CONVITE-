@@ -149,7 +149,7 @@ export default function EventDetails() {
       minute: "2-digit",
     });
 
-    // Create WhatsApp message
+    // Create WhatsApp message with proper emoji encoding
     const message = `Olá, ${guest.name}! 👋
 
 ⏰ *Lembrete de Evento*
@@ -163,7 +163,7 @@ ${guest.table_number ? `🪑 Sua Mesa: Mesa ${guest.table_number}` : ''}
 
 Nos vemos lá! 🎉`;
 
-    // Open WhatsApp with pre-filled message
+    // Open WhatsApp with pre-filled message - encode the entire message
     const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
 
@@ -230,6 +230,7 @@ Nos vemos lá! 🎉`;
     selectedGuests.forEach((guest, index) => {
       const cleanPhone = guest.whatsapp!.replace(/\D/g, '');
       
+      // Create message with proper emoji encoding
       const message = `Olá, ${guest.name}! 👋
 
 ⏰ *Lembrete de Evento*
@@ -243,6 +244,7 @@ ${guest.table_number ? `🪑 Sua Mesa: Mesa ${guest.table_number}` : ''}
 
 Nos vemos lá! 🎉`;
 
+      // Encode the entire message properly for WhatsApp
       const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
       
       // Open with delay to avoid popup blockers
