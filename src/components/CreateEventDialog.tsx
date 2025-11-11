@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, MapPin, Sparkles, ArrowLeft, Plus, X, Upload } from "lucide-react";
+import { CalendarIcon, MapPin, Sparkles, ArrowLeft, X, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,8 +25,6 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
-import { CSVUploader } from "./CSVUploader";
-import { ParsedGuest } from "@/lib/csvParser";
 
 const eventSchema = z.object({
   name: z.string().min(3, { message: "Nome deve ter no mínimo 3 caracteres" }),
@@ -43,9 +41,6 @@ interface CreateEventDialogProps {
 
 const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [tempGuests, setTempGuests] = useState<ParsedGuest[]>([]);
-  const [guestName, setGuestName] = useState("");
-  const [guestTableNumber, setGuestTableNumber] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { toast } = useToast();
@@ -63,48 +58,6 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
   });
 
   const selectedDate = watch("date");
-
-  const handleAddManualGuest = () => {
-    if (!guestName.trim()) {
-      toast({
-        title: "Erro",
-        description: "Nome do convidado é obrigatório",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const tableNum = guestTableNumber.trim() ? parseInt(guestTableNumber.trim()) : undefined;
-    if (guestTableNumber.trim() && (!tableNum || tableNum < 1)) {
-      toast({
-        title: "Erro",
-        description: "Número da mesa deve ser um número positivo",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const newGuest: ParsedGuest = {
-      name: guestName.trim(),
-      table_number: tableNum,
-    };
-
-    setTempGuests([...tempGuests, newGuest]);
-    setGuestName("");
-    setGuestTableNumber("");
-  };
-
-  const handleRemoveGuest = (index: number) => {
-    setTempGuests(tempGuests.filter((_, i) => i !== index));
-  };
-
-  const handleCSVParsed = (guests: ParsedGuest[]) => {
-    setTempGuests([...tempGuests, ...guests]);
-    toast({
-      title: "Convidados carregados",
-      description: `${guests.length} convidados adicionados da lista CSV`,
-    });
-  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -200,36 +153,10 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
         }
       }
 
-      // Se houver convidados temporários, adicioná-los ao evento
-      if (tempGuests.length > 0 && eventData) {
-        const guestsToInsert = tempGuests.map(guest => ({
-          event_id: eventData.id,
-          name: guest.name,
-          table_number: guest.table_number,
-        }));
-
-        const { error: guestsError } = await supabase
-          .from("guests")
-          .insert(guestsToInsert);
-
-        if (guestsError) {
-          toast({
-            title: "Evento criado com aviso",
-            description: "O evento foi criado, mas houve erro ao adicionar alguns convidados.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Evento criado!",
-            description: `Evento criado com ${tempGuests.length} convidados.`,
-          });
-        }
-      } else {
-        toast({
-          title: "Evento criado com sucesso!",
-          description: "Seu evento foi cadastrado.",
-        });
-      }
+      toast({
+        title: "Evento criado com sucesso!",
+        description: "Agora você pode adicionar convidados na página do evento.",
+      });
 
       // Invalidate queries to refresh the list
       queryClient.invalidateQueries({ queryKey: ["events"] });
@@ -238,9 +165,6 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
 
       // Reset form and close dialog
       reset();
-      setTempGuests([]);
-      setGuestName("");
-      setGuestTableNumber("");
       setSelectedImage(null);
       setImagePreview(null);
       onOpenChange(false);
@@ -412,83 +336,6 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
                 </div>
               </div>
             </div>
-
-            <Separator />
-
-            <div className="space-y-4">
-              <h3 className="font-semibold text-lg">Convidados (opcional)</h3>
-              
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    placeholder="Nome do convidado"
-                    value={guestName}
-                    onChange={(e) => setGuestName(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddManualGuest();
-                      }
-                    }}
-                    disabled={isLoading}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Número da mesa"
-                    value={guestTableNumber}
-                    onChange={(e) => setGuestTableNumber(e.target.value)}
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddManualGuest();
-                      }
-                    }}
-                    disabled={isLoading}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleAddManualGuest}
-                  className="w-full"
-                  disabled={isLoading}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Adicionar Convidado
-                </Button>
-              </div>
-
-              <CSVUploader onGuestsParsed={handleCSVParsed} />
-
-              {tempGuests.length > 0 && (
-                <div className="rounded-md border p-4">
-                  <h4 className="font-semibold mb-2">
-                    Convidados adicionados ({tempGuests.length})
-                  </h4>
-                  <div className="max-h-48 overflow-y-auto space-y-2">
-                    {tempGuests.map((guest, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between text-sm bg-muted p-2 rounded"
-                      >
-                        <span>
-                          {guest.name} {guest.table_number && `(Mesa ${guest.table_number})`}
-                        </span>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveGuest(index)}
-                          disabled={isLoading}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
           </form>
         </div>
 
@@ -500,12 +347,7 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
             disabled={isLoading}
           >
             <Sparkles className="w-4 h-4 mr-2" />
-            {isLoading 
-              ? "Criando..." 
-              : tempGuests.length > 0 
-                ? `Criar Evento com ${tempGuests.length} convidados`
-                : "Criar Evento"
-            }
+            {isLoading ? "Criando..." : "Criar Evento"}
           </Button>
         </div>
       </DialogContent>
