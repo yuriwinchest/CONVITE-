@@ -32,6 +32,7 @@ import { TableManager } from "@/components/TableManager";
 import { CheckInManager } from "@/components/CheckInManager";
 import { EventQRCode } from "@/components/EventQRCode";
 import { ParsedGuest } from "@/lib/csvParser";
+import { useRealtimeCheckIns } from "@/hooks/useRealtimeCheckIns";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +53,9 @@ export default function EventDetails() {
 
   const { guests, isLoading, addGuest, addMultipleGuests, updateGuest, deleteGuest, deleteMultipleGuests } =
     useGuests(eventId);
+
+  // Enable realtime check-in notifications
+  useRealtimeCheckIns(eventId);
 
   const handleAddGuest = (data: { name: string; email?: string; table_number?: number }) => {
     if (!eventId) return;
