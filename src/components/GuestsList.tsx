@@ -45,9 +45,11 @@ interface GuestsListProps {
   onSendMultipleInvites: (guestIds: string[]) => void;
   onSendReminder: (guestId: string) => void;
   onSendWhatsAppReminder: (guestId: string) => void;
+  onSendMultipleReminders: (guestIds: string[]) => void;
+  onSendMultipleWhatsAppReminders: (guestIds: string[]) => void;
 }
 
-export function GuestsList({ guests, eventId, eventName, eventDate, eventLocation, onEdit, onDelete, onDeleteMultiple, onSendInvite, onSendMultipleInvites, onSendReminder, onSendWhatsAppReminder }: GuestsListProps) {
+export function GuestsList({ guests, eventId, eventName, eventDate, eventLocation, onEdit, onDelete, onDeleteMultiple, onSendInvite, onSendMultipleInvites, onSendReminder, onSendWhatsAppReminder, onSendMultipleReminders, onSendMultipleWhatsAppReminders }: GuestsListProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -123,6 +125,16 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
     setSelectedIds([]);
   };
 
+  const handleSendReminders = () => {
+    onSendMultipleReminders(selectedIds);
+    setSelectedIds([]);
+  };
+
+  const handleSendWhatsAppReminders = () => {
+    onSendMultipleWhatsAppReminders(selectedIds);
+    setSelectedIds([]);
+  };
+
   // Filter guests based on search and status
   const filteredGuests = guests.filter((guest) => {
     const matchesSearch = guest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -189,21 +201,31 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
       </div>
 
       {selectedIds.length > 0 && (
-        <div className="mb-4 p-4 rounded-lg border bg-muted/50 flex items-center justify-between">
-          <span className="font-medium">
-            {selectedIds.length} convidado{selectedIds.length > 1 ? 's' : ''} selecionado{selectedIds.length > 1 ? 's' : ''}
-          </span>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleCancelSelection}>
+        <div className="mb-4 p-4 rounded-lg border bg-muted/50">
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-medium">
+              {selectedIds.length} convidado{selectedIds.length > 1 ? 's' : ''} selecionado{selectedIds.length > 1 ? 's' : ''}
+            </span>
+            <Button variant="outline" size="sm" onClick={handleCancelSelection}>
               Cancelar
             </Button>
+          </div>
+          <div className="flex gap-2 flex-wrap">
             <Button variant="default" onClick={handleSendInvites}>
               <Send className="mr-2 h-4 w-4" />
               Enviar Convites
             </Button>
+            <Button variant="secondary" onClick={handleSendReminders}>
+              <Mail className="mr-2 h-4 w-4" />
+              Lembretes (Email)
+            </Button>
+            <Button variant="secondary" onClick={handleSendWhatsAppReminders}>
+              <MessageCircle className="mr-2 h-4 w-4" />
+              Lembretes (WhatsApp)
+            </Button>
             <Button variant="destructive" onClick={handleBulkDelete}>
               <Trash2 className="mr-2 h-4 w-4" />
-              Deletar Selecionados
+              Deletar
             </Button>
           </div>
         </div>

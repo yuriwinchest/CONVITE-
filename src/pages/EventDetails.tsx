@@ -173,6 +173,100 @@ Nos vemos lá! 🎉`;
     });
   };
 
+  const handleSendMultipleReminders = async (guestIds: string[]) => {
+    if (!eventId) return;
+    try {
+      const { data, error } = await supabase.functions.invoke("send-reminder", {
+        body: { guestIds, eventId },
+      });
+
+      if (error) throw error;
+
+      const results = data?.results;
+      if (results) {
+        const successCount = results.success?.length || 0;
+        const failedCount = results.failed?.length || 0;
+        
+        toast({
+          title: "Lembretes enviados!",
+          description: `${successCount} lembretes enviados por email.${failedCount > 0 ? ` ${failedCount} falharam.` : ""}`,
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Erro ao enviar lembretes",
+        description: error.message || "Não foi possível enviar os lembretes.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSendMultipleWhatsAppReminders = (guestIds: string[]) => {
+    if (!event) return;
+
+    const selectedGuests = guests.filter(g => guestIds.includes(g.id) && g.whatsapp);
+    
+    if (selectedGuests.length === 0) {
+      toast({
+        title: "Nenhum convidado com WhatsApp",
+        description: "Os convidados selecionados não possuem WhatsApp cadastrado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Format date
+    const eventDate = new Date(event.date);
+    const formattedDate = eventDate.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    let openedCount = 0;
+
+    selectedGuests.forEach((guest, index) => {
+      const cleanPhone = guest.whatsapp!.replace(/\D/g, '');
+      
+      const message = `Olá, ${guest.name}! 👋
+
+⏰ *Lembrete de Evento*
+
+📅 *${event.name}*
+📍 Data: ${formattedDate}
+${event.location ? `📍 Local: ${event.location}` : ''}
+${guest.table_number ? `🪑 Sua Mesa: Mesa ${guest.table_number}` : ''}
+
+✅ *Importante:* Não esqueça de fazer seu check-in ao chegar no evento!
+
+Nos vemos lá! 🎉`;
+
+      const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+      
+      // Open with delay to avoid popup blockers
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank');
+        openedCount++;
+        
+        if (openedCount === selectedGuests.length) {
+          toast({
+            title: "WhatsApp aberto",
+            description: `${selectedGuests.length} conversas preparadas. Clique em enviar em cada janela do WhatsApp.`,
+          });
+        }
+      }, index * 1000); // 1 segundo de delay entre cada abertura
+    });
+
+    if (selectedGuests.length < guestIds.length) {
+      toast({
+        title: "Aviso",
+        description: `${guestIds.length - selectedGuests.length} convidados não possuem WhatsApp cadastrado e foram ignorados.`,
+      });
+    }
+  };
+
   const handleCSVParsed = (guests: ParsedGuest[]) => {
     setPendingGuests(guests);
   };
@@ -288,6 +382,8 @@ Nos vemos lá! 🎉`;
                     onSendMultipleInvites={handleSendMultipleInvites}
                     onSendReminder={handleSendReminder}
                     onSendWhatsAppReminder={handleSendWhatsAppReminder}
+                    onSendMultipleReminders={handleSendMultipleReminders}
+                    onSendMultipleWhatsAppReminders={handleSendMultipleWhatsAppReminders}
                   />
                 )}
               </CardContent>
