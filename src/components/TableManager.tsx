@@ -18,6 +18,7 @@ import {
 } from "@/lib/tableDistribution";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +38,7 @@ export function TableManager({ eventId }: TableManagerProps) {
   const [tableDialogOpen, setTableDialogOpen] = useState(false);
   const [redistributeDialogOpen, setRedistributeDialogOpen] = useState(false);
   const [isDistributing, setIsDistributing] = useState(false);
+  const queryClient = useQueryClient();
 
   const {
     tables,
@@ -89,6 +91,9 @@ export function TableManager({ eventId }: TableManagerProps) {
         }`,
       });
 
+      // Invalidate queries to update UI
+      queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
+
       // Suggest additional tables if needed
       if (unassigned > 0) {
         const suggested = suggestAdditionalTables(guests, tables);
@@ -100,8 +105,6 @@ export function TableManager({ eventId }: TableManagerProps) {
           });
         }
       }
-
-      window.location.reload();
     } catch (error: any) {
       toast({
         title: "Erro ao distribuir convidados",
@@ -143,7 +146,8 @@ export function TableManager({ eventId }: TableManagerProps) {
         description: `${distributions.length} convidado(s) redistribuído(s).`,
       });
 
-      window.location.reload();
+      // Invalidate queries to update UI
+      queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
     } catch (error: any) {
       toast({
         title: "Erro ao redistribuir",
@@ -167,7 +171,8 @@ export function TableManager({ eventId }: TableManagerProps) {
         description: "O convidado foi movido para a lista de não alocados.",
       });
 
-      window.location.reload();
+      // Invalidate queries to update UI
+      queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
     } catch (error: any) {
       toast({
         title: "Erro ao remover convidado",
@@ -200,7 +205,8 @@ export function TableManager({ eventId }: TableManagerProps) {
         description: `Convidado alocado na Mesa ${tableNumber}.`,
       });
 
-      window.location.reload();
+      // Invalidate queries to update UI
+      queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
     } catch (error: any) {
       toast({
         title: "Erro ao atribuir convidado",

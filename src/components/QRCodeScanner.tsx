@@ -13,12 +13,16 @@ interface QRCodeScannerProps {
 
 export function QRCodeScanner({ onScan, isProcessing, mode = "checkin" }: QRCodeScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [lastScanned, setLastScanned] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<{ success: boolean; message: string } | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scannerDivId = "qr-reader";
 
   const startScanning = async () => {
+    if (isTransitioning || isScanning) return;
+    
+    setIsTransitioning(true);
     try {
       if (!scannerRef.current) {
         scannerRef.current = new Html5Qrcode(scannerDivId);
@@ -59,27 +63,35 @@ export function QRCodeScanner({ onScan, isProcessing, mode = "checkin" }: QRCode
     } catch (error) {
       console.error("Error starting scanner:", error);
       alert("Não foi possível acessar a câmera. Verifique as permissões.");
+    } finally {
+      setIsTransitioning(false);
     }
   };
 
   const stopScanning = async () => {
-    if (scannerRef.current && isScanning) {
-      try {
-        await scannerRef.current.stop();
-        setIsScanning(false);
-      } catch (error) {
-        console.error("Error stopping scanner:", error);
-      }
+    if (isTransitioning || !scannerRef.current || !isScanning) return;
+    
+    setIsTransitioning(true);
+    try {
+      await scannerRef.current.stop();
+      setIsScanning(false);
+    } catch (error) {
+      console.error("Error stopping scanner:", error);
+    } finally {
+      setIsTransitioning(false);
     }
   };
 
   useEffect(() => {
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current.stop().catch(console.error);
+      if (scannerRef.current && isScanning && !isTransitioning) {
+        setIsTransitioning(true);
+        scannerRef.current.stop().catch(console.error).finally(() => {
+          setIsTransitioning(false);
+        });
       }
     };
-  }, []);
+  }, [isScanning, isTransitioning]);
 
   const title = mode === "event-access" 
     ? "Escanear QR Code do Evento" 
@@ -128,19 +140,23 @@ export function QRCodeScanner({ onScan, isProcessing, mode = "checkin" }: QRCode
 
         <div className="flex gap-2">
           {!isScanning ? (
-            <Button onClick={startScanning} className="w-full" disabled={isProcessing}>
+            <Button 
+              onClick={startScanning} 
+              className="w-full" 
+              disabled={isProcessing || isTransitioning}
+            >
               <Camera className="mr-2 h-4 w-4" />
-              Iniciar Scanner
+              {isTransitioning ? "Iniciando..." : "Iniciar Scanner"}
             </Button>
           ) : (
             <Button
               onClick={stopScanning}
               variant="outline"
               className="w-full"
-              disabled={isProcessing}
+              disabled={isProcessing || isTransitioning}
             >
               <CameraOff className="mr-2 h-4 w-4" />
-              Parar Scanner
+              {isTransitioning ? "Parando..." : "Parar Scanner"}
             </Button>
           )}
         </div>

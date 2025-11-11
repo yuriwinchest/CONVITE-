@@ -3,9 +3,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QRCodeScanner } from "./QRCodeScanner";
 import { CheckInList } from "./CheckInList";
 import { CheckInStats } from "./CheckInStats";
+import { CheckedInGuestsList } from "./CheckedInGuestsList";
 import { useGuests } from "@/hooks/useGuests";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CheckInManagerProps {
   eventId: string;
@@ -14,6 +16,7 @@ interface CheckInManagerProps {
 export function CheckInManager({ eventId }: CheckInManagerProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const { guests, checkInGuest } = useGuests(eventId);
+  const queryClient = useQueryClient();
 
   const handleQRCodeScan = async (qrCode: string) => {
     setIsProcessing(true);
@@ -57,13 +60,13 @@ export function CheckInManager({ eventId }: CheckInManagerProps) {
         .update({ checked_in_at: new Date().toISOString() })
         .eq("id", guest.id);
 
+      // Invalidate queries to update UI
+      queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
+
       toast({
         title: "Check-in realizado!",
         description: `Presença confirmada para ${guest.name}${guest.table_number ? ` - Mesa ${guest.table_number}` : ''}.`,
       });
-
-      // Reload to update the list
-      window.location.reload();
     } catch (error: any) {
       throw new Error(error.message || "Erro ao processar check-in");
     } finally {
@@ -71,9 +74,27 @@ export function CheckInManager({ eventId }: CheckInManagerProps) {
     }
   };
 
-  const handleManualCheckIn = (guestId: string) => {
-    checkInGuest(guestId);
-    setTimeout(() => window.location.reload(), 1000);
+  const handleManualCheckIn = async (guestId: string) => {
+    try {
+      await supabase
+        .from("guests")
+        .update({ checked_in_at: new Date().toISOString() })
+        .eq("id", guestId);
+
+      queryClient.invalidateQueries({ queryKey: ["guests", eventId] });
+
+      const guest = guests.find(g => g.id === guestId);
+      toast({
+        title: "Check-in realizado!",
+        description: `Presença confirmada para ${guest?.name}.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao fazer check-in",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -81,9 +102,10 @@ export function CheckInManager({ eventId }: CheckInManagerProps) {
       <CheckInStats guests={guests} />
 
       <Tabs defaultValue="scanner" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="scanner">Scanner QR Code</TabsTrigger>
           <TabsTrigger value="list">Lista de Convidados</TabsTrigger>
+          <TabsTrigger value="checked-in">Check-ins Realizados</TabsTrigger>
         </TabsList>
 
         <TabsContent value="scanner" className="space-y-4">
@@ -92,6 +114,10 @@ export function CheckInManager({ eventId }: CheckInManagerProps) {
 
         <TabsContent value="list" className="space-y-4">
           <CheckInList guests={guests} onManualCheckIn={handleManualCheckIn} />
+        </TabsContent>
+
+        <TabsContent value="checked-in" className="space-y-4">
+          <CheckedInGuestsList guests={guests} />
         </TabsContent>
       </Tabs>
     </div>
