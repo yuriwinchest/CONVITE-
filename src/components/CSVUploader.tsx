@@ -85,12 +85,15 @@ export function CSVUploader({ onGuestsParsed }: CSVUploaderProps) {
         </Alert>
       )}
 
-      <div className="text-sm text-muted-foreground">
-        Formato esperado: <code className="bg-muted px-1 py-0.5 rounded">nome,email,whatsapp,mesa</code>
-        <br />
-        Uma linha por convidado. Email, WhatsApp e mesa são opcionais.
-        <br />
-        WhatsApp no formato: 11999999999 (DDD + número)
+      <div className="text-sm text-muted-foreground space-y-2">
+        <p>
+          <strong>Formato esperado:</strong> <code className="bg-muted px-1 py-0.5 rounded">nome,email,whatsapp,mesa</code>
+        </p>
+        <p>Uma linha por convidado. Email, WhatsApp e mesa são opcionais.</p>
+        <p>WhatsApp no formato: 11999999999 (DDD + número)</p>
+        <p className="text-xs">
+          💡 <strong>Dica:</strong> Se os acentos aparecerem incorretos, salve o CSV com encoding UTF-8 ou baixe nosso template.
+        </p>
       </div>
     </div>
   );

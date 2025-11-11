@@ -71,8 +71,9 @@ const handler = async (req: Request): Promise<Response> => {
       minute: "2-digit",
     });
 
-    // Generate confirmation link
-    const confirmationUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/confirm-presence?guestId=${guestId}`;
+    // Generate confirmation link to frontend
+    const frontendUrl = Deno.env.get("VITE_SUPABASE_URL") || "https://zjmvpvxteixzbnjazplp.lovable.app";
+    const confirmationUrl = `${frontendUrl}/confirm/${eventId}`;
 
     const emailResponse = await resend.emails.send({
       from: "Encontre Meu Lugar <onboarding@resend.dev>",
@@ -130,8 +131,11 @@ const handler = async (req: Request): Promise<Response> => {
 
               <div style="text-align: center;">
                 <a href="${confirmationUrl}" class="button">
-                  Confirmar Presença Agora
+                  Acessar Página de Check-in
                 </a>
+                <p style="margin-top: 10px; font-size: 12px; color: #666;">
+                  Clique no botão acima para acessar a página do evento e confirmar sua presença
+                </p>
               </div>
 
               <p style="margin-top: 30px;">Nos vemos no evento! 🎉</p>

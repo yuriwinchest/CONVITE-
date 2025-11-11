@@ -28,6 +28,35 @@ const cleanValue = (value: string): string => {
     .trim();
 };
 
+const fixEncodingIssues = (text: string): string => {
+  // Mapa dos caracteres mal codificados mais comuns
+  const fixes: Record<string, string> = {
+    'Ã£': 'ã',
+    'Ã§': 'ç',
+    'Ã©': 'é',
+    'Ã­': 'í',
+    'Ã³': 'ó',
+    'Ãº': 'ú',
+    'Ã¡': 'á',
+    'Ãª': 'ê',
+    'Ã': 'à',
+    'Ã´': 'ô',
+    'Ã¢': 'â',
+    'Ã‰': 'É',
+    'Ã"': 'Ó',
+    'Ãƒ': 'Ã',
+    'Ã§Ã£o': 'ção',
+    'Ã£o': 'ão',
+  };
+  
+  let fixed = text;
+  for (const [wrong, right] of Object.entries(fixes)) {
+    fixed = fixed.replace(new RegExp(wrong, 'g'), right);
+  }
+  
+  return fixed;
+};
+
 const validateWhatsApp = (phone: string): string | null => {
   if (!phone || phone.trim().length === 0) return null;
   
@@ -56,6 +85,14 @@ export const parseCSV = async (file: File): Promise<CSVParseResult> => {
       
       // Remove BOM (Byte Order Mark) se presente
       text = text.replace(/^\uFEFF/, '');
+      
+      // Detectar e corrigir problemas comuns de encoding
+      const hasEncodingIssues = /Ã£|Ã§|Ã©|Ã­|Ã³|Ãº|Ã¡/.test(text);
+      
+      if (hasEncodingIssues) {
+        console.log("Detected encoding issues, attempting to fix...");
+        text = fixEncodingIssues(text);
+      }
       
       const lines = text.split('\n').filter(line => line.trim());
       
@@ -147,7 +184,11 @@ export const parseCSV = async (file: File): Promise<CSVParseResult> => {
 
 export const downloadCSVTemplate = () => {
   const template = 'nome;email;whatsapp;mesa\nJoão Silva;joao@email.com;11999999999;1\nMaria Santos;maria@email.com;11988888888;2\nPedro Costa;pedro@email.com;11977777777;1\nAna Lima;;11966666666;3\nCarlos Souza;carlos@email.com;;\n\n--- OU com vírgula ---\n\nnome,email,whatsapp,mesa\nJoão Silva,joao@email.com,11999999999,1\nMaria Santos,maria@email.com,11988888888,2';
-  const blob = new Blob([template], { type: 'text/csv;charset=utf-8' });
+  
+  // Adicionar BOM UTF-8 para garantir que Excel/LibreOffice abra com encoding correto
+  const BOM = '\uFEFF';
+  const blob = new Blob([BOM + template], { type: 'text/csv;charset=utf-8' });
+  
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
