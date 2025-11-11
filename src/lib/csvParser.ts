@@ -29,25 +29,21 @@ const cleanValue = (value: string): string => {
 };
 
 const validateWhatsApp = (phone: string): string | null => {
+  if (!phone || phone.trim().length === 0) return null;
+  
   // Remove todos os caracteres não numéricos
   const cleaned = phone.replace(/\D/g, '');
   
-  // Verifica se é um número brasileiro válido (11 dígitos: DDD + 9 dígitos)
-  if (cleaned.length === 11 && cleaned.startsWith('55')) {
-    return `+${cleaned}`;
-  }
-  if (cleaned.length === 11) {
-    return `+55${cleaned}`;
-  }
-  if (cleaned.length === 13 && cleaned.startsWith('55')) {
-    return `+${cleaned}`;
-  }
-  
-  // Se já tem + no início, mantém
-  if (phone.startsWith('+') && cleaned.length >= 10) {
+  // Aceitar qualquer número com pelo menos 10 dígitos
+  if (cleaned.length >= 10) {
+    // Se não começa com +, adicionar +55 (Brasil)
+    if (!phone.startsWith('+')) {
+      return cleaned.length === 11 ? `+55${cleaned}` : `+${cleaned}`;
+    }
     return phone;
   }
   
+  // Silenciosamente ignora WhatsApp inválido
   return null;
 };
 
@@ -115,9 +111,8 @@ export const parseCSV = async (file: File): Promise<CSVParseResult> => {
           const validatedWhatsApp = validateWhatsApp(whatsapp);
           if (validatedWhatsApp) {
             guest.whatsapp = validatedWhatsApp;
-          } else {
-            errors.push(`Linha ${i + 1}: WhatsApp inválido "${whatsapp}" - use formato brasileiro com DDD`);
           }
+          // Não adicionar erro se WhatsApp for inválido, apenas ignorar
         }
 
         if (table) {

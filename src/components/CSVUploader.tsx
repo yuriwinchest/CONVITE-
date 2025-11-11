@@ -71,20 +71,26 @@ export function CSVUploader({ onGuestsParsed }: CSVUploaderProps) {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            <div className="font-semibold mb-1">Erros encontrados:</div>
-            <ul className="list-disc list-inside space-y-1">
-              {errors.map((error, index) => (
-                <li key={index} className="text-sm">{error}</li>
-              ))}
-            </ul>
+            <div className="font-semibold mb-1">
+              {errors.length} erro{errors.length > 1 ? 's' : ''} encontrado{errors.length > 1 ? 's' : ''}
+            </div>
+            <div className="max-h-[200px] overflow-y-auto">
+              <ul className="list-disc list-inside space-y-1">
+                {errors.map((error, index) => (
+                  <li key={index} className="text-sm">{error}</li>
+                ))}
+              </ul>
+            </div>
           </AlertDescription>
         </Alert>
       )}
 
       <div className="text-sm text-muted-foreground">
-        Formato esperado: <code className="bg-muted px-1 py-0.5 rounded">nome,mesa</code>
+        Formato esperado: <code className="bg-muted px-1 py-0.5 rounded">nome,email,whatsapp,mesa</code>
         <br />
-        Uma linha por convidado. O número da mesa é opcional.
+        Uma linha por convidado. Email, WhatsApp e mesa são opcionais.
+        <br />
+        WhatsApp no formato: 11999999999 (DDD + número)
       </div>
     </div>
   );

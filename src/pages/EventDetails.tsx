@@ -319,10 +319,18 @@ Nos vemos lá! 🎉`;
           </DialogContent>
         </Dialog>
 
-        <Dialog open={csvDialogOpen} onOpenChange={setCsvDialogOpen}>
-          <DialogContent>
+        <Dialog open={csvDialogOpen} onOpenChange={(open) => {
+          setCsvDialogOpen(open);
+          if (!open) {
+            setPendingGuests([]);
+          }
+        }}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Importar Convidados via CSV</DialogTitle>
+              <DialogDescription>
+                Carregue um arquivo CSV com seus convidados
+              </DialogDescription>
             </DialogHeader>
             <CSVUploader onGuestsParsed={handleCSVParsed} />
             {pendingGuests.length > 0 && (
@@ -331,10 +339,13 @@ Nos vemos lá! 🎉`;
                   <h4 className="font-semibold mb-2">
                     Preview ({pendingGuests.length} convidados)
                   </h4>
-                  <div className="max-h-48 overflow-y-auto space-y-2">
+                  <div className="max-h-[300px] overflow-y-auto space-y-3">
                     {pendingGuests.map((guest, index) => (
-                      <div key={index} className="text-sm">
-                        {guest.name} {guest.table_number && `(Mesa ${guest.table_number})`}
+                      <div key={index} className="text-sm border-b pb-2 last:border-0">
+                        <div><strong>Nome:</strong> {guest.name}</div>
+                        {guest.email && <div><strong>Email:</strong> {guest.email}</div>}
+                        {guest.whatsapp && <div><strong>WhatsApp:</strong> {guest.whatsapp}</div>}
+                        {guest.table_number && <div><strong>Mesa:</strong> {guest.table_number}</div>}
                       </div>
                     ))}
                   </div>
@@ -342,6 +353,14 @@ Nos vemos lá! 🎉`;
                 <div className="flex gap-2 justify-end">
                   <Button
                     variant="outline"
+                    onClick={() => {
+                      setPendingGuests([]);
+                    }}
+                  >
+                    Limpar
+                  </Button>
+                  <Button
+                    variant="ghost"
                     onClick={() => {
                       setPendingGuests([]);
                       setCsvDialogOpen(false);
