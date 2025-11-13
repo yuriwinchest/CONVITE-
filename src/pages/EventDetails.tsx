@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useEvents, useDeleteEvent } from "@/hooks/useEvents";
 import { useGuests } from "@/hooks/useGuests";
+import { useSubscription } from "@/hooks/useSubscription";
 import { GuestForm } from "@/components/GuestForm";
 import { GuestsList } from "@/components/GuestsList";
 import { CSVUploader } from "@/components/CSVUploader";
@@ -37,6 +38,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import PlanUpgradeModal from "@/components/PlanUpgradeModal";
 
 export default function EventDetails() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -46,6 +48,8 @@ export default function EventDetails() {
   const [deleteEventDialogOpen, setDeleteEventDialogOpen] = useState(false);
   const [confirmEventName, setConfirmEventName] = useState("");
   const [pendingGuests, setPendingGuests] = useState<ParsedGuest[]>([]);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeMessage, setUpgradeMessage] = useState("");
 
   const { data: events } = useEvents();
   const event = events?.find((e) => e.id === eventId);
@@ -53,14 +57,30 @@ export default function EventDetails() {
 
   const { guests, isLoading, addGuest, addMultipleGuests, updateGuest, deleteGuest, deleteMultipleGuests } =
     useGuests(eventId);
+  
+  const { canAddGuests, getGuestLimit } = useSubscription();
 
   // Enable realtime check-in notifications
   useRealtimeCheckIns(eventId);
 
-  const handleAddGuest = (data: { name: string; email?: string; table_number?: number }) => {
+  const handleAddGuest = async (data: { name: string; email?: string; table_number?: number }) => {
     if (!eventId) return;
-    addGuest({ eventId, guest: data });
-    setAddGuestDialogOpen(false);
+    
+    try {
+      const currentCount = guests?.length || 0;
+      const { allowed, message } = await canAddGuests(eventId, currentCount, 1);
+      
+      if (!allowed) {
+        setUpgradeMessage(message || "Você atingiu o limite de convidados do seu plano.");
+        setShowUpgradeModal(true);
+        return;
+      }
+      
+      addGuest({ eventId, guest: data });
+      setAddGuestDialogOpen(false);
+    } catch (error) {
+      console.error("Error validating guest limit:", error);
+    }
   };
 
   const handleSendInvite = async (guestId: string) => {
@@ -273,11 +293,30 @@ Nos vemos lá! 🎉`;
     setPendingGuests(guests);
   };
 
-  const handleConfirmCSVImport = () => {
+  const handleConfirmCSVImport = async () => {
     if (!eventId || pendingGuests.length === 0) return;
-    addMultipleGuests({ eventId, guests: pendingGuests });
-    setPendingGuests([]);
-    setCsvDialogOpen(false);
+    
+    try {
+      const currentCount = guests?.length || 0;
+      const toAdd = pendingGuests.length;
+      const { allowed, message, limit } = await canAddGuests(eventId, currentCount, toAdd);
+      
+      if (!allowed) {
+        const remaining = limit - currentCount;
+        const detailedMessage = remaining > 0 
+          ? `${message}\n\nVocê pode adicionar apenas mais ${remaining} convidado(s) no plano atual.`
+          : message;
+        setUpgradeMessage(detailedMessage || "Você atingiu o limite de convidados do seu plano.");
+        setShowUpgradeModal(true);
+        return;
+      }
+      
+      addMultipleGuests({ eventId, guests: pendingGuests });
+      setPendingGuests([]);
+      setCsvDialogOpen(false);
+    } catch (error) {
+      console.error("Error validating CSV import:", error);
+    }
   };
 
   const handleDeleteEvent = () => {
@@ -412,10 +451,22 @@ Nos vemos lá! 🎉`;
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>
-                    Convidados ({guests.length}
-                    {event.capacity ? ` / ${event.capacity}` : ""})
-                  </CardTitle>
+                  <div>
+                    <CardTitle>
+                      Convidados ({guests.length}
+                      {event.capacity ? ` / ${event.capacity}` : ""})
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Limite do plano: {guests.length}/{(() => {
+                        const limit = getGuestLimit();
+                        return limit === Infinity ? "∞" : limit;
+                      })()} ({(() => {
+                        const limit = getGuestLimit();
+                        if (limit === Infinity) return "ilimitado";
+                        return Math.round((guests.length / limit) * 100) + "% usado";
+                      })()})
+                    </p>
+                  </div>
                   <div className="flex gap-2">
                     <Button onClick={() => setCsvDialogOpen(true)}>
                       <Upload className="mr-2 h-4 w-4" />
@@ -537,6 +588,14 @@ Nos vemos lá! 🎉`;
             )}
           </DialogContent>
         </Dialog>
+
+        <PlanUpgradeModal
+          open={showUpgradeModal}
+          onOpenChange={setShowUpgradeModal}
+          reason="guest_limit"
+          message={upgradeMessage}
+          eventId={eventId}
+        />
 
         <AlertDialog open={deleteEventDialogOpen} onOpenChange={setDeleteEventDialogOpen}>
           <AlertDialogContent>
