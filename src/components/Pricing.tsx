@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { STRIPE_PRICES } from "@/config/stripe-prices";
 import { useState } from "react";
 
 const plans = [
@@ -81,17 +80,19 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
 
       const { data, error } = await supabase.functions.invoke("create-payment-intent", {
         body: {
-          amount: STRIPE_PRICES.ESSENTIAL.amount,
           plan: "ESSENTIAL",
           eventId: eventId,
-          userId: user.id,
         },
       });
 
       if (error) throw error;
       
-      toast.success("Redirecionando para pagamento...");
-      console.log("Payment Intent criado:", data);
+      if (data?.url) {
+        toast.success("Abrindo página de pagamento...");
+        window.open(data.url, "_blank");
+      } else {
+        throw new Error("URL de checkout não recebida");
+      }
     } catch (error) {
       toast.error("Erro ao processar pagamento");
       console.error(error);
@@ -116,17 +117,19 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
 
       const { data, error } = await supabase.functions.invoke("create-payment-intent", {
         body: {
-          amount: STRIPE_PRICES.PREMIUM.amount,
           plan: "PREMIUM",
           eventId: eventId,
-          userId: user.id,
         },
       });
 
       if (error) throw error;
       
-      toast.success("Redirecionando para pagamento...");
-      console.log("Payment Intent criado:", data);
+      if (data?.url) {
+        toast.success("Abrindo página de pagamento...");
+        window.open(data.url, "_blank");
+      } else {
+        throw new Error("URL de checkout não recebida");
+      }
     } catch (error) {
       toast.error("Erro ao processar pagamento");
       console.error(error);
