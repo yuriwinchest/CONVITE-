@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const plans = [
   {
@@ -53,7 +54,21 @@ const plans = [
   },
 ];
 
-const Pricing = () => {
+interface PricingProps {
+  eventId?: string;
+  embedded?: boolean;
+}
+
+const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
+  const { toast } = useToast();
+
+  const handlePlanSelection = (planName: string) => {
+    toast({
+      title: "Funcionalidade em desenvolvimento",
+      description: `Integração de pagamento para o plano ${planName} será implementada em breve.`,
+    });
+  };
+
   return (
     <section className="bg-primary text-primary-foreground py-20 px-6">
       <div className="container mx-auto">
@@ -91,6 +106,7 @@ const Pricing = () => {
                 <Button 
                   variant={plan.variant}
                   className="w-full bg-primary hover:bg-accent text-primary-foreground"
+                  onClick={() => handlePlanSelection(plan.name)}
                 >
                   {plan.cta}
                 </Button>
