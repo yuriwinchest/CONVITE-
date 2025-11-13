@@ -5,8 +5,8 @@
 export const STRIPE_PRICES = {
   ESSENTIAL: {
     name: "Essential",
-    price_id: "price_ESSENTIAL_PLACEHOLDER", // Atualizar após executar setup-stripe-products
-    product_id: "prod_ESSENTIAL_PLACEHOLDER",
+    price_id: "price_1ST7jePLqFlDnWiItuRHaCDV",
+    product_id: "prod_TPxeH3Jxz95rou",
     amount: 79.00,
     currency: "BRL",
     guests_limit: 200,
@@ -14,8 +14,8 @@ export const STRIPE_PRICES = {
   },
   PREMIUM: {
     name: "Premium",
-    price_id: "price_PREMIUM_PLACEHOLDER", // Atualizar após executar setup-stripe-products
-    product_id: "prod_PREMIUM_PLACEHOLDER",
+    price_id: "price_1ST7k0PLqFlDnWiIbfCIajPf",
+    product_id: "prod_TPxf52QGQeGZfR",
     amount: 149.00,
     currency: "BRL",
     guests_limit: Infinity,
@@ -23,8 +23,8 @@ export const STRIPE_PRICES = {
   },
   PROFESSIONAL: {
     name: "Professional",
-    price_id: "price_PROFESSIONAL_PLACEHOLDER", // Atualizar após executar setup-stripe-products
-    product_id: "prod_PROFESSIONAL_PLACEHOLDER",
+    price_id: "price_1ST7kFPLqFlDnWiIUOGgbJ0m",
+    product_id: "prod_TPxfoKW5euUqBm",
     amount: 97.00,
     currency: "BRL",
     recurring: "monthly" as const,

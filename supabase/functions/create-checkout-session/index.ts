@@ -48,8 +48,8 @@ serve(async (req) => {
       );
     }
 
-    // Price ID do plano Professional (precisa ser atualizado após executar setup-stripe-products)
-    const professionalPriceId = "price_PROFESSIONAL_PLACEHOLDER";
+    // Price ID do plano Professional
+    const professionalPriceId = "price_1ST7kFPLqFlDnWiIUOGgbJ0m";
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
