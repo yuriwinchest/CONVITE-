@@ -17,14 +17,14 @@ export const useEventPurchase = (eventId: string | undefined) => {
       if (!eventId) return null;
 
       const { data, error } = await supabase
-        .from("event_purchases")
+        .from("event_purchases" as any)
         .select("*")
         .eq("event_id", eventId)
         .eq("payment_status", "paid")
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== "PGRST116") throw error;
-      return data as EventPurchase | null;
+      return data as unknown as EventPurchase | null;
     },
     enabled: !!eventId,
   });

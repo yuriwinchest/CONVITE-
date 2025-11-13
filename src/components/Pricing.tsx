@@ -1,7 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Check } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { STRIPE_PRICES } from "@/config/stripe-prices";
+import { useState } from "react";
 
 const plans = [
   {
@@ -60,13 +63,117 @@ interface PricingProps {
 }
 
 const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
-  const { toast } = useToast();
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const handlePurchaseEssential = async () => {
+    try {
+      setLoading("ESSENTIAL");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Faça login para continuar");
+        return;
+      }
+
+      if (!eventId) {
+        toast.error("ID do evento não fornecido");
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("create-payment-intent", {
+        body: {
+          amount: STRIPE_PRICES.ESSENTIAL.amount,
+          plan: "ESSENTIAL",
+          eventId: eventId,
+          userId: user.id,
+        },
+      });
+
+      if (error) throw error;
+      
+      toast.success("Redirecionando para pagamento...");
+      console.log("Payment Intent criado:", data);
+    } catch (error) {
+      toast.error("Erro ao processar pagamento");
+      console.error(error);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handlePurchasePremium = async () => {
+    try {
+      setLoading("PREMIUM");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Faça login para continuar");
+        return;
+      }
+
+      if (!eventId) {
+        toast.error("ID do evento não fornecido");
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("create-payment-intent", {
+        body: {
+          amount: STRIPE_PRICES.PREMIUM.amount,
+          plan: "PREMIUM",
+          eventId: eventId,
+          userId: user.id,
+        },
+      });
+
+      if (error) throw error;
+      
+      toast.success("Redirecionando para pagamento...");
+      console.log("Payment Intent criado:", data);
+    } catch (error) {
+      toast.error("Erro ao processar pagamento");
+      console.error(error);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleSubscribeProfessional = async () => {
+    try {
+      setLoading("PROFESSIONAL");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Faça login para continuar");
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("create-checkout-session", {
+        body: {
+          userId: user.id,
+        },
+      });
+
+      if (error) throw error;
+      
+      toast.success("Abrindo checkout...");
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error) {
+      toast.error("Erro ao processar assinatura");
+      console.error(error);
+    } finally {
+      setLoading(null);
+    }
+  };
 
   const handlePlanSelection = (planName: string) => {
-    toast({
-      title: "Funcionalidade em desenvolvimento",
-      description: `Integração de pagamento para o plano ${planName} será implementada em breve.`,
-    });
+    if (planName === "Essencial") {
+      handlePurchaseEssential();
+    } else if (planName === "Premium") {
+      handlePurchasePremium();
+    } else if (planName === "Profissional") {
+      handleSubscribeProfessional();
+    } else {
+      toast.info("Plano FREE já está ativo");
+    }
   };
 
   return (
@@ -107,8 +214,9 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
                   variant={plan.variant}
                   className="w-full bg-primary hover:bg-accent text-primary-foreground"
                   onClick={() => handlePlanSelection(plan.name)}
+                  disabled={loading !== null}
                 >
-                  {plan.cta}
+                  {loading === plan.name.toUpperCase() ? "Processando..." : plan.cta}
                 </Button>
               </CardContent>
             </Card>

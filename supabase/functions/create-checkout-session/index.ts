@@ -16,18 +16,21 @@ serve(async (req) => {
   }
 
   try {
-    const { priceId, userId } = await req.json();
+    const { userId } = await req.json();
 
-    if (!priceId || !userId) {
+    if (!userId) {
       throw new Error("Missing required parameters");
     }
+
+    // Price ID do plano Professional (precisa ser atualizado após executar setup-stripe-products)
+    const professionalPriceId = "price_PROFESSIONAL_PLACEHOLDER";
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
       line_items: [
         {
-          price: priceId,
+          price: professionalPriceId,
           quantity: 1,
         },
       ],
@@ -51,7 +54,7 @@ serve(async (req) => {
   } catch (error) {
     console.error("Error creating checkout session:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 500,

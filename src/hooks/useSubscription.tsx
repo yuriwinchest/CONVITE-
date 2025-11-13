@@ -22,13 +22,13 @@ export const useSubscription = () => {
       if (!user) return null;
 
       const { data, error } = await supabase
-        .from("user_subscriptions")
+        .from("user_subscriptions" as any)
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
-      return data as UserSubscription;
+      return data as unknown as UserSubscription | null;
     },
   });
 
@@ -81,13 +81,13 @@ export const useSubscription = () => {
   ): Promise<{ allowed: boolean; message?: string; limit: number }> => {
     // Verificar se o evento tem um plano comprado
     const { data: purchase } = await supabase
-      .from("event_purchases")
+      .from("event_purchases" as any)
       .select("plan")
       .eq("event_id", eventId)
       .eq("payment_status", "paid")
-      .single();
+      .maybeSingle();
 
-    const eventPlan = purchase?.plan as SubscriptionPlan | undefined;
+    const eventPlan = (purchase as any)?.plan as SubscriptionPlan | undefined;
     const limit = getGuestLimit(eventPlan);
     const newTotal = currentCount + toAdd;
 
