@@ -6,6 +6,7 @@ import DashboardStats from "@/components/DashboardStats";
 import EventsList from "@/components/EventsList";
 import Pricing from "@/components/Pricing";
 import { Skeleton } from "@/components/ui/skeleton";
+import { StripeTestPanel } from "@/components/StripeTestPanel";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
@@ -52,6 +53,11 @@ const Dashboard = () => {
         </div>
 
         <DashboardStats />
+        
+        <div className="mb-8">
+          <StripeTestPanel />
+        </div>
+        
         <EventsList />
       </main>
       
