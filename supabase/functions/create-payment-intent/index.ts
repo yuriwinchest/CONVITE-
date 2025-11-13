@@ -85,8 +85,8 @@ serve(async (req) => {
 
     // Get amount from server-side config (never trust client)
     const priceConfigs: Record<string, { amount: number; price_id: string }> = {
-      ESSENTIAL: { amount: 79.00, price_id: "price_1ST7jePLqFlDnWiItuRHaCDV" },
-      PREMIUM: { amount: 149.00, price_id: "price_1ST7k0PLqFlDnWiIbfCIajPf" }
+      ESSENTIAL: { amount: 79.00, price_id: "price_1ST96TAihnYHiSyUX84RmL0k" },
+      PREMIUM: { amount: 149.00, price_id: "price_1ST97TAihnYHiSyUQKzuwseJ" }
     };
     const priceConfig = priceConfigs[plan];
 
