@@ -166,8 +166,16 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
 
   const handlePlanSelection = (planName: string) => {
     if (planName === "Essencial") {
+      if (!eventId) {
+        toast.error("Selecione um evento para comprar este plano");
+        return;
+      }
       handlePurchaseEssential();
     } else if (planName === "Premium") {
+      if (!eventId) {
+        toast.error("Selecione um evento para comprar este plano");
+        return;
+      }
       handlePurchasePremium();
     } else if (planName === "Profissional") {
       handleSubscribeProfessional();
@@ -214,7 +222,15 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
                   variant={plan.variant}
                   className="w-full bg-primary hover:bg-accent text-primary-foreground"
                   onClick={() => handlePlanSelection(plan.name)}
-                  disabled={loading !== null}
+                  disabled={
+                    loading !== null || 
+                    (!eventId && (plan.name === "Essencial" || plan.name === "Premium"))
+                  }
+                  title={
+                    !eventId && (plan.name === "Essencial" || plan.name === "Premium")
+                      ? "Selecione um evento para comprar este plano"
+                      : undefined
+                  }
                 >
                   {loading === plan.name.toUpperCase() ? "Processando..." : plan.cta}
                 </Button>
