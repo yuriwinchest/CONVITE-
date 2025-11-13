@@ -90,10 +90,66 @@ serve(async (req) => {
     };
     const priceConfig = priceConfigs[plan];
 
-    // Criar Payment Intent no Stripe
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(priceConfig.amount * 100), // Server-controlled amount
-      currency: "brl",
+    // Verificar se já existe uma compra para este evento
+    const { data: existingPurchase } = await supabase
+      .from("event_purchases")
+      .select("*")
+      .eq("event_id", eventId)
+      .maybeSingle();
+
+    // Se já existe uma compra paga, informar o usuário
+    if (existingPurchase && existingPurchase.payment_status === "paid") {
+      return new Response(
+        JSON.stringify({ 
+          error: "Este evento já possui um plano ativo",
+          currentPlan: existingPurchase.plan
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
+    }
+
+    // Buscar ou criar cliente Stripe
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .single();
+
+    const customers = await stripe.customers.list({ email: user.email!, limit: 1 });
+    let customerId = customers.data.length > 0 ? customers.data[0].id : undefined;
+
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email!,
+        metadata: { userId: user.id }
+      });
+      customerId = customer.id;
+    }
+
+    // Criar sessão de Checkout do Stripe
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      line_items: [
+        {
+          price_data: {
+            currency: "brl",
+            product_data: {
+              name: `Plano ${plan}`,
+              description: plan === "ESSENTIAL" 
+                ? "Até 200 convidados por evento"
+                : "Convidados ilimitados por evento"
+            },
+            unit_amount: Math.round(priceConfig.amount * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: `${req.headers.get("origin")}/events/${eventId}?payment=success`,
+      cancel_url: `${req.headers.get("origin")}/events/${eventId}?payment=cancelled`,
       metadata: {
         userId: user.id,
         eventId,
@@ -101,26 +157,38 @@ serve(async (req) => {
       },
     });
 
-    // Criar registro no banco de dados
-    const { error: dbError } = await supabase
-      .from("event_purchases")
-      .insert({
-        event_id: eventId,
-        user_id: user.id,
-        plan,
-        amount: priceConfig.amount,
-        stripe_payment_intent_id: paymentIntent.id,
-        payment_status: "pending",
-      });
+    // Criar ou atualizar registro no banco de dados
+    if (existingPurchase) {
+      // Atualizar compra existente
+      await supabase
+        .from("event_purchases")
+        .update({
+          plan,
+          amount: priceConfig.amount,
+          stripe_payment_intent_id: session.payment_intent as string,
+          payment_status: "pending",
+        })
+        .eq("id", existingPurchase.id);
+    } else {
+      // Criar nova compra
+      await supabase
+        .from("event_purchases")
+        .insert({
+          event_id: eventId,
+          user_id: user.id,
+          plan,
+          amount: priceConfig.amount,
+          stripe_payment_intent_id: session.payment_intent as string,
+          payment_status: "pending",
+        });
+    }
 
-    if (dbError) throw dbError;
-
-    console.log("Payment Intent created:", paymentIntent.id);
+    console.log("Checkout session created:", session.id);
 
     return new Response(
       JSON.stringify({ 
-        clientSecret: paymentIntent.client_secret,
-        paymentIntentId: paymentIntent.id,
+        url: session.url,
+        sessionId: session.id,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
