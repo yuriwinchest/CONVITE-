@@ -60,7 +60,7 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      success_url: `${Deno.env.get("APP_URL")}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${Deno.env.get("APP_URL")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${Deno.env.get("APP_URL")}/dashboard`,
       metadata: {
         userId: user.id,

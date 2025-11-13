@@ -8,6 +8,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import EventDetails from "./pages/EventDetails";
 import ConfirmPresence from "./pages/ConfirmPresence";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/events/:eventId" element={<EventDetails />} />
           <Route path="/confirm" element={<ConfirmPresence />} />
           <Route path="/confirm/:eventId" element={<ConfirmPresence />} />
+          <Route path="/payment-success" element={<PaymentSuccess />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
