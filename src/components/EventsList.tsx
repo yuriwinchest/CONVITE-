@@ -2,15 +2,32 @@ import { Calendar, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEvents } from "@/hooks/useEvents";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateEventDialog from "@/components/CreateEventDialog";
+import PlanUpgradeModal from "@/components/PlanUpgradeModal";
 
 const EventsList = () => {
   const { data: events, isLoading } = useEvents();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeMessage, setUpgradeMessage] = useState("");
   const navigate = useNavigate();
+  const { canCreateEvent } = useSubscription();
+
+  const handleCreateEvent = async () => {
+    const { allowed, message } = await canCreateEvent();
+    
+    if (!allowed) {
+      setUpgradeMessage(message || "Você atingiu o limite de eventos do seu plano.");
+      setShowUpgradeModal(true);
+      return;
+    }
+    
+    setIsCreateDialogOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -33,7 +50,7 @@ const EventsList = () => {
         {hasEvents && (
           <Button 
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            onClick={() => setIsCreateDialogOpen(true)}
+            onClick={handleCreateEvent}
           >
             <Plus className="w-4 h-4 mr-2" />
             Criar Novo Evento
@@ -55,7 +72,7 @@ const EventsList = () => {
             </p>
             <Button 
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              onClick={() => setIsCreateDialogOpen(true)}
+              onClick={handleCreateEvent}
             >
               <Plus className="w-4 h-4 mr-2" />
               Criar Primeiro Evento
@@ -93,6 +110,13 @@ const EventsList = () => {
       <CreateEventDialog 
         open={isCreateDialogOpen} 
         onOpenChange={setIsCreateDialogOpen} 
+      />
+      
+      <PlanUpgradeModal
+        open={showUpgradeModal}
+        onOpenChange={setShowUpgradeModal}
+        reason="event_limit"
+        message={upgradeMessage}
       />
     </div>
   );
