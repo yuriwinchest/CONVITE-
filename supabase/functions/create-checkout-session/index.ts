@@ -48,8 +48,8 @@ serve(async (req) => {
       );
     }
 
-    // Price ID do plano Professional
-    const professionalPriceId = "price_1ST7kFPLqFlDnWiIUOGgbJ0m";
+    // Price ID do plano Professional (produção)
+    const professionalPriceId = "price_1ST98NAihnYHiSyUbdmKmpx2";
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",

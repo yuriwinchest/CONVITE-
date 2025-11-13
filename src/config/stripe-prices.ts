@@ -5,8 +5,8 @@
 export const STRIPE_PRICES = {
   ESSENTIAL: {
     name: "Essential",
-    price_id: "price_1ST7jePLqFlDnWiItuRHaCDV",
-    product_id: "prod_TPxeH3Jxz95rou",
+    price_id: "price_1ST96TAihnYHiSyUX84RmL0k",
+    product_id: "prod_TPz4Y15OPfpJSC",
     amount: 79.00,
     currency: "BRL",
     guests_limit: 200,
@@ -14,8 +14,8 @@ export const STRIPE_PRICES = {
   },
   PREMIUM: {
     name: "Premium",
-    price_id: "price_1ST7k0PLqFlDnWiIbfCIajPf",
-    product_id: "prod_TPxf52QGQeGZfR",
+    price_id: "price_1ST97TAihnYHiSyUQKzuwseJ",
+    product_id: "prod_TPz5OJBGC82YtY",
     amount: 149.00,
     currency: "BRL",
     guests_limit: Infinity,
@@ -23,8 +23,8 @@ export const STRIPE_PRICES = {
   },
   PROFESSIONAL: {
     name: "Professional",
-    price_id: "price_1ST7kFPLqFlDnWiIUOGgbJ0m",
-    product_id: "prod_TPxfoKW5euUqBm",
+    price_id: "price_1ST98NAihnYHiSyUbdmKmpx2",
+    product_id: "prod_TPz6Vjx8KZO7d1",
     amount: 97.00,
     currency: "BRL",
     recurring: "monthly" as const,
