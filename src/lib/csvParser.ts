@@ -28,33 +28,37 @@ const cleanValue = (value: string): string => {
     .trim();
 };
 
-const fixEncodingIssues = (text: string): string => {
-  // Mapa dos caracteres mal codificados mais comuns
-  const fixes: Record<string, string> = {
-    'Ã£': 'ã',
-    'Ã§': 'ç',
-    'Ã©': 'é',
-    'Ã­': 'í',
-    'Ã³': 'ó',
-    'Ãº': 'ú',
-    'Ã¡': 'á',
-    'Ãª': 'ê',
-    'Ã': 'à',
-    'Ã´': 'ô',
-    'Ã¢': 'â',
-    'Ã‰': 'É',
-    'Ã"': 'Ó',
-    'Ãƒ': 'Ã',
-    'Ã§Ã£o': 'ção',
-    'Ã£o': 'ão',
-  };
+const tryDecodeWithEncodings = (buffer: ArrayBuffer): string => {
+  const encodings = ['utf-8', 'windows-1252', 'iso-8859-1'];
+  let bestResult = '';
+  let minIssues = Infinity;
   
-  let fixed = text;
-  for (const [wrong, right] of Object.entries(fixes)) {
-    fixed = fixed.replace(new RegExp(wrong, 'g'), right);
+  for (const encoding of encodings) {
+    try {
+      const decoder = new TextDecoder(encoding);
+      const text = decoder.decode(buffer);
+      
+      // Conta caracteres problemáticos
+      const issues = (text.match(/�/g) || []).length + 
+                     (text.match(/\uFFFD/g) || []).length;
+      
+      if (issues < minIssues) {
+        minIssues = issues;
+        bestResult = text;
+      }
+      
+      // Se não tem problemas, usa esse encoding
+      if (issues === 0) {
+        console.log(`✅ Encoding detectado: ${encoding}`);
+        return text;
+      }
+    } catch (e) {
+      continue;
+    }
   }
   
-  return fixed;
+  console.log(`⚠️ Melhor encoding encontrado com ${minIssues} problemas`);
+  return bestResult;
 };
 
 const validateWhatsApp = (phone: string): string | null => {
@@ -81,18 +85,13 @@ export const parseCSV = async (file: File): Promise<CSVParseResult> => {
     const reader = new FileReader();
     
     reader.onload = (e) => {
-      let text = e.target?.result as string;
+      const buffer = e.target?.result as ArrayBuffer;
+      
+      // Tenta decodificar com diferentes encodings
+      let text = tryDecodeWithEncodings(buffer);
       
       // Remove BOM (Byte Order Mark) se presente
       text = text.replace(/^\uFEFF/, '');
-      
-      // Detectar e corrigir problemas comuns de encoding
-      const hasEncodingIssues = /Ã£|Ã§|Ã©|Ã­|Ã³|Ãº|Ã¡/.test(text);
-      
-      if (hasEncodingIssues) {
-        console.log("Detected encoding issues, attempting to fix...");
-        text = fixEncodingIssues(text);
-      }
       
       const lines = text.split('\n').filter(line => line.trim());
       
@@ -178,7 +177,7 @@ export const parseCSV = async (file: File): Promise<CSVParseResult> => {
       });
     };
 
-    reader.readAsText(file, 'UTF-8');
+    reader.readAsArrayBuffer(file);
   });
 };
 
