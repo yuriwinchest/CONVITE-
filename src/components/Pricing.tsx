@@ -4,6 +4,13 @@ import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useQuery } from "@tanstack/react-query";
 
 const plans = [
   {
@@ -63,6 +70,25 @@ interface PricingProps {
 
 const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
   const [loading, setLoading] = useState<string | null>(null);
+  const [showEventSelector, setShowEventSelector] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+
+  const { data: events } = useQuery({
+    queryKey: ["events-for-purchase"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+
+      const { data, error } = await supabase
+        .from("events")
+        .select("id, name, date")
+        .eq("user_id", user.id)
+        .order("date", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const handlePurchaseEssential = async () => {
     try {
@@ -167,16 +193,100 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
     }
   };
 
+  const handleEventSelection = (selectedEventId: string) => {
+    setShowEventSelector(false);
+    
+    if (selectedPlan === "Essencial") {
+      handlePurchaseEssentialWithEvent(selectedEventId);
+    } else if (selectedPlan === "Premium") {
+      handlePurchasePremiumWithEvent(selectedEventId);
+    }
+  };
+
+  const handlePurchaseEssentialWithEvent = async (targetEventId: string) => {
+    try {
+      setLoading("ESSENTIAL");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Faça login para continuar");
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("create-payment-intent", {
+        body: {
+          plan: "ESSENTIAL",
+          eventId: targetEventId,
+        },
+      });
+
+      if (error) throw error;
+      
+      if (data?.url) {
+        toast.success("Abrindo página de pagamento...");
+        window.open(data.url, "_blank");
+      } else {
+        throw new Error("URL de checkout não recebida");
+      }
+    } catch (error) {
+      toast.error("Erro ao processar pagamento");
+      console.error(error);
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handlePurchasePremiumWithEvent = async (targetEventId: string) => {
+    try {
+      setLoading("PREMIUM");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Faça login para continuar");
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke("create-payment-intent", {
+        body: {
+          plan: "PREMIUM",
+          eventId: targetEventId,
+        },
+      });
+
+      if (error) throw error;
+      
+      if (data?.url) {
+        toast.success("Abrindo página de pagamento...");
+        window.open(data.url, "_blank");
+      } else {
+        throw new Error("URL de checkout não recebida");
+      }
+    } catch (error) {
+      toast.error("Erro ao processar pagamento");
+      console.error(error);
+    } finally {
+      setLoading(null);
+    }
+  };
+
   const handlePlanSelection = (planName: string) => {
     if (planName === "Essencial") {
       if (!eventId) {
-        toast.error("Selecione um evento para comprar este plano");
+        if (!events || events.length === 0) {
+          toast.error("Você precisa criar um evento primeiro");
+          return;
+        }
+        setSelectedPlan("Essencial");
+        setShowEventSelector(true);
         return;
       }
       handlePurchaseEssential();
     } else if (planName === "Premium") {
       if (!eventId) {
-        toast.error("Selecione um evento para comprar este plano");
+        if (!events || events.length === 0) {
+          toast.error("Você precisa criar um evento primeiro");
+          return;
+        }
+        setSelectedPlan("Premium");
+        setShowEventSelector(true);
         return;
       }
       handlePurchasePremium();
@@ -188,61 +298,80 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
   };
 
   return (
-    <section className="bg-primary text-primary-foreground py-20 px-6">
-      <div className="container mx-auto">
-        <h2 className="text-4xl font-bold text-center mb-16">
-          Escolha o plano ideal para o seu evento
-        </h2>
-        
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-          {plans.map((plan, index) => (
-            <Card key={index} className="bg-card border-0 flex flex-col">
-              <CardHeader className="pb-4">
-                <h3 className="text-xl font-semibold text-card-foreground mb-4">
-                  {plan.name}
-                </h3>
-                <div className="text-3xl font-bold text-card-foreground">
-                  {plan.price}
-                  {plan.period && (
-                    <span className="text-base font-normal text-muted-foreground">
-                      {plan.period}
-                    </span>
-                  )}
-                </div>
-              </CardHeader>
-              
-              <CardContent className="flex-1 flex flex-col">
-                <ul className="space-y-3 mb-8 flex-1">
-                  {plan.features.map((feature, i) => (
-                    <li key={i} className="flex items-start gap-2 text-card-foreground">
-                      <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+    <>
+      <section className="bg-primary text-primary-foreground py-20 px-6">
+        <div className="container mx-auto">
+          <h2 className="text-4xl font-bold text-center mb-16">
+            Escolha o plano ideal para o seu evento
+          </h2>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {plans.map((plan, index) => (
+              <Card key={index} className="bg-card border-0 flex flex-col">
+                <CardHeader className="pb-4">
+                  <h3 className="text-xl font-semibold text-card-foreground mb-4">
+                    {plan.name}
+                  </h3>
+                  <div className="text-3xl font-bold text-card-foreground">
+                    {plan.price}
+                    {plan.period && (
+                      <span className="text-base font-normal text-muted-foreground">
+                        {plan.period}
+                      </span>
+                    )}
+                  </div>
+                </CardHeader>
                 
-                <Button 
-                  variant={plan.variant}
-                  className="w-full bg-primary hover:bg-accent text-primary-foreground"
-                  onClick={() => handlePlanSelection(plan.name)}
-                  disabled={
-                    loading !== null || 
-                    (!eventId && (plan.name === "Essencial" || plan.name === "Premium"))
-                  }
-                  title={
-                    !eventId && (plan.name === "Essencial" || plan.name === "Premium")
-                      ? "Selecione um evento para comprar este plano"
-                      : undefined
-                  }
-                >
-                  {loading === plan.name.toUpperCase() ? "Processando..." : plan.cta}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                <CardContent className="flex-1 flex flex-col">
+                  <ul className="space-y-3 mb-8 flex-1">
+                    {plan.features.map((feature, i) => (
+                      <li key={i} className="flex items-start gap-2 text-card-foreground">
+                        <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                        <span className="text-sm">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  
+                  <Button 
+                    variant={plan.variant}
+                    className="w-full bg-primary hover:bg-accent text-primary-foreground"
+                    onClick={() => handlePlanSelection(plan.name)}
+                    disabled={loading !== null}
+                  >
+                    {loading === plan.name.toUpperCase() ? "Processando..." : plan.cta}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <Dialog open={showEventSelector} onOpenChange={setShowEventSelector}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Selecione o evento para o plano {selectedPlan}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2 max-h-[400px] overflow-y-auto">
+            {events?.map((event) => (
+              <Button
+                key={event.id}
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => handleEventSelection(event.id)}
+              >
+                <div className="text-left">
+                  <div className="font-semibold">{event.name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {new Date(event.date).toLocaleDateString("pt-BR")}
+                  </div>
+                </div>
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
