@@ -13,7 +13,8 @@ const supabase = createClient(
 
 serve(async (req) => {
   const signature = req.headers.get("stripe-signature");
-  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+const webhookSecret =
+  Deno.env.get("STRIPE_WEBHOOK_SECRET") || Deno.env.get("webhook");
 
   if (!signature || !webhookSecret) {
     return new Response("Missing signature or webhook secret", { status: 400 });
