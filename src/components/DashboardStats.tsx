@@ -45,16 +45,21 @@ const DashboardStats = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {statsCards.map((stat) => {
         const Icon = stat.icon;
         return (
-          <Card key={stat.title} className="border-border/40">
+          <Card 
+            key={stat.title} 
+            className="border-border/40 shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-300 hover:-translate-y-1"
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <Icon className="h-4 w-4 text-muted-foreground" />
+              <div className="p-2 rounded-full bg-primary/10">
+                <Icon className="h-4 w-4 text-primary" />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-foreground">{stat.value}</div>

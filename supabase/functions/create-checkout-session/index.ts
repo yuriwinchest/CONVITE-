@@ -2,8 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-const stripe = new Stripe(Deno.env.get("vento") as string, {
-  apiVersion: "2023-10-16",
+const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") as string, {
+  apiVersion: "2025-08-27.basil",
 });
 
 const corsHeaders = {
@@ -39,6 +39,7 @@ serve(async (req) => {
     );
 
     if (authError || !user) {
+      console.error("Authentication error:", authError);
       return new Response(
         JSON.stringify({ error: "Unauthorized: Invalid token" }),
         {
@@ -48,8 +49,14 @@ serve(async (req) => {
       );
     }
 
+    console.log("User authenticated:", user.id);
+
     // Price ID do plano Premium mensal (produção)
     const premiumPriceId = "price_1ST97TAihnYHiSyUQKzuwseJ";
+
+    // Get origin from request header for dynamic URLs
+    const origin = req.headers.get("origin") || "https://zjmvpvxteixzbnjazplp.supabase.co";
+    console.log("Using origin for redirect URLs:", origin);
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -60,15 +67,15 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      success_url: `${Deno.env.get("APP_URL")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${Deno.env.get("APP_URL")}/dashboard`,
+      success_url: `${origin}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/dashboard`,
       metadata: {
         userId: user.id,
         plan: "PREMIUM",
       },
     });
 
-    console.log("Checkout session created:", session.id);
+    console.log("Checkout session created successfully:", session.id);
 
     return new Response(
       JSON.stringify({ sessionId: session.id, url: session.url }),

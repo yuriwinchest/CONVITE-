@@ -65,12 +65,17 @@ const EventsList = () => {
   const hasEvents = events && events.length > 0;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-foreground">Seus Eventos</h2>
+    <div className="animate-fade-in">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h2 className="text-3xl font-bold text-foreground mb-2">Seus Eventos</h2>
+          <p className="text-muted-foreground">
+            Gerencie e acompanhe todos os seus eventos
+          </p>
+        </div>
         {hasEvents && (
           <Button 
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm hover:shadow-md transition-all"
             onClick={handleCreateEvent}
           >
             <Plus className="w-4 h-4 mr-2" />
