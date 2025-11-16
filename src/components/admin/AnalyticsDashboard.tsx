@@ -27,6 +27,56 @@ export const AnalyticsDashboard = () => {
     },
   });
 
+  // Buscar dados do funil de conversão
+  const { data: funnelData } = useQuery({
+    queryKey: ["admin-funnel"],
+    queryFn: async () => {
+      // Total de usuários
+      const { count: totalUsers } = await supabase
+        .from("profiles")
+        .select("*", { count: "exact", head: true });
+
+      // Usuários com pelo menos 1 evento
+      const { data: usersWithEvents } = await supabase
+        .from("events")
+        .select("user_id");
+      
+      const uniqueUsersWithEvents = new Set(usersWithEvents?.map(e => e.user_id)).size;
+
+      // Usuários com pelo menos 1 convidado
+      const { data: eventsWithGuests } = await supabase
+        .from("events")
+        .select("user_id, guests!inner(id)");
+      
+      const uniqueUsersWithGuests = new Set(
+        eventsWithGuests?.filter(e => e.guests && e.guests.length > 0).map(e => e.user_id)
+      ).size;
+
+      // Usuários que fizeram upgrade
+      const { data: paidUsers } = await supabase
+        .from("user_subscriptions")
+        .select("user_id, plan")
+        .neq("plan", "FREE");
+
+      const { data: eventPurchases } = await supabase
+        .from("event_purchases")
+        .select("user_id")
+        .eq("payment_status", "paid");
+
+      const allPaidUserIds = new Set([
+        ...(paidUsers?.map(u => u.user_id) || []),
+        ...(eventPurchases?.map(u => u.user_id) || [])
+      ]);
+
+      return {
+        totalUsers: totalUsers || 0,
+        usersWithEvents: uniqueUsersWithEvents,
+        usersWithGuests: uniqueUsersWithGuests,
+        usersWithUpgrade: allPaidUserIds.size,
+      };
+    },
+  });
+
   // Calcular métricas de conversão
   const conversionMetrics = conversionData ? {
     totalUsers: conversionData.length,
@@ -49,9 +99,188 @@ export const AnalyticsDashboard = () => {
     { name: "Pagantes", usuarios: conversionMetrics.paidUsers, fill: "#10b981" },
   ];
 
+  // Dados do funil
+  const funnelSteps = funnelData ? [
+    {
+      name: "Cadastro",
+      value: funnelData.totalUsers,
+      percentage: 100,
+      color: "#3b82f6",
+    },
+    {
+      name: "Primeiro Evento",
+      value: funnelData.usersWithEvents,
+      percentage: funnelData.totalUsers > 0 
+        ? ((funnelData.usersWithEvents / funnelData.totalUsers) * 100).toFixed(1)
+        : 0,
+      color: "#8b5cf6",
+    },
+    {
+      name: "Primeiro Convidado",
+      value: funnelData.usersWithGuests,
+      percentage: funnelData.totalUsers > 0 
+        ? ((funnelData.usersWithGuests / funnelData.totalUsers) * 100).toFixed(1)
+        : 0,
+      color: "#ec4899",
+    },
+    {
+      name: "Upgrade",
+      value: funnelData.usersWithUpgrade,
+      percentage: funnelData.totalUsers > 0 
+        ? ((funnelData.usersWithUpgrade / funnelData.totalUsers) * 100).toFixed(1)
+        : 0,
+      color: "#10b981",
+    },
+  ] : [];
+
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-4">
+      {/* Funil de Conversão */}
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            Funil de Conversão - Jornada do Usuário
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* Funil Visual */}
+            <div className="relative">
+              {funnelSteps.map((step, index) => {
+                const width = `${step.percentage}%`;
+                const dropoff = index > 0 
+                  ? funnelSteps[index - 1].value - step.value 
+                  : 0;
+                const dropoffPercentage = index > 0 
+                  ? (((funnelSteps[index - 1].value - step.value) / funnelSteps[index - 1].value) * 100).toFixed(1)
+                  : 0;
+
+                return (
+                  <div key={step.name} className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div 
+                          className="h-3 w-3 rounded-full" 
+                          style={{ backgroundColor: step.color }}
+                        />
+                        <span className="font-semibold">{step.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl font-bold">{step.value}</span>
+                        <Badge variant="secondary">{step.percentage}%</Badge>
+                      </div>
+                    </div>
+                    
+                    <div className="relative h-12 bg-muted rounded-lg overflow-hidden">
+                      <div
+                        className="h-full transition-all duration-500 flex items-center justify-center text-white font-semibold"
+                        style={{ 
+                          width,
+                          backgroundColor: step.color,
+                        }}
+                      >
+                        {step.value > 0 && step.value}
+                      </div>
+                    </div>
+
+                    {index > 0 && dropoff > 0 && (
+                      <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground">
+                        <TrendingDown className="h-4 w-4 text-red-500" />
+                        <span>
+                          Perda de {dropoff} usuário{dropoff > 1 ? 's' : ''} ({dropoffPercentage}%)
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Insights do Funil */}
+            <div className="grid gap-4 md:grid-cols-3 p-4 bg-muted rounded-lg">
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Taxa de Ativação</p>
+                <p className="text-2xl font-bold">
+                  {funnelData?.totalUsers > 0
+                    ? ((funnelData.usersWithEvents / funnelData.totalUsers) * 100).toFixed(1)
+                    : 0}%
+                </p>
+                <p className="text-xs text-muted-foreground">Cadastro → Evento</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Taxa de Engajamento</p>
+                <p className="text-2xl font-bold">
+                  {funnelData?.usersWithEvents > 0
+                    ? ((funnelData.usersWithGuests / funnelData.usersWithEvents) * 100).toFixed(1)
+                    : 0}%
+                </p>
+                <p className="text-xs text-muted-foreground">Evento → Convidado</p>
+              </div>
+
+              <div>
+                <p className="text-sm text-muted-foreground mb-1">Taxa de Monetização</p>
+                <p className="text-2xl font-bold text-green-600">
+                  {funnelData?.usersWithGuests > 0
+                    ? ((funnelData.usersWithUpgrade / funnelData.usersWithGuests) * 100).toFixed(1)
+                    : 0}%
+                </p>
+                <p className="text-xs text-muted-foreground">Convidado → Upgrade</p>
+              </div>
+            </div>
+
+            {/* Recomendações */}
+            <div className="p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <h4 className="font-semibold mb-2 flex items-center gap-2">
+                💡 Recomendações para Otimizar o Funil
+              </h4>
+              <ul className="text-sm space-y-2">
+                {funnelData && (
+                  <>
+                    {funnelData.usersWithEvents / funnelData.totalUsers < 0.5 && (
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-600 font-bold">•</span>
+                        <span>
+                          <strong>Ativação baixa:</strong> {((1 - (funnelData.usersWithEvents / funnelData.totalUsers)) * 100).toFixed(0)}% dos usuários não criaram eventos. 
+                          Considere melhorar o onboarding e adicionar tutoriais.
+                        </span>
+                      </li>
+                    )}
+                    {funnelData.usersWithGuests / funnelData.usersWithEvents < 0.7 && funnelData.usersWithEvents > 0 && (
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-600 font-bold">•</span>
+                        <span>
+                          <strong>Engajamento médio:</strong> Envie lembretes para adicionar convidados após criar evento.
+                        </span>
+                      </li>
+                    )}
+                    {funnelData.usersWithUpgrade / funnelData.usersWithGuests < 0.1 && funnelData.usersWithGuests > 0 && (
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-600 font-bold">•</span>
+                        <span>
+                          <strong>Monetização baixa:</strong> Destaque os benefícios dos planos pagos quando usuários atingirem limites.
+                        </span>
+                      </li>
+                    )}
+                    {funnelData.usersWithUpgrade / funnelData.totalUsers >= 0.1 && (
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 font-bold">✓</span>
+                        <span>
+                          <strong>Ótimo desempenho!</strong> Continue focando em manter a qualidade do produto.
+                        </span>
+                      </li>
+                    )}
+                  </>
+                )}
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Taxa de Conversão */}
+      <div className="grid gap-4 md:grid-cols-2">
       <Card className="md:col-span-2">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -154,12 +383,13 @@ export const AnalyticsDashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Cards existentes */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Distribuição de Planos</CardTitle>
-        </CardHeader>
-        <CardContent>
+      {/* Cards existentes de distribuição e receita */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Distribuição de Planos</CardTitle>
+          </CardHeader>
+          <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -198,6 +428,7 @@ export const AnalyticsDashboard = () => {
           </p>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };
