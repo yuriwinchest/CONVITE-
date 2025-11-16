@@ -36,7 +36,7 @@ const PlanUpgradeCard = ({ eventId, currentPlan }: PlanUpgradeCardProps) => {
   };
 
   return (
-    <Card className="relative overflow-hidden border-2 border-primary bg-gradient-to-br from-primary/10 via-background to-secondary/10">
+    <Card className="relative overflow-hidden border-2 border-primary bg-gradient-to-br from-primary/10 via-background to-secondary/10 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-scale-in">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
       
       <CardHeader className="relative">

@@ -252,13 +252,8 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
 
   return (
     <>
-      <section className="bg-primary text-primary-foreground py-20 px-6">
-        <div className="container mx-auto">
-          <h2 className="text-4xl font-bold text-center mb-16">
-            Escolha o plano ideal para o seu evento
-          </h2>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+      <section className="animate-fade-in">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
             {plans.map((plan, index) => (
               <Card key={index} className="bg-card border-0 flex flex-col">
                 <CardHeader className="pb-4">
@@ -302,7 +297,6 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
               </Card>
             ))}
           </div>
-        </div>
       </section>
 
       <Dialog open={showEventSelector} onOpenChange={setShowEventSelector}>
