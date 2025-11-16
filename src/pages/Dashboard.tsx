@@ -175,26 +175,7 @@ const Dashboard = () => {
           <EventsList />
         </DashboardSection>
 
-        {/* Separator antes do Pricing - só mostra se não for Premium */}
-        {plan !== "PREMIUM" && <div className="border-t border-border/40 my-6" />}
       </main>
-      
-      {/* Pricing Section - Ocultar para usuários Premium */}
-      {plan !== "PREMIUM" && (
-        <div className="bg-muted/30 py-10">
-          <div className="container mx-auto px-6">
-            <div className="text-center mb-6">
-              <h2 className="text-4xl font-bold text-foreground mb-4">
-                Conheça nossos planos
-              </h2>
-              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-                Escolha o plano ideal para seus eventos e comece a organizar com eficiência
-              </p>
-            </div>
-            <Pricing />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
