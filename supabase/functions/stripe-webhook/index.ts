@@ -69,14 +69,41 @@ const webhookSecret =
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         
-        await supabase
+        const { data: purchase } = await supabase
           .from("event_purchases")
           .update({
             payment_status: "paid",
           })
-          .eq("stripe_payment_intent_id", paymentIntent.id);
+          .eq("stripe_payment_intent_id", paymentIntent.id)
+          .select()
+          .single();
 
         console.log("Payment confirmed:", paymentIntent.id);
+        
+        // Log especial para upgrades
+        if (paymentIntent.metadata?.isUpgrade === "true") {
+          console.log("✨ Upgrade processado com sucesso:", {
+            previousPlan: paymentIntent.metadata.previousPlan,
+            newPlan: paymentIntent.metadata.plan,
+            eventId: paymentIntent.metadata.eventId,
+            userId: paymentIntent.metadata.userId
+          });
+          
+          // Opcional: enviar notificação de upgrade
+          try {
+            await supabase.functions.invoke("send-subscription-notification", {
+              body: {
+                userId: paymentIntent.metadata.userId,
+                type: "upgrade",
+                plan: paymentIntent.metadata.plan,
+                previousPlan: paymentIntent.metadata.previousPlan,
+                eventId: paymentIntent.metadata.eventId
+              }
+            });
+          } catch (notificationError) {
+            console.error("Erro ao enviar notificação de upgrade:", notificationError);
+          }
+        }
         break;
       }
 

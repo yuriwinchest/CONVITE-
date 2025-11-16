@@ -10,6 +10,9 @@ import CreateEventDialog from "@/components/CreateEventDialog";
 import EditEventDialog from "@/components/EditEventDialog";
 import PlanUpgradeModal from "@/components/PlanUpgradeModal";
 import { Tables } from "@/integrations/supabase/types";
+import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const EventsList = () => {
   const { data: events, isLoading } = useEvents();
@@ -20,6 +23,20 @@ const EventsList = () => {
   const [upgradeMessage, setUpgradeMessage] = useState("");
   const navigate = useNavigate();
   const { canCreateEvent } = useSubscription();
+
+  // Buscar planos dos eventos
+  const { data: eventPurchases } = useQuery({
+    queryKey: ["events-purchases"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("event_purchases")
+        .select("event_id, plan")
+        .eq("payment_status", "paid");
+      
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const handleCreateEvent = async () => {
     const { allowed, message } = await canCreateEvent();
@@ -85,40 +102,53 @@ const EventsList = () => {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event) => (
-            <Card 
-              key={event.id} 
-              className="border-border/40 hover:shadow-lg transition-shadow relative group"
-            >
-              <CardContent className="p-6 cursor-pointer" onClick={() => navigate(`/events/${event.id}`)}>
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {event.name}
-                </h3>
-                <p className="text-sm text-muted-foreground mb-1">
-                  Data: {new Date(event.date).toLocaleDateString("pt-BR", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </p>
-                {event.location && (
-                  <p className="text-sm text-muted-foreground">Local: {event.location}</p>
-                )}
-              </CardContent>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedEvent(event);
-                  setIsEditDialogOpen(true);
-                }}
+          {events.map((event) => {
+            const eventPlan = eventPurchases?.find(p => p.event_id === event.id);
+            
+            return (
+              <Card 
+                key={event.id} 
+                className="border-border/40 hover:shadow-lg transition-shadow relative group"
               >
-                <Pencil className="h-4 w-4" />
-              </Button>
-            </Card>
-          ))}
+                {eventPlan && (
+                  <Badge 
+                    className="absolute top-2 right-2 z-10"
+                    variant={eventPlan.plan === "PREMIUM" ? "default" : "secondary"}
+                  >
+                    {eventPlan.plan === "PREMIUM" ? "Premium" : "Essencial"}
+                  </Badge>
+                )}
+                <CardContent className="p-6 cursor-pointer" onClick={() => navigate(`/events/${event.id}`)}>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">
+                    {event.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-1">
+                    Data: {new Date(event.date).toLocaleDateString("pt-BR", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                  </p>
+                  {event.location && (
+                    <p className="text-sm text-muted-foreground">Local: {event.location}</p>
+                  )}
+                </CardContent>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                  aria-label="Editar evento"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedEvent(event);
+                    setIsEditDialogOpen(true);
+                  }}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+              </Card>
+            );
+          })}
         </div>
       )}
 

@@ -97,8 +97,107 @@ serve(async (req) => {
       .eq("event_id", eventId)
       .maybeSingle();
 
-    // Se já existe uma compra paga, informar o usuário
+    // Verificar se é um upgrade ou uma nova compra
     if (existingPurchase && existingPurchase.payment_status === "paid") {
+      // Se já é Premium, não permite nova compra
+      if (existingPurchase.plan === "PREMIUM") {
+        return new Response(
+          JSON.stringify({ 
+            error: "Este evento já possui o plano Premium ativo"
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          }
+        );
+      }
+      
+      // Se é ESSENTIAL e está tentando comprar PREMIUM, é um upgrade
+      if (existingPurchase.plan === "ESSENTIAL" && plan === "PREMIUM") {
+        console.log("Processing upgrade from ESSENTIAL to PREMIUM");
+        
+        // Upgrade permitido! Calcular diferença
+        const upgradeAmount = 70.00; // R$ 149 - R$ 79
+        
+        // Buscar ou criar cliente Stripe
+        const customers = await stripe.customers.list({ email: user.email!, limit: 1 });
+        let customerId = customers.data.length > 0 ? customers.data[0].id : undefined;
+
+        if (!customerId) {
+          const customer = await stripe.customers.create({
+            email: user.email!,
+            metadata: { userId: user.id },
+          });
+          customerId = customer.id;
+        }
+        
+        // Criar sessão com valor de upgrade
+        const session = await stripe.checkout.sessions.create({
+          customer: customerId,
+          line_items: [{
+            price_data: {
+              currency: "brl",
+              product_data: {
+                name: "Upgrade para Premium",
+                description: "Upgrade de Essencial para Premium - Convidados ilimitados e envio de fotos"
+              },
+              unit_amount: Math.round(upgradeAmount * 100), // R$ 70,00
+            },
+            quantity: 1,
+          }],
+          mode: "payment",
+          success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${req.headers.get("origin")}/events/${eventId}?upgrade=canceled`,
+          metadata: {
+            userId: user.id,
+            eventId,
+            plan: "PREMIUM",
+            isUpgrade: "true",
+            previousPlan: "ESSENTIAL"
+          },
+        });
+        
+        // Atualizar registro para indicar upgrade pendente
+        await supabase
+          .from("event_purchases")
+          .update({
+            plan: "PREMIUM",
+            amount: 149.00, // valor total final
+            stripe_payment_intent_id: session.payment_intent as string,
+            payment_status: "pending",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existingPurchase.id);
+        
+        console.log("Upgrade checkout session created:", session.id);
+        
+        return new Response(
+          JSON.stringify({ 
+            url: session.url,
+            sessionId: session.id,
+            isUpgrade: true
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 200,
+          }
+        );
+      }
+      
+      // Se está tentando "downgrade" (Premium -> Essential), bloquear
+      if (existingPurchase.plan === "PREMIUM" && plan === "ESSENTIAL") {
+        return new Response(
+          JSON.stringify({ 
+            error: "Não é possível fazer downgrade de Premium para Essential"
+          }),
+          {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            status: 400,
+          }
+        );
+      }
+      
+      // Qualquer outra tentativa de compra quando já existe plano pago
       return new Response(
         JSON.stringify({ 
           error: "Este evento já possui um plano ativo",

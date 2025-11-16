@@ -41,6 +41,9 @@ import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import PlanUpgradeModal from "@/components/PlanUpgradeModal";
+import PlanUpgradeCard from "@/components/PlanUpgradeCard";
+import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
 
 export default function EventDetails() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -62,6 +65,25 @@ export default function EventDetails() {
   
   const { canAddGuests, getGuestLimit } = useSubscription();
   const { data: photoAccess } = useEventPhotoAccess(eventId);
+
+  // Buscar plano atual do evento
+  const { data: eventPurchase } = useQuery({
+    queryKey: ["event-purchase", eventId],
+    queryFn: async () => {
+      if (!eventId) return null;
+      
+      const { data, error } = await supabase
+        .from("event_purchases")
+        .select("*")
+        .eq("event_id", eventId)
+        .eq("payment_status", "paid")
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!eventId,
+  });
 
   // Enable realtime check-in notifications
   useRealtimeCheckIns(eventId);
@@ -368,7 +390,14 @@ Nos vemos lá! 🎉`;
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-3xl">{event.name}</CardTitle>
+            <div className="flex items-center gap-2 mb-4">
+              <CardTitle className="text-3xl">{event.name}</CardTitle>
+              {eventPurchase && (
+                <Badge variant={eventPurchase.plan === "PREMIUM" ? "default" : "secondary"}>
+                  {eventPurchase.plan === "PREMIUM" ? "Premium" : "Essencial"}
+                </Badge>
+              )}
+            </div>
             <div className="text-muted-foreground space-y-1">
               <p>
                 Data: {format(new Date(event.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
@@ -378,6 +407,13 @@ Nos vemos lá! 🎉`;
             </div>
           </CardHeader>
         </Card>
+
+        {eventPurchase?.plan === "ESSENTIAL" && (
+          <PlanUpgradeCard 
+            eventId={eventId || ""} 
+            currentPlan="ESSENTIAL"
+          />
+        )}
 
         <Card className="border-primary/20 bg-primary/5">
           <CardHeader>
