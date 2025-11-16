@@ -103,21 +103,42 @@ const EventsList = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event) => {
-            const eventPlan = eventPurchases?.find(p => p.event_id === event.id);
+            const eventPurchase = eventPurchases?.find(p => p.event_id === event.id);
+            const planType = eventPurchase?.plan || "FREE";
+            
+            const getBadgeVariant = (plan: string) => {
+              switch (plan) {
+                case "PREMIUM":
+                  return "premium";
+                case "ESSENTIAL":
+                  return "essential";
+                default:
+                  return "free";
+              }
+            };
+            
+            const getBadgeLabel = (plan: string) => {
+              switch (plan) {
+                case "PREMIUM":
+                  return "Premium";
+                case "ESSENTIAL":
+                  return "Essencial";
+                default:
+                  return "Free";
+              }
+            };
             
             return (
               <Card 
                 key={event.id} 
                 className="border-border/40 hover:shadow-lg transition-shadow relative group"
               >
-                {eventPlan && (
-                  <Badge 
-                    className="absolute top-2 right-2 z-10"
-                    variant={eventPlan.plan === "PREMIUM" ? "default" : "secondary"}
-                  >
-                    {eventPlan.plan === "PREMIUM" ? "Premium" : "Essencial"}
-                  </Badge>
-                )}
+                <Badge 
+                  className="absolute top-2 right-2 z-10"
+                  variant={getBadgeVariant(planType) as any}
+                >
+                  {getBadgeLabel(planType)}
+                </Badge>
                 <CardContent className="p-6 cursor-pointer" onClick={() => navigate(`/events/${event.id}`)}>
                   <h3 className="text-lg font-semibold text-foreground mb-2">
                     {event.name}
