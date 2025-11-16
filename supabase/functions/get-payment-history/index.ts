@@ -20,10 +20,13 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const STRIPE_KEY = Deno.env.get("STRIPE_SECRET_KEY") || Deno.env.get("vento") || "";
-    if (!STRIPE_KEY || !STRIPE_KEY.startsWith("sk_")) {
-      throw new Error("STRIPE_SECRET_KEY is not set or invalid. Configure a key starting with 'sk_'.");
+    const keyFromVento = Deno.env.get("vento") || "";
+    const keyFromStripe = Deno.env.get("STRIPE_SECRET_KEY") || "";
+    const STRIPE_KEY = keyFromVento || keyFromStripe;
+    if (!STRIPE_KEY) {
+      throw new Error("Stripe secret key not configured in secrets.");
     }
+    logStep("Stripe key source decided", { source: keyFromVento ? "vento" : "STRIPE_SECRET_KEY" });
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
