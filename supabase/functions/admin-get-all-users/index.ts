@@ -116,13 +116,16 @@ serve(async (req) => {
       // Senão, FREE
       let displayPlan = "FREE";
       let displayStatus = null;
+      let expiresAt = null;
       
       if (purchasedPlan) {
         displayPlan = purchasedPlan;
         displayStatus = "paid";
+        // Compras de eventos não têm vencimento
       } else if (subscription?.subscription_status === "active") {
         displayPlan = subscription.plan;
         displayStatus = subscription.subscription_status;
+        expiresAt = subscription.current_period_end;
       }
       
       return {
@@ -131,6 +134,7 @@ serve(async (req) => {
         full_name: profile.full_name,
         plan: displayPlan,
         subscription_status: displayStatus,
+        expires_at: expiresAt,
         events_count: eventsCount[profile.user_id] || 0,
         guests_count: guestsCount[profile.user_id] || 0,
         created_at: profile.created_at,
