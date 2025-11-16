@@ -20,9 +20,9 @@ export const STRIPE_PRICES = {
     amount: 149.00,
     currency: "BRL",
     recurring: "monthly" as const,
-    events_limit: 20,
+    events_limit: 5,
     guests_limit: Infinity,
-    description: "R$ 149/mês - Até 20 eventos por mês com convidados ilimitados",
+    description: "R$ 149/mês - Até 5 eventos por mês com convidados ilimitados",
     payment_type: "subscription" as const,
   },
 };
