@@ -149,7 +149,7 @@ const Dashboard = () => {
         </div>
 
         {/* Events Available for Upgrade */}
-        {essentialEvents && essentialEvents.length > 0 && (
+        {plan !== "PREMIUM" && essentialEvents && essentialEvents.length > 0 && (
           <DashboardSection
             title="Eventos disponíveis para Upgrade"
             description="Desbloqueie recursos Premium para seus eventos"
@@ -170,7 +170,7 @@ const Dashboard = () => {
         
         {/* Events List */}
         <DashboardSection 
-          showSeparator={essentialEvents && essentialEvents.length > 0}
+          showSeparator={plan !== "PREMIUM" && essentialEvents && essentialEvents.length > 0}
           className="mb-8"
         >
           <EventsList />
