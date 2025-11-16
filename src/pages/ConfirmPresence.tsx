@@ -23,6 +23,7 @@ export default function ConfirmPresence() {
   const { searchGuest, confirmPresence, getEventDetails, eventDetails, isLoadingEvent, isCheckInAllowed } = useGuestConfirmation(eventId || "");
   const [timeUntilCheckIn, setTimeUntilCheckIn] = useState<number>(0);
   const [photosQRCode, setPhotosQRCode] = useState<string>("");
+  const [mapImageError, setMapImageError] = useState(false);
 
   const handleQRScan = async (scannedData: string) => {
     setIsProcessingQR(true);
@@ -155,7 +156,14 @@ export default function ConfirmPresence() {
   if (isLoadingEvent) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Card className="max-w-md w-full">
+          <CardContent className="flex flex-col items-center justify-center py-12 space-y-4">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="text-muted-foreground text-center">
+              Carregando informações do evento...
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -204,21 +212,27 @@ export default function ConfirmPresence() {
     );
   }
 
-  // Quando tem eventId mas o evento não existe
-  if (!eventDetails) {
+  // Quando tem eventId mas o evento não existe (após o loading terminar)
+  if (!isLoadingEvent && eventId && !eventDetails) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
-          <CardHeader>
+          <CardHeader className="text-center">
+            <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mb-2">
+              <XCircle className="h-8 w-8 text-destructive" />
+            </div>
             <CardTitle className="text-destructive">Evento não encontrado</CardTitle>
             <CardDescription>
-              O evento que você está procurando não existe ou foi removido.
+              O evento que você está procurando não existe, foi removido ou o link está incorreto.
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
             <Button onClick={() => navigate("/")} variant="outline" className="w-full">
               Voltar para o início
             </Button>
+            <p className="text-xs text-center text-muted-foreground">
+              Verifique o QR Code ou link com o organizador do evento
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -377,19 +391,24 @@ export default function ConfirmPresence() {
               {eventDetails.table_map_url ? (
                 <div className="space-y-3">
                   <h4 className="font-semibold text-lg">📍 Localização da sua mesa</h4>
-                  <div className="border rounded-lg overflow-hidden">
-                    <img 
-                      src={eventDetails.table_map_url} 
-                      alt="Mapa das mesas"
-                      className="w-full h-auto"
-                      onError={(e) => {
-                        console.error("Error loading image:", eventDetails.table_map_url);
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                  </div>
-                  
-                  <div className="flex gap-3">
+                  {!mapImageError ? (
+                    <>
+                      <div className="border rounded-lg overflow-hidden bg-muted/20">
+                        <img 
+                          src={eventDetails.table_map_url} 
+                          alt="Mapa das mesas"
+                          className="w-full h-auto"
+                          onLoad={() => {
+                            console.log("Mapa carregado com sucesso:", eventDetails.table_map_url);
+                          }}
+                          onError={(e) => {
+                            console.error("Erro ao carregar imagem do mapa:", eventDetails.table_map_url);
+                            setMapImageError(true);
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="flex gap-3">
                     <Button
                       variant="outline"
                       className="flex-1"
@@ -441,6 +460,48 @@ export default function ConfirmPresence() {
                       Ver em Tela Cheia
                     </Button>
                   </div>
+                    </>
+                  ) : (
+                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <XCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
+                            Não foi possível carregar o mapa das mesas
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Isso pode acontecer por problemas temporários de conexão ou se o mapa foi removido.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => {
+                            setMapImageError(false);
+                            toast({
+                              title: "Recarregando...",
+                              description: "Tentando carregar o mapa novamente.",
+                            });
+                          }}
+                        >
+                          Tentar Novamente
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => {
+                            window.open(eventDetails.table_map_url, '_blank');
+                          }}
+                        >
+                          Abrir em Nova Aba
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="bg-muted/50 rounded-lg p-4 text-center text-muted-foreground text-sm">
