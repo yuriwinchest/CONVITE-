@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-const STRIPE_KEY = Deno.env.get("STRIPE_SECRET_KEY") || Deno.env.get("vento") || "";
+const STRIPE_KEY = Deno.env.get("vento") || Deno.env.get("STRIPE_SECRET_KEY") || "";
 const stripe = new Stripe(STRIPE_KEY, {
   apiVersion: "2025-08-27.basil",
 });
