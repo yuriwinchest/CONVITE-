@@ -13,6 +13,7 @@ import PlanUpgradeCard from "@/components/PlanUpgradeCard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
+import { DashboardSection } from "@/components/DashboardSection";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
@@ -110,55 +111,51 @@ const Dashboard = () => {
       <DashboardHeader />
       <main className="container mx-auto px-6 py-6">
         {/* Header Section */}
-        <div className="mb-6">
+        <DashboardSection>
           <h1 className="text-4xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Painel de Controle
           </h1>
           <p className="text-muted-foreground text-lg">
             Gerencie seus eventos com elegância e praticidade
           </p>
-        </div>
+        </DashboardSection>
 
         {/* Alerta de upgrades pendentes */}
         {pendingUpgrades && pendingUpgrades.length > 0 && (
-          <Alert className="mb-6 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 shadow-sm">
-            <AlertCircle className="h-4 w-4 text-yellow-600" />
-            <AlertTitle className="text-yellow-800 dark:text-yellow-400">
-              Upgrade Pendente
-            </AlertTitle>
-            <AlertDescription className="text-yellow-700 dark:text-yellow-300">
-              Você tem {pendingUpgrades.length} upgrade(s) aguardando confirmação de pagamento. 
-              Assim que o pagamento for processado, seus recursos Premium serão ativados automaticamente.
-            </AlertDescription>
-          </Alert>
+          <DashboardSection>
+            <Alert className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 shadow-sm">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+              <AlertTitle className="text-yellow-800 dark:text-yellow-400">
+                Upgrade Pendente
+              </AlertTitle>
+              <AlertDescription className="text-yellow-700 dark:text-yellow-300">
+                Você tem {pendingUpgrades.length} upgrade(s) aguardando confirmação de pagamento. 
+                Assim que o pagamento for processado, seus recursos Premium serão ativados automaticamente.
+              </AlertDescription>
+            </Alert>
+          </DashboardSection>
         )}
 
         {/* Stats and Profile Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          <div className="lg:col-span-2">
-            <DashboardStats />
+        <DashboardSection>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <DashboardStats />
+            </div>
+            <div>
+              <UserProfilePanel />
+            </div>
           </div>
-          <div>
-            <UserProfilePanel />
-          </div>
-        </div>
-
-        {/* Separator */}
-        {essentialEvents && essentialEvents.length > 0 && (
-          <div className="border-t border-border/40 my-6" />
-        )}
+        </DashboardSection>
 
         {/* Events Available for Upgrade */}
         {essentialEvents && essentialEvents.length > 0 && (
-          <div className="mb-6 animate-fade-in">
-            <div className="mb-6">
-              <h2 className="text-3xl font-bold text-foreground mb-2">
-                Eventos disponíveis para Upgrade
-              </h2>
-              <p className="text-muted-foreground">
-                Desbloqueie recursos Premium para seus eventos
-              </p>
-            </div>
+          <DashboardSection
+            title="Eventos disponíveis para Upgrade"
+            description="Desbloqueie recursos Premium para seus eventos"
+            showSeparator
+            className="animate-fade-in"
+          >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch max-w-4xl mx-auto">
               {essentialEvents.map((event) => (
                 <PlanUpgradeCard 
@@ -168,16 +165,13 @@ const Dashboard = () => {
                 />
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Separator - só mostra se houver eventos Essential acima */}
-        {essentialEvents && essentialEvents.length > 0 && (
-          <div className="border-t border-border/40 my-6" />
+          </DashboardSection>
         )}
         
         {/* Events List */}
-        <EventsList />
+        <DashboardSection showSeparator={essentialEvents && essentialEvents.length > 0}>
+          <EventsList />
+        </DashboardSection>
 
         {/* Separator */}
         <div className="border-t border-border/40 my-8" />
