@@ -259,15 +259,15 @@ export const UserProfilePanel = () => {
             <Separator />
 
             {/* Upgrade para Premium */}
-            <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg border border-primary/20">
-              <div className="flex items-center gap-2 mb-2">
+            <div className="rounded-lg border border-primary/20 bg-gradient-to-r from-primary/10 to-primary/5 p-4 flex flex-col gap-3">
+              <div className="flex items-center gap-2">
                 <Crown className="h-5 w-5 text-primary" />
                 <h4 className="font-semibold">Upgrade para Premium</h4>
               </div>
-              <p className="text-sm text-muted-foreground mb-3">
+              <p className="text-sm text-muted-foreground">
                 R$ 149/mês - Até 20 eventos por mês com convidados ilimitados
               </p>
-              <ul className="text-xs space-y-1 mb-3 text-muted-foreground">
+              <ul className="text-xs space-y-1 text-muted-foreground">
                 <li>✓ Até 20 eventos por mês</li>
                 <li>✓ Convidados ilimitados</li>
                 <li>✓ Envio de fotos pelos convidados</li>

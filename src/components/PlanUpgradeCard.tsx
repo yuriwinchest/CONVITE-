@@ -36,7 +36,7 @@ const PlanUpgradeCard = ({ eventId, currentPlan }: PlanUpgradeCardProps) => {
   };
 
   return (
-    <Card className="relative overflow-hidden border-2 border-primary bg-gradient-to-br from-primary/10 via-background to-secondary/10 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-scale-in">
+    <Card className="relative h-full flex flex-col overflow-hidden border-2 border-primary bg-gradient-to-br from-primary/10 via-background to-secondary/10 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-scale-in">
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
       
       <CardHeader className="relative">
@@ -56,7 +56,7 @@ const PlanUpgradeCard = ({ eventId, currentPlan }: PlanUpgradeCardProps) => {
         </div>
       </CardHeader>
       
-      <CardContent className="space-y-6 relative">
+      <CardContent className="space-y-6 relative flex flex-col h-full">
         <div className="space-y-3">
           <h4 className="font-semibold text-base flex items-center gap-2">
             <span className="h-1 w-1 rounded-full bg-primary" />
@@ -125,7 +125,7 @@ const PlanUpgradeCard = ({ eventId, currentPlan }: PlanUpgradeCardProps) => {
           </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t">
+        <div className="mt-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground uppercase tracking-wide">Seu plano atual</p>
             <p className="text-sm font-medium">Essencial - R$ 79 por evento</p>
