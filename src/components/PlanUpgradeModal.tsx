@@ -20,20 +20,24 @@ const PlanUpgradeModal = ({
 }: PlanUpgradeModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
-            {reason === "event_limit" ? "Limite de Eventos Atingido" : "Limite de Convidados Atingido"}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto p-0">
+        {/* Header Section */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b px-8 py-6">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">
+              {reason === "event_limit" ? "Limite de Eventos Atingido" : "Limite de Convidados Atingido"}
+            </DialogTitle>
+          </DialogHeader>
 
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{message}</AlertDescription>
-        </Alert>
+          <Alert variant="destructive" className="mt-4 border-destructive/50 bg-destructive/10">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="text-sm">{message}</AlertDescription>
+          </Alert>
+        </div>
 
-        <div className="space-y-4">
-          <p className="text-muted-foreground">
+        {/* Content Section */}
+        <div className="px-8 py-6 space-y-6">
+          <p className="text-center text-muted-foreground text-sm">
             {reason === "event_limit" 
               ? "Escolha um plano que atende às suas necessidades e continue criando eventos incríveis!"
               : "Escolha um plano adequado para adicionar mais convidados ao seu evento!"}
