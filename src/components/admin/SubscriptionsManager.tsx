@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +12,7 @@ import { XCircle, Loader2, Search, ArrowUpDown } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState, useMemo } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 export const SubscriptionsManager = () => {
   const queryClient = useQueryClient();
@@ -23,13 +25,55 @@ export const SubscriptionsManager = () => {
   const { data: subscriptions, isLoading } = useQuery({
     queryKey: ["admin-subscriptions"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Buscar assinaturas
+      const { data: subs, error: subsError } = await supabase
         .from("user_subscriptions" as any)
-        .select("*, profiles!inner(full_name, user_id)")
+        .select("*")
         .order("created_at", { ascending: false });
       
-      if (error) throw error;
-      return data;
+      if (subsError) throw subsError;
+
+      // Buscar perfis
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("*");
+      
+      if (profilesError) throw profilesError;
+
+      // Buscar compras de eventos pagos
+      const { data: purchases, error: purchasesError } = await supabase
+        .from("event_purchases" as any)
+        .select("*")
+        .eq("payment_status", "paid")
+        .order("created_at", { ascending: false });
+      
+      if (purchasesError) throw purchasesError;
+
+      // Criar mapa de perfis
+      const profileMap = profiles.reduce((acc: any, profile: any) => {
+        acc[profile.user_id] = profile;
+        return acc;
+      }, {});
+
+      // Combinar assinaturas com perfis
+      const subsWithProfiles = subs.map((sub: any) => ({
+        ...sub,
+        profiles: profileMap[sub.user_id] || { full_name: "Usuário não encontrado" },
+      }));
+
+      // Combinar compras com perfis
+      const purchasesWithProfiles = purchases.map((purchase: any) => ({
+        ...purchase,
+        profiles: profileMap[purchase.user_id] || { full_name: "Usuário não encontrado" },
+        subscription_status: "paid",
+      }));
+
+      // Retornar ambos: assinaturas e compras
+      return {
+        subscriptions: subsWithProfiles,
+        purchases: purchasesWithProfiles,
+        all: [...subsWithProfiles, ...purchasesWithProfiles],
+      };
     },
   });
 
@@ -69,9 +113,9 @@ export const SubscriptionsManager = () => {
 
   // Filtrar e ordenar assinaturas
   const filteredAndSortedSubscriptions = useMemo(() => {
-    if (!subscriptions) return [];
+    if (!subscriptions?.all) return [];
 
-    let filtered = subscriptions.filter((sub: any) => {
+    let filtered = subscriptions.all.filter((sub: any) => {
       const matchesSearch = sub.profiles.full_name
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
@@ -90,8 +134,8 @@ export const SubscriptionsManager = () => {
       } else if (sortBy === "plan") {
         comparison = a.plan.localeCompare(b.plan);
       } else if (sortBy === "date") {
-        const dateA = a.current_period_start ? new Date(a.current_period_start).getTime() : 0;
-        const dateB = b.current_period_start ? new Date(b.current_period_start).getTime() : 0;
+        const dateA = a.current_period_start || a.created_at ? new Date(a.current_period_start || a.created_at).getTime() : 0;
+        const dateB = b.current_period_start || b.created_at ? new Date(b.current_period_start || b.created_at).getTime() : 0;
         comparison = dateA - dateB;
       }
       
@@ -99,14 +143,106 @@ export const SubscriptionsManager = () => {
     });
 
     return filtered;
-  }, [subscriptions, searchTerm, planFilter, statusFilter, sortBy, sortOrder]);
+  }, [subscriptions?.all, searchTerm, planFilter, statusFilter, sortBy, sortOrder]);
+
+  // Calcular métricas por plano
+  const planMetrics = useMemo(() => {
+    if (!subscriptions?.all) return {};
+
+    const metrics: any = {
+      ESSENTIAL: { count: 0, revenue: 0 },
+      PREMIUM: { count: 0, revenue: 0 },
+      PROFESSIONAL: { count: 0, revenue: 0 },
+    };
+
+    subscriptions.all.forEach((sub: any) => {
+      if (sub.plan !== "FREE" && (sub.subscription_status === "active" || sub.subscription_status === "paid")) {
+        metrics[sub.plan] = metrics[sub.plan] || { count: 0, revenue: 0 };
+        metrics[sub.plan].count++;
+        
+        // Estimar receita (você pode ajustar esses valores)
+        const prices: any = {
+          ESSENTIAL: 79,
+          PREMIUM: 129,
+          PROFESSIONAL: 199,
+        };
+        metrics[sub.plan].revenue += prices[sub.plan] || 0;
+      }
+    });
+
+    return metrics;
+  }, [subscriptions?.all]);
 
   if (isLoading) {
     return <div className="flex items-center justify-center py-8">Carregando...</div>;
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      {/* Métricas por Plano */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Essential</CardTitle>
+            <Badge variant="default">Popular</Badge>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{planMetrics.ESSENTIAL?.count || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Receita: R$ {planMetrics.ESSENTIAL?.revenue.toFixed(2) || "0.00"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Premium</CardTitle>
+            <Badge variant="default">Avançado</Badge>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{planMetrics.PREMIUM?.count || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Receita: R$ {planMetrics.PREMIUM?.revenue.toFixed(2) || "0.00"}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Professional</CardTitle>
+            <Badge variant="default">Empresarial</Badge>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{planMetrics.PROFESSIONAL?.count || 0}</div>
+            <p className="text-xs text-muted-foreground">
+              Receita: R$ {planMetrics.PROFESSIONAL?.revenue.toFixed(2) || "0.00"}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Gráfico de Distribuição */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Distribuição de Planos Pagos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={250}>
+            <BarChart data={[
+              { name: "Essential", vendas: planMetrics.ESSENTIAL?.count || 0 },
+              { name: "Premium", vendas: planMetrics.PREMIUM?.count || 0 },
+              { name: "Professional", vendas: planMetrics.PROFESSIONAL?.count || 0 },
+            ]}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Bar dataKey="vendas" fill="hsl(var(--primary))" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
       {/* Filtros e Busca */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex-1 max-w-sm">
@@ -141,7 +277,7 @@ export const SubscriptionsManager = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="active">Ativo</SelectItem>
+              <SelectItem value="paid">Pago</SelectItem>
               <SelectItem value="canceled">Cancelado</SelectItem>
             </SelectContent>
           </Select>
