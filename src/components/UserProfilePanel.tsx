@@ -213,7 +213,21 @@ export const UserProfilePanel = () => {
               variant="outline"
               className="w-full"
             >
-              {isManaging ? "Abrindo..." : "Gerenciar Assinatura"}
+              {isManaging ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Abrindo...
+                </>
+              ) : (
+                "Gerenciar Assinatura"
+              )}
+            </Button>
+            <Button
+              onClick={() => window.location.href = "/subscription"}
+              variant="ghost"
+              className="w-full"
+            >
+              Ver Histórico de Pagamentos
             </Button>
           </div>
         )}
@@ -280,6 +294,13 @@ export const UserProfilePanel = () => {
               >
                 <TrendingUp className="h-4 w-4 mr-2" />
                 Fazer Upgrade
+              </Button>
+              <Button
+                onClick={() => window.location.href = "/subscription"}
+                variant="ghost"
+                className="w-full"
+              >
+                Ver Detalhes de Planos
               </Button>
             </div>
           </div>
