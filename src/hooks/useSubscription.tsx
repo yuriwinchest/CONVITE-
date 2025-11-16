@@ -74,6 +74,28 @@ export const useSubscription = () => {
     return { allowed: true };
   };
 
+  const hasUsedMonthlyFreeEvent = async (): Promise<boolean> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const { count, error } = await supabase
+      .from("events")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("created_at", firstDayOfMonth.toISOString())
+      .is("event_purchases.id", null);
+
+    if (error) {
+      console.error("Error checking monthly free event:", error);
+      return false;
+    }
+
+    return (count || 0) >= 1;
+  };
+
   const canAddGuests = async (
     eventId: string,
     currentCount: number,
@@ -119,5 +141,6 @@ export const useSubscription = () => {
     canAddGuests,
     getEventLimit,
     getGuestLimit,
+    hasUsedMonthlyFreeEvent,
   };
 };

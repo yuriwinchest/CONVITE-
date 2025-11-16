@@ -4,6 +4,7 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { Link } from "react-router-dom";
 import { Shield } from "lucide-react";
 import logo from "@/assets/logo-encontre-meu-lugar.jpg";
+import { CartButton } from "./CartButton";
 
 const DashboardHeader = () => {
   const { logout } = useAuth();
@@ -17,6 +18,9 @@ const DashboardHeader = () => {
         </div>
         
         <div className="flex items-center gap-3">
+          <div data-cart-trigger>
+            <CartButton />
+          </div>
           {isAdmin && (
             <Link to="/admin">
               <Button 
