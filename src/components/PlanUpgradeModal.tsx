@@ -29,9 +29,11 @@ const PlanUpgradeModal = ({
             </DialogTitle>
           </DialogHeader>
 
-          <Alert variant="destructive" className="mt-4 border-destructive/50 bg-destructive/10">
-            <AlertCircle className="h-4 w-4 text-destructive" />
-            <AlertDescription className="text-sm text-destructive font-medium">{message}</AlertDescription>
+          <Alert className="mt-4 border-2 border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/30">
+            <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+            <AlertDescription className="text-sm text-red-900 dark:text-red-200 font-semibold ml-2">
+              {message}
+            </AlertDescription>
           </Alert>
         </div>
 
