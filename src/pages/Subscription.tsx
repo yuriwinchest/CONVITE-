@@ -18,6 +18,18 @@ export default function Subscription() {
   const { plan, subscription } = useSubscription();
   const [isManaging, setIsManaging] = useState(false);
 
+  // Buscar usuário atual
+  const { data: userData } = useQuery({
+    queryKey: ["current-user"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getUser();
+      return data;
+    },
+  });
+
+  const user = userData?.user;
+  const isAdminUser = user?.email === "dani@danibaidaeventos.com.br";
+
   // Buscar histórico de pagamentos via edge function
   const { data: paymentData, isLoading } = useQuery({
     queryKey: ["payment-history"],
@@ -29,6 +41,16 @@ export default function Subscription() {
   });
 
   const handleManageSubscription = async () => {
+    // Verificar se é admin
+    if (!isAdminUser) {
+      toast({
+        title: "⚠️ Acesso restrito",
+        description: "Apenas o administrador pode acessar o gerenciamento do Stripe.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsManaging(true);
     try {
       const { data, error } = await supabase.functions.invoke("create-customer-portal");
@@ -240,23 +262,31 @@ export default function Subscription() {
               {/* Botões de Ação */}
               <div className="flex gap-3 pt-4">
                 {plan === "PREMIUM" ? (
-                  <Button
-                    onClick={handleManageSubscription}
-                    disabled={isManaging}
-                    className="flex-1"
-                  >
-                    {isManaging ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Abrindo...
-                      </>
-                    ) : (
-                      <>
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Gerenciar no Stripe
-                      </>
-                    )}
-                  </Button>
+                  isAdminUser ? (
+                    <Button
+                      onClick={handleManageSubscription}
+                      disabled={isManaging}
+                      className="flex-1"
+                    >
+                      {isManaging ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Abrindo...
+                        </>
+                      ) : (
+                        <>
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Gerenciar no Stripe
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <div className="flex-1 p-4 bg-muted/50 rounded-lg text-center">
+                      <p className="text-sm text-muted-foreground">
+                        💡 Para gerenciar sua assinatura, entre em contato com o suporte
+                      </p>
+                    </div>
+                  )
                 ) : (
                   <Button
                     onClick={handleUpgrade}

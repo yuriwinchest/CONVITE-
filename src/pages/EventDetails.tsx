@@ -376,7 +376,19 @@ Nos vemos lá! 🎉`;
 
   const handleDeleteEvent = () => {
     if (!eventId || !event) return;
-    if (confirmEventName !== event.name) return;
+    
+    // Comparação case-insensitive e sem espaços extras
+    const normalizedConfirm = confirmEventName.trim().toLowerCase();
+    const normalizedEventName = event.name.trim().toLowerCase();
+    
+    if (normalizedConfirm !== normalizedEventName) {
+      toast({
+        title: "Nome incorreto",
+        description: "O nome digitado não corresponde ao nome do evento.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     deleteEventMutation(eventId, {
       onSuccess: () => {
@@ -753,7 +765,7 @@ Nos vemos lá! 🎉`;
               </AlertDialogCancel>
               <AlertDialogAction
                 onClick={handleDeleteEvent}
-                disabled={confirmEventName !== event?.name}
+                disabled={confirmEventName.trim().toLowerCase() !== event?.name.trim().toLowerCase()}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 Deletar Permanentemente
