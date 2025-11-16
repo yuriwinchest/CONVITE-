@@ -69,6 +69,23 @@ export default function EventDetails() {
   const { canAddGuests, getGuestLimit } = useSubscription();
   const { data: photoAccess } = useEventPhotoAccess(eventId);
 
+  // Buscar assinatura do usuário
+  const { data: userSubscription } = useQuery({
+    queryKey: ["user-subscription-status"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      
+      const { data } = await supabase
+        .from("user_subscriptions")
+        .select("plan, subscription_status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      return data;
+    },
+  });
+
   // Buscar plano atual do evento
   const { data: eventPurchase } = useQuery({
     queryKey: ["event-purchase", eventId],
@@ -93,6 +110,13 @@ export default function EventDetails() {
 
   // Verifica se o evento já passou
   const isEventPast = event ? new Date(event.date) < new Date() : false;
+  
+  // Determinar plano efetivo do evento
+  const hasPremiumSub = userSubscription?.plan === "PREMIUM" && 
+                        userSubscription?.subscription_status === "active";
+  const effectivePlan = (!isEventPast && hasPremiumSub) 
+    ? "PREMIUM" 
+    : (eventPurchase?.plan || "FREE");
 
   const handleAddGuest = async (data: { name: string; email?: string; table_number?: number }) => {
     if (!eventId) return;
@@ -399,11 +423,24 @@ Nos vemos lá! 🎉`;
           <CardHeader>
             <div className="flex items-center gap-2 mb-4">
               <CardTitle className="text-3xl">{event.name}</CardTitle>
-              {eventPurchase && (
-                <Badge variant={eventPurchase.plan === "PREMIUM" ? "default" : "secondary"}>
-                  {eventPurchase.plan === "PREMIUM" ? "Premium" : "Essencial"}
+              <div className="flex items-center gap-2">
+                <Badge 
+                  variant={
+                    effectivePlan === "PREMIUM" ? "default" : 
+                    effectivePlan === "ESSENTIAL" ? "secondary" : 
+                    "outline"
+                  }
+                >
+                  {effectivePlan === "PREMIUM" ? "Premium" : 
+                   effectivePlan === "ESSENTIAL" ? "Essential" : 
+                   "Gratuito"}
                 </Badge>
-              )}
+                {!isEventPast && hasPremiumSub && !eventPurchase && (
+                  <span className="text-xs text-muted-foreground">
+                    ✨ Via assinatura Premium
+                  </span>
+                )}
+              </div>
             </div>
             <div className="text-muted-foreground space-y-1">
               <p>
@@ -433,10 +470,10 @@ Nos vemos lá! 🎉`;
           />
         )}
 
-        {eventPurchase?.plan === "ESSENTIAL" && (
+        {!isEventPast && effectivePlan !== "PREMIUM" && (
           <PlanUpgradeCard 
             eventId={eventId || ""} 
-            currentPlan="ESSENTIAL"
+            currentPlan={effectivePlan}
             eventDate={event.date}
           />
         )}

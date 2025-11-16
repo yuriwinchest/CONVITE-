@@ -30,6 +30,23 @@ const EventsList = () => {
     return new Date(eventDate) < new Date();
   };
 
+  // Buscar assinatura do usuário
+  const { data: userSubscription } = useQuery({
+    queryKey: ["user-subscription-status"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      
+      const { data } = await supabase
+        .from("user_subscriptions")
+        .select("plan, subscription_status")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      return data;
+    },
+  });
+
   // Buscar planos dos eventos
   const { data: eventPurchases } = useQuery({
     queryKey: ["events-purchases"],
@@ -114,9 +131,15 @@ const EventsList = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {events.map((event) => {
-            const eventPurchase = eventPurchases?.find(p => p.event_id === event.id);
-            const planType = eventPurchase?.plan || "FREE";
-            const isPast = isEventPast(event.date);
+              const eventPurchase = eventPurchases?.find(p => p.event_id === event.id);
+              const isPast = isEventPast(event.date);
+              const hasPremiumSub = userSubscription?.plan === "PREMIUM" && 
+                                    userSubscription?.subscription_status === "active";
+              
+              // Eventos futuros com assinatura PREMIUM herdam o plano
+              const planType = (!isPast && hasPremiumSub) 
+                ? "PREMIUM" 
+                : (eventPurchase?.plan || "FREE");
             
             const getBadgeVariant = (plan: string) => {
               switch (plan) {
@@ -154,11 +177,18 @@ const EventsList = () => {
                       ✓ Realizado
                     </Badge>
                   )}
-                  <Badge 
-                    variant={getBadgeVariant(planType) as any}
-                  >
-                    {getBadgeLabel(planType)}
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge 
+                      variant={getBadgeVariant(planType) as any}
+                    >
+                      {getBadgeLabel(planType)}
+                    </Badge>
+                    {!isPast && hasPremiumSub && !eventPurchase && (
+                      <span className="text-xs text-muted-foreground">
+                        ✨ Via assinatura
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <CardContent className="p-6 cursor-pointer" onClick={() => navigate(`/events/${event.id}`)}>
                   <h3 className="text-lg font-semibold text-foreground mb-2">
