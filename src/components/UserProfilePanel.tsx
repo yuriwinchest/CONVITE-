@@ -235,14 +235,14 @@ export const UserProfilePanel = () => {
               {eventsUsed >= 1 && (
                 <Button
                   onClick={handleOpenCart}
-                  className="w-full"
+                  className="w-full relative"
                   variant="default"
                 >
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Comprar Mais Eventos (R$ 79/evento)
                   {itemCount > 0 && (
-                    <Badge className="ml-2" variant="secondary">
-                      {itemCount} no carrinho
+                    <Badge className="ml-2 bg-primary-foreground text-primary" variant="secondary">
+                      {itemCount}
                     </Badge>
                   )}
                 </Button>
