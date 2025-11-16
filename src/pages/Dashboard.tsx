@@ -113,7 +113,7 @@ const Dashboard = () => {
       <DashboardHeader />
       <main className="container mx-auto px-6 py-6">
         {/* Header Section */}
-        <DashboardSection>
+        <DashboardSection className="mb-2">
           <h1 className="text-4xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Painel de Controle
           </h1>
@@ -139,7 +139,7 @@ const Dashboard = () => {
         )}
 
         {/* Stats and Profile Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-1">
           <div className="lg:col-span-2">
             <DashboardStats />
           </div>
