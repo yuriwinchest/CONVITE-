@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 interface PlanUpgradeCardProps {
   eventId: string;
-  currentPlan: "ESSENTIAL" | "PREMIUM";
+  currentPlan: "FREE" | "ESSENTIAL" | "PREMIUM";
   eventDate?: string;
 }
 

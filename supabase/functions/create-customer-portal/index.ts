@@ -1,9 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-const stripe = new Stripe(Deno.env.get("vento") as string, {
-  apiVersion: "2023-10-16",
+const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") as string, {
+  apiVersion: "2025-08-27.basil",
 });
 
 const corsHeaders = {
@@ -43,8 +43,13 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .single();
 
-    if (subError || !subscription?.stripe_customer_id) {
-      throw new Error("Customer ID not found. You need to have an active subscription.");
+    if (subError) {
+      console.error("Subscription query error:", subError);
+      throw new Error("Error fetching subscription data.");
+    }
+    
+    if (!subscription?.stripe_customer_id) {
+      throw new Error("Customer ID not found. You need to have an active subscription to manage it.");
     }
 
     console.log("Found Stripe customer:", subscription.stripe_customer_id);
