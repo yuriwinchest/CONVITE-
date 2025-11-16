@@ -46,6 +46,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import EventStatsReport from "@/components/EventStatsReport";
 
 export default function EventDetails() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -422,6 +423,14 @@ Nos vemos lá! 🎉`;
               Este evento já foi realizado e não pode ser editado ou fazer upgrade de plano.
             </AlertDescription>
           </Alert>
+        )}
+
+        {isEventPast && guests && (
+          <EventStatsReport 
+            eventDate={event.date}
+            eventName={event.name}
+            guests={guests}
+          />
         )}
 
         {eventPurchase?.plan === "ESSENTIAL" && (
