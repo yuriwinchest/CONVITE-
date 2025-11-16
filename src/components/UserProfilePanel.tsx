@@ -19,6 +19,7 @@ import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
+import CreateEventDialog from "@/components/CreateEventDialog";
 
 export const UserProfilePanel = () => {
   const { plan, subscription, canCreateEventThisMonth, getEventsUsedThisMonth } = useSubscription();
@@ -27,6 +28,7 @@ export const UserProfilePanel = () => {
   const [eventsLimit, setEventsLimit] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isManaging, setIsManaging] = useState(false);
+  const [openCreateEvent, setOpenCreateEvent] = useState(false);
 
   // Ativar atualizações em tempo real
   useRealtimeUpdates();
@@ -70,10 +72,7 @@ export const UserProfilePanel = () => {
   });
 
   const handleOpenCart = () => {
-    const cartButton = document.querySelector('[data-cart-trigger]') as HTMLButtonElement;
-    if (cartButton) {
-      cartButton.click();
-    }
+    setOpenCreateEvent(true);
   };
 
   const handleManageSubscription = async () => {
@@ -322,6 +321,7 @@ export const UserProfilePanel = () => {
           </>
         )}
       </CardContent>
+      <CreateEventDialog open={openCreateEvent} onOpenChange={setOpenCreateEvent} />
     </Card>
   );
 };
