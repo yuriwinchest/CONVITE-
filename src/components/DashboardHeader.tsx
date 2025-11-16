@@ -1,9 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useAdmin } from "@/hooks/useAdmin";
+import { Link } from "react-router-dom";
+import { Shield } from "lucide-react";
 import logo from "@/assets/logo-encontre-meu-lugar.jpg";
 
 const DashboardHeader = () => {
   const { logout } = useAuth();
+  const { isAdmin } = useAdmin();
 
   return (
     <header className="bg-primary text-primary-foreground py-4 px-6">
@@ -13,6 +17,17 @@ const DashboardHeader = () => {
         </div>
         
         <div className="flex items-center gap-3">
+          {isAdmin && (
+            <Link to="/admin">
+              <Button 
+                variant="outline"
+                className="bg-accent text-accent-foreground border-accent hover:bg-accent/90"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Admin
+              </Button>
+            </Link>
+          )}
           <Button 
             variant="outline" 
             onClick={logout}
