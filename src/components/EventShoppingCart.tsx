@@ -8,10 +8,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import CreateEventDialog from "@/components/CreateEventDialog";
 
 export const EventShoppingCart = () => {
   const { cart, removeFromCart, clearCart, itemCount, totalAmount } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
+  const [openCreate, setOpenCreate] = useState(false);
 
   const handleCheckout = async () => {
     if (!cart || itemCount === 0) return;
@@ -57,6 +59,11 @@ export const EventShoppingCart = () => {
         <p className="text-sm text-muted-foreground">
           Adicione eventos ao carrinho para continuar
         </p>
+        <Button className="mt-6" onClick={() => setOpenCreate(true)}>
+          <Calendar className="h-4 w-4 mr-2" />
+          Criar novo evento (R$ 79)
+        </Button>
+        <CreateEventDialog open={openCreate} onOpenChange={setOpenCreate} />
       </div>
     );
   }
@@ -109,6 +116,12 @@ export const EventShoppingCart = () => {
       </div>
 
       <div className="mt-6 space-y-4">
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={() => setOpenCreate(true)}>
+            <Calendar className="h-4 w-4 mr-2" />
+            Adicionar outro evento (R$ 79)
+          </Button>
+        </div>
         <Separator />
         
         <div className="space-y-2">
@@ -146,6 +159,7 @@ export const EventShoppingCart = () => {
           Você será redirecionado para o checkout seguro do Stripe
         </p>
       </div>
+      <CreateEventDialog open={openCreate} onOpenChange={setOpenCreate} />
     </div>
   );
 };
