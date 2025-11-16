@@ -94,18 +94,120 @@ const webhookSecret =
         break;
       }
 
+      case "customer.subscription.updated": {
+        const subscription = event.data.object as Stripe.Subscription;
+        
+        console.log("Processing subscription.updated", {
+          subscriptionId: subscription.id,
+          status: subscription.status,
+          currentPeriodEnd: subscription.current_period_end
+        });
+
+        // Buscar o user_id pela subscription_id
+        const { data: userSub } = await supabase
+          .from("user_subscriptions")
+          .select("user_id")
+          .eq("stripe_subscription_id", subscription.id)
+          .single();
+
+        if (userSub) {
+          await supabase
+            .from("user_subscriptions")
+            .update({
+              subscription_status: subscription.status,
+              current_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("stripe_subscription_id", subscription.id);
+
+          // Enviar notificação de renovação
+          if (subscription.status === "active") {
+            await supabase.functions.invoke("send-subscription-notification", {
+              body: {
+                userId: userSub.user_id,
+                type: "renewal",
+                subscriptionEnd: new Date(subscription.current_period_end * 1000).toISOString(),
+              },
+            });
+          }
+
+          console.log("Subscription updated:", subscription.id);
+        }
+        break;
+      }
+
       case "customer.subscription.deleted": {
         const subscription = event.data.object as Stripe.Subscription;
         
-        await supabase
-          .from("user_subscriptions")
-          .update({
-            plan: "FREE",
-            subscription_status: "canceled",
-          })
-          .eq("stripe_subscription_id", subscription.id);
+        console.log("Processing subscription.deleted", { subscriptionId: subscription.id });
 
-        console.log("Subscription canceled:", subscription.id);
+        // Buscar o user_id pela subscription_id
+        const { data: userSub } = await supabase
+          .from("user_subscriptions")
+          .select("user_id, current_period_end")
+          .eq("stripe_subscription_id", subscription.id)
+          .single();
+
+        if (userSub) {
+          await supabase
+            .from("user_subscriptions")
+            .update({
+              plan: "FREE",
+              subscription_status: "canceled",
+              updated_at: new Date().toISOString(),
+            })
+            .eq("stripe_subscription_id", subscription.id);
+
+          // Enviar notificação de cancelamento
+          await supabase.functions.invoke("send-subscription-notification", {
+            body: {
+              userId: userSub.user_id,
+              type: "cancellation",
+              subscriptionEnd: userSub.current_period_end,
+            },
+          });
+
+          console.log("Subscription canceled:", subscription.id);
+        }
+        break;
+      }
+
+      case "invoice.upcoming": {
+        const invoice = event.data.object as Stripe.Invoice;
+        
+        console.log("Processing invoice.upcoming", { 
+          invoiceId: invoice.id,
+          subscriptionId: invoice.subscription 
+        });
+
+        if (invoice.subscription) {
+          // Buscar o user_id pela subscription_id
+          const { data: userSub } = await supabase
+            .from("user_subscriptions")
+            .select("user_id, current_period_end")
+            .eq("stripe_subscription_id", invoice.subscription as string)
+            .single();
+
+          if (userSub && userSub.current_period_end) {
+            const daysUntilRenewal = Math.ceil(
+              (new Date(userSub.current_period_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+            );
+
+            // Enviar notificação apenas se faltar 7 dias ou menos
+            if (daysUntilRenewal <= 7) {
+              await supabase.functions.invoke("send-subscription-notification", {
+                body: {
+                  userId: userSub.user_id,
+                  type: "upcoming_renewal",
+                  subscriptionEnd: userSub.current_period_end,
+                  daysUntilRenewal,
+                },
+              });
+
+              console.log("Upcoming renewal notification sent:", { daysUntilRenewal });
+            }
+          }
+        }
         break;
       }
     }
