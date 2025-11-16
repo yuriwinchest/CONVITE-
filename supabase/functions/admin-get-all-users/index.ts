@@ -58,6 +58,14 @@ serve(async (req) => {
 
     if (subsError) throw subsError;
 
+    // Buscar todas as compras de eventos pagos
+    const { data: eventPurchases, error: purchasesError } = await supabase
+      .from("event_purchases")
+      .select("user_id, plan, payment_status")
+      .eq("payment_status", "paid");
+
+    if (purchasesError) throw purchasesError;
+
     // Buscar estatísticas de eventos e convidados por usuário
     const { data: eventStats, error: statsError } = await supabase
       .from("events")
@@ -77,6 +85,16 @@ serve(async (req) => {
       return acc;
     }, {});
 
+    // Mapear compras de eventos por usuário (pegar o plano mais alto)
+    const planHierarchy: any = { FREE: 0, ESSENTIAL: 1, PREMIUM: 2, PROFESSIONAL: 3 };
+    const purchasesMap = eventPurchases.reduce((acc: any, purchase: any) => {
+      if (!acc[purchase.user_id] || 
+          planHierarchy[purchase.plan] > planHierarchy[acc[purchase.user_id]]) {
+        acc[purchase.user_id] = purchase.plan;
+      }
+      return acc;
+    }, {});
+
     const eventsCount = eventStats.reduce((acc: any, event: any) => {
       acc[event.user_id] = (acc[event.user_id] || 0) + 1;
       return acc;
@@ -91,12 +109,28 @@ serve(async (req) => {
     // Combinar os dados
     const users = profiles.map((profile: any) => {
       const subscription = subscriptionMap[profile.user_id];
+      const purchasedPlan = purchasesMap[profile.user_id];
+      
+      // Se tem plano comprado (event_purchases), mostrar esse
+      // Se tem assinatura ativa, mostrar essa
+      // Senão, FREE
+      let displayPlan = "FREE";
+      let displayStatus = null;
+      
+      if (purchasedPlan) {
+        displayPlan = purchasedPlan;
+        displayStatus = "paid";
+      } else if (subscription?.subscription_status === "active") {
+        displayPlan = subscription.plan;
+        displayStatus = subscription.subscription_status;
+      }
+      
       return {
         id: profile.user_id,
         email: profile.user_id,
         full_name: profile.full_name,
-        plan: subscription?.plan || "FREE",
-        subscription_status: subscription?.subscription_status,
+        plan: displayPlan,
+        subscription_status: displayStatus,
         events_count: eventsCount[profile.user_id] || 0,
         guests_count: guestsCount[profile.user_id] || 0,
         created_at: profile.created_at,
