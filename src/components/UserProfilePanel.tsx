@@ -1,10 +1,40 @@
 import { useSubscription } from "@/hooks/useSubscription";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Crown, Sparkles, Zap, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Crown, Sparkles, Zap, User, Settings, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 export const UserProfilePanel = () => {
   const { subscription, plan, isLoading } = useSubscription();
+  const [isLoadingPortal, setIsLoadingPortal] = useState(false);
+
+  const handleManageSubscription = async () => {
+    try {
+      setIsLoadingPortal(true);
+      
+      const { data, error } = await supabase.functions.invoke("create-customer-portal");
+      
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      } else {
+        throw new Error("URL do portal não recebida");
+      }
+    } catch (error: any) {
+      console.error("Error opening customer portal:", error);
+      toast({
+        title: "Erro ao abrir portal",
+        description: error.message || "Não foi possível abrir o portal de gerenciamento",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingPortal(false);
+    }
+  };
 
   const getPlanIcon = () => {
     switch (plan) {
@@ -100,6 +130,27 @@ export const UserProfilePanel = () => {
           <p className="text-xs text-muted-foreground mt-2">
             Faça upgrade para desbloquear mais recursos
           </p>
+        )}
+
+        {plan !== "FREE" && subscription?.stripe_customer_id && (
+          <Button
+            onClick={handleManageSubscription}
+            disabled={isLoadingPortal}
+            variant="outline"
+            className="w-full mt-4"
+          >
+            {isLoadingPortal ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Abrindo...
+              </>
+            ) : (
+              <>
+                <Settings className="mr-2 h-4 w-4" />
+                Gerenciar Assinatura
+              </>
+            )}
+          </Button>
         )}
       </CardContent>
     </Card>
