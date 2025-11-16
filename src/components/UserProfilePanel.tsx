@@ -1,218 +1,125 @@
 import { useSubscription } from "@/hooks/useSubscription";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Crown, Sparkles, Zap, User, Settings, Loader2, Calendar } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/useAuth";
-import { Separator } from "@/components/ui/separator";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { 
+  Calendar,
+  ShoppingCart,
+  Loader2,
+  CheckCircle2,
+  AlertCircle
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import { useCart } from "@/hooks/useCart";
 
 export const UserProfilePanel = () => {
-  const { subscription, plan, isLoading } = useSubscription();
-  const { user } = useAuth();
-  const [isLoadingPortal, setIsLoadingPortal] = useState(false);
+  const { hasUsedMonthlyFreeEvent } = useSubscription();
+  const { itemCount } = useCart();
+  const [hasUsedFreeEvent, setHasUsedFreeEvent] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Query para buscar planos de eventos pagos
-  const { data: eventPlans } = useQuery({
-    queryKey: ["user-event-plans", user?.id],
+  useEffect(() => {
+    const checkMonthlyUsage = async () => {
+      setIsLoading(true);
+      const used = await hasUsedMonthlyFreeEvent();
+      setHasUsedFreeEvent(used);
+      setIsLoading(false);
+    };
+    
+    checkMonthlyUsage();
+  }, [hasUsedMonthlyFreeEvent]);
+
+  // Buscar eventos com planos pagos
+  const { data: eventPlans, isLoading: eventsLoading } = useQuery({
+    queryKey: ["user-event-plans"],
     queryFn: async () => {
-      if (!user?.id) return [];
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
 
       const { data, error } = await supabase
-        .from("event_purchases")
-        .select(`
-          plan,
-          event_id,
-          events(name)
-        `)
-        .eq("user_id", user.id)
-        .eq("payment_status", "paid")
-        .order("created_at", { ascending: false });
+        .from("event_purchases" as any)
+        .select("*, events!inner(name)")
+        .eq("events.user_id", user.id)
+        .eq("payment_status", "paid");
 
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user?.id,
   });
 
-  const handleManageSubscription = async () => {
-    try {
-      setIsLoadingPortal(true);
-      
-      const { data, error } = await supabase.functions.invoke("create-customer-portal");
-      
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.open(data.url, "_blank");
-      } else {
-        throw new Error("URL do portal não recebida");
-      }
-    } catch (error: any) {
-      console.error("Error opening customer portal:", error);
-      toast({
-        title: "Erro ao abrir portal",
-        description: error.message || "Não foi possível abrir o portal de gerenciamento",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoadingPortal(false);
+  const handleOpenCart = () => {
+    const cartButton = document.querySelector('[data-cart-trigger]') as HTMLButtonElement;
+    if (cartButton) {
+      cartButton.click();
     }
   };
 
-  const getPlanIcon = () => {
-    switch (plan) {
-      case "PREMIUM":
-        return <Sparkles className="h-5 w-5 text-blue-600" />;
-      case "ESSENTIAL":
-        return <Zap className="h-5 w-5 text-green-600" />;
-      default:
-        return <User className="h-5 w-5 text-muted-foreground" />;
-    }
-  };
-
-  const getPlanColor = () => {
-    switch (plan) {
-      case "PREMIUM":
-        return "bg-blue-100 text-blue-800 border-blue-200";
-      case "ESSENTIAL":
-        return "bg-green-100 text-green-800 border-green-200";
-      default:
-        return "bg-muted text-muted-foreground border-border";
-    }
-  };
-
-  const getPlanLabel = () => {
-    switch (plan) {
-      case "PREMIUM":
-        return "Premium";
-      case "ESSENTIAL":
-        return "Essencial";
-      default:
-        return "Gratuito";
-    }
-  };
-
-  const getEventPlanBadgeVariant = (eventPlan: string) => {
-    switch (eventPlan) {
-      case "PREMIUM":
-        return "premium";
-      case "ESSENTIAL":
-        return "essential";
-      default:
-        return "free";
-    }
-  };
-
-  const getEventPlanLabel = (eventPlan: string) => {
-    switch (eventPlan) {
-      case "PREMIUM":
-        return "Premium";
-      case "ESSENTIAL":
-        return "Essencial";
-      default:
-        return "Gratuito";
-    }
-  };
-
-  const getEventPlanGuestLimit = (eventPlan: string) => {
-    switch (eventPlan) {
-      case "PREMIUM":
-        return "Ilimitado";
-      case "ESSENTIAL":
-        return "200";
-      default:
-        return "50";
-    }
-  };
-
-  if (isLoading) {
+  if (isLoading || eventsLoading) {
     return (
-      <Card>
+      <Card className="w-full">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Seus Planos
+            <Calendar className="h-5 w-5" />
+            Controle de Eventos
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-sm text-muted-foreground">Carregando...</span>
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
+    <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <User className="h-5 w-5" />
-          Seus Planos
+          <Calendar className="h-5 w-5" />
+          Controle de Eventos
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Plano de Conta Mensal */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            {getPlanIcon()}
-            <h3 className="text-sm font-semibold text-foreground">Plano de Conta Mensal</h3>
-          </div>
-          
-          <div>
-            <Badge className={`${getPlanColor()} font-semibold`}>
-              {getPlanLabel()}
-            </Badge>
-          </div>
-
-          <p className="text-xs text-muted-foreground">
-            {plan === "FREE" ? "1 evento permitido" : "Eventos ilimitados"}
-          </p>
-
-          {subscription?.subscription_status && (
-            <p className="text-sm text-muted-foreground">
-              Status:{" "}
-              <span className="font-medium text-foreground capitalize">
-                {subscription.subscription_status === "active" ? "Ativo" : subscription.subscription_status}
-              </span>
-            </p>
-          )}
-
-          {subscription?.current_period_end && (
-            <p className="text-sm text-muted-foreground">
-              Renovação:{" "}
-              <span className="font-medium text-foreground">
-                {new Date(subscription.current_period_end).toLocaleDateString("pt-BR")}
-              </span>
-            </p>
-          )}
-
-          {plan === "FREE" && (
-            <p className="text-xs text-muted-foreground">
-              Faça upgrade para criar eventos ilimitados
-            </p>
-          )}
-
-          {plan !== "FREE" && subscription?.stripe_customer_id && (
-            <Button
-              onClick={handleManageSubscription}
-              disabled={isLoadingPortal}
-              variant="outline"
-              className="w-full mt-2"
-              size="sm"
-            >
-              {isLoadingPortal ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Abrindo...
-                </>
+      <CardContent className="space-y-6">
+        {/* Status do Evento Gratuito Mensal */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+            <div className="flex items-center gap-3">
+              {hasUsedFreeEvent ? (
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
               ) : (
-                <>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Gerenciar Assinatura
-                </>
+                <AlertCircle className="h-5 w-5 text-primary" />
+              )}
+              <div>
+                <p className="font-medium">
+                  {hasUsedFreeEvent 
+                    ? "Você já usou seu evento gratuito deste mês"
+                    : "Você tem 1 evento gratuito disponível este mês"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  {hasUsedFreeEvent
+                    ? "Adicione eventos ao carrinho para criar mais eventos"
+                    : "Plano gratuito: até 50 convidados"}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {hasUsedFreeEvent && (
+            <Button
+              onClick={handleOpenCart}
+              className="w-full"
+              variant="default"
+            >
+              <ShoppingCart className="h-4 w-4 mr-2" />
+              Comprar Mais Eventos (R$ 79/evento)
+              {itemCount > 0 && (
+                <Badge className="ml-2" variant="secondary">
+                  {itemCount} no carrinho
+                </Badge>
               )}
             </Button>
           )}
@@ -220,49 +127,46 @@ export const UserProfilePanel = () => {
 
         {/* Eventos com Planos Ativos */}
         {eventPlans && eventPlans.length > 0 && (
-          <>
-            <Separator />
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <h3 className="text-sm font-semibold text-foreground">
-                  Eventos com Planos Ativos
-                </h3>
-              </div>
-              
-              <p className="text-xs text-muted-foreground">
-                {eventPlans.length} {eventPlans.length === 1 ? "evento com plano pago" : "eventos com planos pagos"}
-              </p>
-
-              <div className="space-y-2">
-                {eventPlans.map((eventPlan) => (
-                  <div 
-                    key={eventPlan.event_id} 
-                    className="p-3 rounded-lg bg-muted/50 border border-border/40 space-y-2"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-medium text-foreground truncate">
-                        {eventPlan.events?.name || "Evento"}
-                      </span>
-                      <Badge 
-                        variant={getEventPlanBadgeVariant(eventPlan.plan) as any}
-                        className="shrink-0"
-                      >
-                        {getEventPlanLabel(eventPlan.plan)}
-                      </Badge>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Limite de convidados: {getEventPlanGuestLimit(eventPlan.plan)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <p className="text-xs text-muted-foreground italic">
-                💡 Planos por evento permitem mais convidados e recursos exclusivos
-              </p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Eventos Pagos Ativos
+              </h3>
+              <Badge variant="secondary">
+                {eventPlans.length} {eventPlans.length === 1 ? "evento" : "eventos"}
+              </Badge>
             </div>
-          </>
+
+            <div className="space-y-2">
+              {eventPlans.map((eventPlan: any) => (
+                <Card key={eventPlan.id} className="bg-muted/30">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <p className="font-medium">{eventPlan.events.name}</p>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="default">
+                            Essential
+                          </Badge>
+                          <span className="text-xs text-muted-foreground">
+                            Até 200 convidados
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-sm font-semibold text-primary">
+                        R$ 79,00
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Estes eventos têm o plano Essential ativo com limite de 200 convidados cada.
+            </p>
+          </div>
         )}
       </CardContent>
     </Card>

@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, MapPin, Sparkles, ArrowLeft, X, Upload } from "lucide-react";
+import { CalendarIcon, X, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,11 +20,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useCart, CartItem } from "@/hooks/useCart";
 
 const eventSchema = z.object({
   name: z.string().min(3, { message: "Nome deve ter no mínimo 3 caracteres" }),
@@ -47,6 +48,9 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { hasUsedMonthlyFreeEvent } = useSubscription();
+  const { addToCart } = useCart();
+  const [hasUsedFree, setHasUsedFree] = useState(false);
 
   const {
     register,
@@ -60,58 +64,70 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
   });
 
   const selectedDate = watch("date");
-  const selectedTime = watch("time");
+
+  const handleOpenChange = async (newOpen: boolean) => {
+    if (newOpen) {
+      const used = await hasUsedMonthlyFreeEvent();
+      setHasUsedFree(used);
+    }
+    onOpenChange(newOpen);
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    
     if (!file) return;
     
-    // Verificar tipo de arquivo
     if (!['image/png', 'image/jpeg', 'image/jpg'].includes(file.type)) {
-      toast({ 
-        title: "Formato inválido", 
-        description: "Apenas PNG e JPG são aceitos", 
-        variant: "destructive" 
-      });
+      toast({ title: "Formato inválido", description: "Apenas PNG e JPG são aceitos", variant: "destructive" });
       return;
     }
     
-    // Verificar tamanho (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      toast({ 
-        title: "Arquivo muito grande", 
-        description: "Máximo 5MB", 
-        variant: "destructive" 
-      });
+      toast({ title: "Arquivo muito grande", description: "Máximo 5MB", variant: "destructive" });
       return;
     }
     
     setSelectedImage(file);
-    
-    // Criar preview
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
+    reader.onloadend = () => setImagePreview(reader.result as string);
     reader.readAsDataURL(file);
   };
 
+  const handleAddToCart = async (data: EventFormData) => {
+    const [hours, minutes] = data.time.split(':');
+    const eventDateTime = new Date(data.date);
+    eventDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+    const cartItem: CartItem = {
+      event_name: data.name,
+      plan: "ESSENTIAL",
+      amount: 79,
+      event_data: {
+        name: data.name,
+        date: eventDateTime.toISOString(),
+        location: data.location,
+        reminder_days_before: data.reminder_days_before,
+      },
+    };
+
+    await addToCart.mutateAsync(cartItem);
+    reset();
+    setSelectedImage(null);
+    setImagePreview(null);
+    onOpenChange(false);
+  };
+
   const onSubmit = async (data: EventFormData) => {
+    if (hasUsedFree) {
+      await handleAddToCart(data);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast({
-          title: "Erro de autenticação",
-          description: "Você precisa estar logado para criar um evento",
-          variant: "destructive",
-        });
-        return;
-      }
+      if (!user) throw new Error("Not authenticated");
 
-      // Combine date and time
       const [hours, minutes] = data.time.split(':');
       const eventDateTime = new Date(data.date);
       eventDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
@@ -121,283 +137,101 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
         name: data.name,
         date: eventDateTime.toISOString(),
         location: data.location,
-        reminder_days_before: data.reminder_days_before || null,
+        reminder_days_before: data.reminder_days_before || 1,
       }).select().single();
 
       if (error) throw error;
 
-      let tableMapUrl = null;
-      
-      // Se houver imagem selecionada, fazer upload
       if (selectedImage && eventData) {
-        const fileExt = selectedImage.name.split('.').pop();
-        const fileName = `${user.id}/${eventData.id}.${fileExt}`;
+        const fileName = `${eventData.id}-${Date.now()}-${selectedImage.name}`;
+        const { error: uploadError } = await supabase.storage.from("event-maps").upload(fileName, selectedImage);
         
-        const { error: uploadError } = await supabase.storage
-          .from('event-maps')
-          .upload(fileName, selectedImage, {
-            cacheControl: '3600',
-            upsert: true
-          });
-        
-        if (uploadError) {
-          console.error("Upload error:", uploadError);
-          toast({ 
-            title: "Evento criado com aviso", 
-            description: "Evento criado, mas o mapa não foi enviado.", 
-            variant: "destructive" 
-          });
-        } else {
-          // Obter URL pública
-          const { data: urlData } = supabase.storage
-            .from('event-maps')
-            .getPublicUrl(fileName);
-          
-          tableMapUrl = urlData.publicUrl;
-          
-          // Atualizar evento com URL da imagem
-          await supabase.from('events')
-            .update({ table_map_url: tableMapUrl })
-            .eq('id', eventData.id);
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage.from("event-maps").getPublicUrl(fileName);
+          await supabase.from("events").update({ table_map_url: publicUrl }).eq("id", eventData.id);
         }
       }
 
-      toast({
-        title: "Evento criado com sucesso!",
-        description: "Agora você pode adicionar convidados na página do evento.",
-      });
-
-      // Invalidate queries to refresh the list
+      toast({ title: "Evento criado!", description: "Seu evento gratuito foi criado." });
       queryClient.invalidateQueries({ queryKey: ["events"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-      queryClient.invalidateQueries({ queryKey: ["guests"] });
-
-      // Reset form and close dialog
       reset();
       setSelectedImage(null);
       setImagePreview(null);
       onOpenChange(false);
     } catch (error) {
-      console.error("Error creating event:", error);
-      toast({
-        title: "Erro ao criar evento",
-        description: "Tente novamente mais tarde",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Não foi possível criar o evento.", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-w-[95vw] p-0 gap-0 max-h-[85vh] flex flex-col">
-        <DialogHeader className="border-b border-border p-6 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onOpenChange(false)}
-                className="hover:bg-muted"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-                <DialogTitle className="text-2xl font-bold">
-                  Criar Evento
-                </DialogTitle>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isLoading}
-            >
-              Cancelar
-            </Button>
-          </div>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{hasUsedFree ? "Adicionar ao Carrinho (R$ 79)" : "Criar Evento Gratuito"}</DialogTitle>
         </DialogHeader>
 
-        <div className="overflow-y-auto flex-1 p-6">
-          <form id="event-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="bg-card rounded-lg border border-border p-6">
-              <h3 className="text-lg font-semibold mb-6">Detalhes do Evento</h3>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <Label htmlFor="name">Nome *</Label>
+            <Input id="name" {...register("name")} />
+            {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="name">Nome do Evento</Label>
-                <Input
-                  id="name"
-                  placeholder="Ex: Casamento de Maria e João"
-                  className="bg-primary/5 border-primary/20"
-                  {...register("name")}
-                  disabled={isLoading}
-                />
-                {errors.name && (
-                  <p className="text-sm text-destructive">{errors.name.message}</p>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label>Data do Evento</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal bg-primary/5 border-primary/20",
-                          !selectedDate && "text-muted-foreground"
-                        )}
-                        disabled={isLoading}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {selectedDate
-                          ? format(selectedDate, "dd/MM/yyyy", { locale: ptBR })
-                          : "Selecione a data"}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={selectedDate}
-                        onSelect={(date) => date && setValue("date", date)}
-                        initialFocus
-                        locale={ptBR}
-                        className="pointer-events-auto"
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  {errors.date && (
-                    <p className="text-sm text-destructive">{errors.date.message}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="time">Hora do Evento</Label>
-                  <Input
-                    id="time"
-                    type="time"
-                    className="bg-primary/5 border-primary/20"
-                    {...register("time")}
-                    disabled={isLoading}
-                  />
-                  {errors.time && (
-                    <p className="text-sm text-destructive">{errors.time.message}</p>
-                  )}
-                </div>
-              </div>
-
-              <div className="space-y-2 mt-6">
-                <Label htmlFor="location">Local</Label>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="location"
-                    placeholder="Ex: Brasília, Brasil"
-                    className="pl-10 bg-primary/5 border-primary/20"
-                    {...register("location")}
-                    disabled={isLoading}
-                  />
-                </div>
-                {errors.location && (
-                  <p className="text-sm text-destructive">{errors.location.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2 mt-6">
-                <Label htmlFor="reminder_days_before">Lembrete Automático (opcional)</Label>
-                <div className="space-y-2">
-                  <Input
-                    id="reminder_days_before"
-                    type="number"
-                    min="0"
-                    max="30"
-                    placeholder="Ex: 3 (para enviar 3 dias antes)"
-                    className="bg-primary/5 border-primary/20"
-                    {...register("reminder_days_before", { 
-                      valueAsNumber: true,
-                      setValueAs: (v) => v === "" ? undefined : Number(v)
-                    })}
-                    disabled={isLoading}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    📧 Lembretes serão enviados automaticamente por email X dias antes do evento (deixe vazio para desativar)
-                  </p>
-                </div>
-                {errors.reminder_days_before && (
-                  <p className="text-sm text-destructive">{errors.reminder_days_before.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2 mt-6">
-                <Label htmlFor="tableMap">Mapa das Mesas (opcional)</Label>
-                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
-                  {imagePreview ? (
-                    <div className="space-y-3">
-                      <img 
-                        src={imagePreview} 
-                        alt="Preview do mapa" 
-                        className="mx-auto max-h-48 rounded-lg object-contain"
-                      />
-                      <div className="flex gap-2 justify-center">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedImage(null);
-                            setImagePreview(null);
-                          }}
-                        >
-                          <X className="h-4 w-4 mr-2" />
-                          Remover
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Upload className="mx-auto h-8 w-8 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">
-                        Clique para selecionar ou arraste a imagem
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        PNG ou JPG, máximo 5MB
-                      </p>
-                      <Input
-                        id="tableMap"
-                        type="file"
-                        accept="image/png,image/jpeg,image/jpg"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => document.getElementById('tableMap')?.click()}
-                      >
-                        Selecionar Imagem
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label>Data *</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className={cn("w-full justify-start", !selectedDate && "text-muted-foreground")}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "dd/MM/yyyy", { locale: ptBR }) : "Selecione"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent><Calendar mode="single" selected={selectedDate} onSelect={(date) => setValue("date", date as Date)} locale={ptBR} /></PopoverContent>
+              </Popover>
             </div>
-          </form>
-        </div>
+            <div>
+              <Label htmlFor="time">Hora *</Label>
+              <Input id="time" type="time" {...register("time")} />
+            </div>
+          </div>
 
-        <div className="border-t border-border p-6 flex-shrink-0">
-          <Button
-            type="submit"
-            form="event-form"
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 text-base font-semibold"
-            disabled={isLoading}
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            {isLoading ? "Criando..." : "Criar Evento"}
-          </Button>
-        </div>
+          <div>
+            <Label htmlFor="location">Local *</Label>
+            <Input id="location" {...register("location")} />
+          </div>
+
+          <div>
+            <Label htmlFor="reminder_days_before">Lembrete (dias antes)</Label>
+            <Input id="reminder_days_before" type="number" min="0" max="30" defaultValue="1" {...register("reminder_days_before", { valueAsNumber: true })} />
+          </div>
+
+          <div className="border-2 border-dashed rounded-lg p-6 text-center">
+            {imagePreview ? (
+              <div className="relative">
+                <img src={imagePreview} alt="Preview" className="max-h-48 mx-auto" />
+                <Button type="button" variant="destructive" size="icon" className="absolute top-2 right-2" onClick={() => { setSelectedImage(null); setImagePreview(null); }}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <label className="cursor-pointer">
+                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm">Mapa de mesas (opcional)</p>
+                <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+              </label>
+            )}
+          </div>
+
+          <div className="flex gap-3">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancelar</Button>
+            <Button type="submit" disabled={isLoading} className="flex-1">
+              {isLoading ? "Processando..." : hasUsedFree ? "Adicionar (R$ 79)" : "Criar Grátis"}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
