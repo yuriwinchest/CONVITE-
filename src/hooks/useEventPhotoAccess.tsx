@@ -8,7 +8,22 @@ export const useEventPhotoAccess = (eventId: string | undefined) => {
     queryFn: async () => {
       if (!eventId) return { canUpload: false, plan: "FREE" as SubscriptionPlan };
 
-      // Buscar plano do evento via purchase
+      // Verificar assinatura do usuário primeiro
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const { data: subscription } = await supabase
+          .from("user_subscriptions")
+          .select("plan")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (subscription?.plan === "PREMIUM") {
+          return { canUpload: true, plan: "PREMIUM" as SubscriptionPlan };
+        }
+      }
+
+      // Se não tem assinatura PREMIUM, verificar compra do evento
       const { data: purchase, error: purchaseError } = await supabase
         .from("event_purchases")
         .select("plan")
