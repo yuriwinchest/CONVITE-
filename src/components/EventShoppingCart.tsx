@@ -25,14 +25,24 @@ export const EventShoppingCart = () => {
       if (error) throw error;
 
       if (data?.url) {
-        window.open(data.url, "_blank");
+        toast({
+          title: "🛒 Redirecionando para pagamento...",
+          description: `Total: R$ ${totalAmount.toFixed(2)} - ${itemCount} evento(s)`,
+          duration: 2000,
+        });
+        
+        // Aguardar um pouco para o toast aparecer antes de redirecionar
+        setTimeout(() => {
+          window.open(data.url, "_blank");
+        }, 500);
       }
     } catch (error) {
       console.error("Erro ao criar checkout:", error);
       toast({
-        title: "Erro ao processar pagamento",
-        description: "Não foi possível criar a sessão de pagamento.",
+        title: "❌ Erro ao processar pagamento",
+        description: "Não foi possível criar a sessão de pagamento. Tente novamente.",
         variant: "destructive",
+        duration: 4000,
       });
     } finally {
       setIsProcessing(false);

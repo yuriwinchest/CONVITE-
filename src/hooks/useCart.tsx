@@ -79,8 +79,9 @@ export const useCart = () => {
       queryClient.invalidateQueries({ queryKey: ["user-subscription"] });
       queryClient.invalidateQueries({ queryKey: ["user-event-plans"] });
       toast({
-        title: "Evento adicionado ao carrinho",
-        description: "Você pode continuar adicionando mais eventos.",
+        title: "✅ Evento adicionado ao carrinho",
+        description: "Continue adicionando mais eventos ou finalize a compra.",
+        duration: 3000,
       });
     },
     onError: () => {
@@ -123,8 +124,9 @@ export const useCart = () => {
       queryClient.invalidateQueries({ queryKey: ["user-subscription"] });
       queryClient.invalidateQueries({ queryKey: ["user-event-plans"] });
       toast({
-        title: "Evento removido",
+        title: "🗑️ Evento removido",
         description: "O evento foi removido do carrinho.",
+        duration: 2000,
       });
     },
   });

@@ -84,12 +84,20 @@ export const UserProfilePanel = () => {
       if (error) throw error;
 
       if (data?.url) {
-        window.open(data.url, "_blank");
+        toast({
+          title: "🔧 Abrindo portal de gerenciamento...",
+          description: "Você será redirecionado para gerenciar sua assinatura.",
+          duration: 2000,
+        });
+        
+        setTimeout(() => {
+          window.open(data.url, "_blank");
+        }, 500);
       }
     } catch (error) {
       console.error("Error creating portal session:", error);
       toast({
-        title: "Erro",
+        title: "❌ Erro",
         description: "Não foi possível abrir o portal de gerenciamento.",
         variant: "destructive",
       });
@@ -105,12 +113,20 @@ export const UserProfilePanel = () => {
       if (error) throw error;
 
       if (data?.url) {
-        window.open(data.url, "_blank");
+        toast({
+          title: "⬆️ Upgrade para Premium",
+          description: "Redirecionando para o checkout...",
+          duration: 2000,
+        });
+        
+        setTimeout(() => {
+          window.open(data.url, "_blank");
+        }, 500);
       }
     } catch (error) {
       console.error("Error creating checkout:", error);
       toast({
-        title: "Erro",
+        title: "❌ Erro",
         description: "Não foi possível criar a sessão de checkout.",
         variant: "destructive",
       });
