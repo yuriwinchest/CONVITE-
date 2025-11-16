@@ -72,7 +72,7 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
       const status = await canCreateEventThisMonth();
       
       if (plan === "PREMIUM") {
-        // Premium pode criar até 20 eventos por mês gratuitamente
+        // Premium pode criar até 5 eventos por mês gratuitamente
         setCanCreate(status.allowed);
         setNeedsToPay(false);
         setStatusMessage(status.allowed ? "" : status.message || "");

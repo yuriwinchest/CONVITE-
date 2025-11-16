@@ -265,10 +265,10 @@ export const UserProfilePanel = () => {
                 <h4 className="font-semibold">Upgrade para Premium</h4>
               </div>
               <p className="text-sm text-muted-foreground">
-                R$ 149/mês - Até 20 eventos por mês com convidados ilimitados
+                R$ 149/mês - Até 5 eventos por mês com convidados ilimitados
               </p>
               <ul className="text-xs space-y-1 text-muted-foreground">
-                <li>✓ Até 20 eventos por mês</li>
+                <li>✓ Até 5 eventos por mês</li>
                 <li>✓ Convidados ilimitados</li>
                 <li>✓ Envio de fotos pelos convidados</li>
                 <li>✓ Relatórios e exportação em PDF</li>

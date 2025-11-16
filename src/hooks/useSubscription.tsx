@@ -35,7 +35,7 @@ export const useSubscription = () => {
   const plan = subscription?.plan || "FREE";
 
   const getEventLimit = (): number => {
-    if (plan === "PREMIUM") return 20; // 20 eventos por mês com assinatura
+    if (plan === "PREMIUM") return 5; // 5 eventos por mês com assinatura
     if (plan === "FREE") return 1; // 1 evento gratuito por mês
     return Infinity; // ESSENTIAL é por evento via carrinho, sem limite
   };
@@ -96,7 +96,7 @@ export const useSubscription = () => {
   };
 
   const hasUsedMonthlyFreeEvent = async (): Promise<boolean> => {
-    // Usuários PREMIUM não usam evento gratuito, têm 20 eventos por mês
+    // Usuários PREMIUM não usam evento gratuito, têm 5 eventos por mês
     if (plan === "PREMIUM") return false;
     
     const { data: { user } } = await supabase.auth.getUser();
@@ -123,7 +123,7 @@ export const useSubscription = () => {
     const eventsUsed = await getEventsUsedThisMonth();
     const limit = getEventLimit();
 
-    // PREMIUM: até 20 eventos por mês
+    // PREMIUM: até 5 eventos por mês
     if (plan === "PREMIUM") {
       if (eventsUsed >= limit) {
         return {
