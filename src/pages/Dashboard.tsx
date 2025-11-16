@@ -10,6 +10,8 @@ import Pricing from "@/components/Pricing";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserProfilePanel } from "@/components/UserProfilePanel";
 import PlanUpgradeCard from "@/components/PlanUpgradeCard";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
@@ -43,6 +45,31 @@ const Dashboard = () => {
         .map(p => p.event_id) || [];
       
       return events.filter(e => essentialEventIds.includes(e.id));
+    },
+    enabled: !!user?.id,
+  });
+
+  // Query para detectar upgrades pendentes
+  const { data: pendingUpgrades } = useQuery({
+    queryKey: ["pending-upgrades", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const { data, error } = await supabase
+        .from("event_purchases")
+        .select(`
+          id,
+          plan,
+          amount,
+          event_id,
+          events(name)
+        `)
+        .eq("user_id", user.id)
+        .eq("payment_status", "pending")
+        .eq("plan", "PREMIUM");
+
+      if (error) throw error;
+      return data || [];
     },
     enabled: !!user?.id,
   });
@@ -87,14 +114,28 @@ const Dashboard = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2">
-            <DashboardStats />
-          </div>
-          <div>
-            <UserProfilePanel />
-          </div>
+      {/* Alerta de upgrades pendentes */}
+      {pendingUpgrades && pendingUpgrades.length > 0 && (
+        <Alert className="mb-6 border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20">
+          <AlertCircle className="h-4 w-4 text-yellow-600" />
+          <AlertTitle className="text-yellow-800 dark:text-yellow-400">
+            Upgrade Pendente
+          </AlertTitle>
+          <AlertDescription className="text-yellow-700 dark:text-yellow-300">
+            Você tem {pendingUpgrades.length} upgrade(s) aguardando confirmação de pagamento. 
+            Assim que o pagamento for processado, seus recursos Premium serão ativados automaticamente.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="lg:col-span-2">
+          <DashboardStats />
         </div>
+        <div>
+          <UserProfilePanel />
+        </div>
+      </div>
 
         {essentialEvents && essentialEvents.length > 0 && (
           <div className="mb-8">

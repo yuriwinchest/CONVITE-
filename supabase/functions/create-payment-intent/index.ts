@@ -132,6 +132,7 @@ serve(async (req) => {
         }
         
         // Criar sessão com valor de upgrade
+        // NÃO atualizar o registro aqui - só passar nos metadados
         const session = await stripe.checkout.sessions.create({
           customer: customerId,
           line_items: [{
@@ -147,29 +148,20 @@ serve(async (req) => {
           }],
           mode: "payment",
           success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `${req.headers.get("origin")}/events/${eventId}?upgrade=canceled`,
+          cancel_url: `${req.headers.get("origin")}/dashboard`,
           metadata: {
             userId: user.id,
             eventId,
-            plan: "PREMIUM",
             isUpgrade: "true",
-            previousPlan: "ESSENTIAL"
+            targetPlan: "PREMIUM",
+            currentPlan: "ESSENTIAL",
+            purchaseId: existingPurchase.id,
+            finalAmount: "149.00"
           },
         });
         
-        // Atualizar registro para indicar upgrade pendente
-        await supabase
-          .from("event_purchases")
-          .update({
-            plan: "PREMIUM",
-            amount: 149.00, // valor total final
-            stripe_payment_intent_id: session.payment_intent as string,
-            payment_status: "pending",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", existingPurchase.id);
-        
-        console.log("Upgrade checkout session created:", session.id);
+        // NÃO atualizar o registro - manter ESSENTIAL/paid até confirmação
+        console.log("Upgrade session created, keeping current plan until payment confirmation");
         
         return new Response(
           JSON.stringify({ 
