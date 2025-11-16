@@ -51,7 +51,7 @@ export function useGuestConfirmation(eventId: string) {
         console.log("Table map URL:", data[0].table_map_url);
         setEventDetails(data[0]);
       } else {
-        console.log("No event data found");
+        console.log("Evento não encontrado para ID:", eventId);
         setEventDetails(null);
       }
     } catch (error: any) {

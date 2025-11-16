@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,50 @@ import { Loader2, CheckCircle2, XCircle, MapPin, Calendar, Users, Download, Zoom
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+// Helper to validate UUID v4 format
+function isUuid(value: string): boolean {
+  return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(value.trim());
+}
+
+// Helper to extract event ID from various formats
+function extractEventId(input: string): string | null {
+  const trimmed = input.trim();
+
+  // 1) Try to find any UUID in the text
+  const uuidMatch = trimmed.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/);
+  if (uuidMatch && isUuid(uuidMatch[0])) {
+    return uuidMatch[0];
+  }
+
+  // 2) Try to parse as URL
+  try {
+    const url = new URL(trimmed);
+
+    // a) Check query parameters
+    const eventIdParam = url.searchParams.get("eventId") || url.searchParams.get("event_id");
+    if (eventIdParam && isUuid(eventIdParam)) {
+      return eventIdParam;
+    }
+
+    // b) Check path segments /confirm/:id or /events/:id
+    const parts = url.pathname.split("/").filter(Boolean);
+    
+    const confirmIndex = parts.indexOf("confirm");
+    if (confirmIndex !== -1 && parts[confirmIndex + 1] && isUuid(parts[confirmIndex + 1])) {
+      return parts[confirmIndex + 1];
+    }
+
+    const eventsIndex = parts.indexOf("events");
+    if (eventsIndex !== -1 && parts[eventsIndex + 1] && isUuid(parts[eventsIndex + 1])) {
+      return parts[eventsIndex + 1];
+    }
+  } catch {
+    // Not a valid URL, that's okay
+  }
+
+  return null;
+}
+
 export default function ConfirmPresence() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
@@ -19,6 +63,20 @@ export default function ConfirmPresence() {
   const [searchState, setSearchState] = useState<"idle" | "searching" | "found" | "not-found" | "confirmed">("idle");
   const [guestData, setGuestData] = useState<any>(null);
   const [isProcessingQR, setIsProcessingQR] = useState(false);
+  const [invalidEventId, setInvalidEventId] = useState(false);
+
+  // Validate eventId from route
+  useEffect(() => {
+    if (eventId && !isUuid(eventId)) {
+      console.error("Invalid event ID from route:", eventId);
+      setInvalidEventId(true);
+      toast({
+        title: "Link/QR inválido",
+        description: "O link ou QR Code não contém um ID de evento válido.",
+        variant: "destructive",
+      });
+    }
+  }, [eventId, toast]);
 
   const { searchGuest, confirmPresence, getEventDetails, eventDetails, isLoadingEvent, isCheckInAllowed } = useGuestConfirmation(eventId || "");
   const [timeUntilCheckIn, setTimeUntilCheckIn] = useState<number>(0);
@@ -28,18 +86,7 @@ export default function ConfirmPresence() {
   const handleQRScan = async (scannedData: string) => {
     setIsProcessingQR(true);
     try {
-      let extractedEventId = "";
-      
-      try {
-        const url = new URL(scannedData);
-        const pathParts = url.pathname.split('/').filter(Boolean);
-        const confirmIndex = pathParts.indexOf('confirm');
-        if (confirmIndex !== -1 && pathParts[confirmIndex + 1]) {
-          extractedEventId = pathParts[confirmIndex + 1];
-        }
-      } catch {
-        extractedEventId = scannedData;
-      }
+      const extractedEventId = extractEventId(scannedData);
 
       if (!extractedEventId) {
         toast({
@@ -168,8 +215,8 @@ export default function ConfirmPresence() {
     );
   }
 
-  // Quando não tem eventId, mostrar scanner
-  if (!eventId) {
+  // Quando não tem eventId ou eventId inválido, mostrar scanner
+  if (!eventId || invalidEventId) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <div className="w-full max-w-2xl space-y-6">
