@@ -41,6 +41,54 @@ export type Database = {
         }
         Relationships: []
       }
+      event_photos: {
+        Row: {
+          created_at: string | null
+          event_id: string
+          file_name: string
+          file_size: number | null
+          guest_id: string | null
+          id: string
+          photo_url: string
+          uploaded_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_id: string
+          file_name: string
+          file_size?: number | null
+          guest_id?: string | null
+          id?: string
+          photo_url: string
+          uploaded_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string
+          file_name?: string
+          file_size?: number | null
+          guest_id?: string | null
+          id?: string
+          photo_url?: string
+          uploaded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_photos_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_photos_guest_id_fkey"
+            columns: ["guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_purchases: {
         Row: {
           amount: number

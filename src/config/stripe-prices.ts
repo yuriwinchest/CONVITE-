@@ -19,7 +19,7 @@ export const STRIPE_PRICES = {
     amount: 149.00,
     currency: "BRL",
     guests_limit: Infinity,
-    description: "Convidados ilimitados por evento",
+    description: "Convidados ilimitados, mapa interativo, relatórios PDF e envio de fotos",
   },
   PROFESSIONAL: {
     name: "Professional",
@@ -30,7 +30,7 @@ export const STRIPE_PRICES = {
     recurring: "monthly" as const,
     events_limit: Infinity,
     guests_limit: Infinity,
-    description: "Eventos e convidados ilimitados",
+    description: "Eventos e convidados ilimitados com todos os recursos",
   },
 };
 

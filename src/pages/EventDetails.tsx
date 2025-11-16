@@ -2,7 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Plus, Upload, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +32,8 @@ import { CSVUploader } from "@/components/CSVUploader";
 import { TableManager } from "@/components/TableManager";
 import { CheckInManager } from "@/components/CheckInManager";
 import { EventQRCode } from "@/components/EventQRCode";
+import { EventPhotoGallery } from "@/components/EventPhotoGallery";
+import { useEventPhotoAccess } from "@/hooks/useEventPhotoAccess";
 import { ParsedGuest } from "@/lib/csvParser";
 import { useRealtimeCheckIns } from "@/hooks/useRealtimeCheckIns";
 import { format } from "date-fns";
@@ -59,6 +61,7 @@ export default function EventDetails() {
     useGuests(eventId);
   
   const { canAddGuests, getGuestLimit } = useSubscription();
+  const { data: photoAccess } = useEventPhotoAccess(eventId);
 
   // Enable realtime check-in notifications
   useRealtimeCheckIns(eventId);
@@ -440,11 +443,12 @@ Nos vemos lá! 🎉`;
         </Card>
 
         <Tabs defaultValue="guests" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="guests">Convidados</TabsTrigger>
             <TabsTrigger value="tables">Mesas</TabsTrigger>
             <TabsTrigger value="qrcode">QR Code</TabsTrigger>
             <TabsTrigger value="checkin">Check-in</TabsTrigger>
+            <TabsTrigger value="photos">Fotos</TabsTrigger>
           </TabsList>
 
           <TabsContent value="guests">
@@ -516,6 +520,33 @@ Nos vemos lá! 🎉`;
 
           <TabsContent value="checkin">
             <CheckInManager eventId={eventId!} />
+          </TabsContent>
+
+          <TabsContent value="photos">
+            <Card>
+              <CardHeader>
+                <CardTitle>Fotos do Evento</CardTitle>
+                <CardDescription>
+                  {photoAccess?.canUpload 
+                    ? "Veja e gerencie as fotos enviadas pelos convidados" 
+                    : "Recurso disponível apenas nos planos Premium e Professional"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {photoAccess?.canUpload ? (
+                  <EventPhotoGallery eventId={eventId!} isCreator={true} />
+                ) : (
+                  <div className="text-center py-8 space-y-4">
+                    <p className="text-muted-foreground">
+                      Upgrade para Premium ou Professional para permitir que seus convidados enviem fotos do evento.
+                    </p>
+                    <Button onClick={() => setShowUpgradeModal(true)}>
+                      Ver Planos
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
 

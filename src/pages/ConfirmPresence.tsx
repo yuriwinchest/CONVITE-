@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { useGuestConfirmation } from "@/hooks/useGuestConfirmation";
 import { QRCodeScanner } from "@/components/QRCodeScanner";
-import { Loader2, CheckCircle2, XCircle, MapPin, Calendar, Users, Download, ZoomIn, ArrowLeft } from "lucide-react";
+import { generateQRCodeImage } from "@/lib/qrCodeGenerator";
+import { Loader2, CheckCircle2, XCircle, MapPin, Calendar, Users, Download, ZoomIn, ArrowLeft, Camera } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -21,6 +22,7 @@ export default function ConfirmPresence() {
 
   const { searchGuest, confirmPresence, getEventDetails, eventDetails, isLoadingEvent, isCheckInAllowed } = useGuestConfirmation(eventId || "");
   const [timeUntilCheckIn, setTimeUntilCheckIn] = useState<number>(0);
+  const [photosQRCode, setPhotosQRCode] = useState<string>("");
 
   const handleQRScan = async (scannedData: string) => {
     setIsProcessingQR(true);
@@ -123,6 +125,14 @@ export default function ConfirmPresence() {
     try {
       await confirmPresence(guestData.id);
       setSearchState("confirmed");
+      
+      // Gerar QR Code para fotos
+      if (eventId) {
+        const photosUrl = `${window.location.origin}/event/${eventId}/photos`;
+        const qrImage = await generateQRCodeImage(photosUrl);
+        setPhotosQRCode(qrImage);
+      }
+      
       toast({
         title: "✅ Presença confirmada!",
         description: "Obrigado por confirmar. Aguardamos você no evento!",
@@ -435,6 +445,33 @@ export default function ConfirmPresence() {
               ) : (
                 <div className="bg-muted/50 rounded-lg p-4 text-center text-muted-foreground text-sm">
                   O organizador não adicionou um mapa das mesas para este evento.
+                </div>
+              )}
+              
+              {/* QR Code para Envio de Fotos */}
+              {photosQRCode && (
+                <div className="space-y-3 border-t pt-6">
+                  <h4 className="font-semibold text-lg">📸 Compartilhe Fotos do Evento</h4>
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Escaneie o QR Code ou clique no botão para enviar suas fotos do evento
+                    </p>
+                    <div className="flex justify-center mb-3">
+                      <img 
+                        src={photosQRCode} 
+                        alt="QR Code para enviar fotos" 
+                        className="w-48 h-48 border-2 border-border rounded-lg p-2 bg-white"
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => navigate(`/event/${eventId}/photos`)}
+                    >
+                      <Camera className="mr-2 h-4 w-4" />
+                      Enviar Fotos
+                    </Button>
+                  </div>
                 </div>
               )}
               
