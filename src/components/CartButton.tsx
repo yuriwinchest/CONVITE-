@@ -21,6 +21,7 @@ export const CartButton = () => {
           variant="outline" 
           size="icon" 
           className="relative bg-accent text-accent-foreground border-accent hover:bg-accent/90"
+          data-cart-trigger
         >
           <ShoppingCart className="h-5 w-5" />
           {itemCount > 0 && (
