@@ -18,9 +18,7 @@ const DashboardHeader = () => {
         </div>
         
         <div className="flex items-center gap-3">
-          <div data-cart-trigger>
-            <CartButton />
-          </div>
+          <CartButton />
           {isAdmin && (
             <Link to="/admin">
               <Button 
