@@ -142,7 +142,9 @@ export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: Event
         <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
         <p className="text-lg font-medium mb-2">Nenhuma foto ainda</p>
         <p className="text-sm text-muted-foreground">
-          As fotos enviadas pelos convidados aparecerão aqui
+          {guestId && !isCreator 
+            ? "Você ainda não enviou nenhuma foto. Use o uploader acima para compartilhar suas fotos."
+            : "As fotos enviadas pelos convidados aparecerão aqui"}
         </p>
       </Card>
     );
@@ -150,6 +152,13 @@ export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: Event
 
   return (
     <div className="space-y-4">
+      {guestId && !isCreator && (
+        <Card className="p-4 bg-primary/5 border-primary/20">
+          <p className="text-sm text-center">
+            🔒 <strong>Galeria Privada:</strong> Você está visualizando apenas suas fotos
+          </p>
+        </Card>
+      )}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
           {photos.length} foto(s) {guestId && !isCreator ? "enviadas por você" : "do evento"}
@@ -177,7 +186,7 @@ export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: Event
               >
                 <Download className="h-4 w-4" />
               </Button>
-              {isCreator && (
+              {(isCreator || (guestId && !isCreator)) && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button size="icon" variant="destructive">
