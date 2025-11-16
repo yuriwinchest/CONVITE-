@@ -40,12 +40,12 @@ const webhookSecret =
           subscription: session.subscription 
         });
 
-        if (userId && plan === "PROFESSIONAL") {
+        if (userId && plan === "PREMIUM") {
           const { data, error } = await supabase
             .from("user_subscriptions")
             .upsert({
               user_id: userId,
-              plan: "PROFESSIONAL",
+              plan: "PREMIUM",
               stripe_customer_id: session.customer as string,
               stripe_subscription_id: session.subscription as string,
               subscription_status: "active",
@@ -59,9 +59,9 @@ const webhookSecret =
             throw error;
           }
 
-          console.log("Professional subscription activated for user:", userId, { data });
+          console.log("Premium subscription activated for user:", userId, { data });
         } else {
-          console.log("Skipping subscription update - missing userId or not PROFESSIONAL plan:", { userId, plan });
+          console.log("Skipping subscription update - missing userId or not PREMIUM plan:", { userId, plan });
         }
         break;
       }

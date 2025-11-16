@@ -9,20 +9,20 @@ import { STRIPE_PRICES } from "@/config/stripe-prices";
 export const StripeTestPanel = () => {
   const [loading, setLoading] = useState<string | null>(null);
 
-  const testCheckout = async (type: "essential" | "premium" | "professional") => {
+  const testCheckout = async (type: "essential" | "premium") => {
     setLoading(type);
     try {
+      // Teste de pagamento único (Essential) ou assinatura (Premium)
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("Não autenticado");
+
       let result;
-      
-      if (type === "professional") {
-        // Teste de assinatura Professional
+
+      if (type === "premium") {
+        // Premium agora é assinatura mensal
         result = await supabase.functions.invoke("create-checkout-session");
       } else {
-        // Teste de pagamento único (Essential ou Premium)
-        // Primeiro precisamos criar um evento de teste
-        const { data: userData } = await supabase.auth.getUser();
-        if (!userData.user) throw new Error("Não autenticado");
-
+        // Essential - pagamento único por evento
         // Criar evento de teste
         const { data: event, error: eventError } = await supabase
           .from("events")
@@ -56,7 +56,7 @@ export const StripeTestPanel = () => {
       
       // Abrir em nova aba
       window.open(url, "_blank");
-    } catch (error) {
+    } catch (error: any) {
       console.error(`[STRIPE TEST] Erro ao testar ${type}:`, error);
       toast.error(`Erro ao criar checkout ${type}: ${error.message}`);
     } finally {
@@ -141,13 +141,13 @@ export const StripeTestPanel = () => {
           <div className="space-y-2">
             <h4 className="text-sm font-medium">Assinatura Recorrente</h4>
             <Button
-              onClick={() => testCheckout("professional")}
+              onClick={() => testCheckout("premium")}
               disabled={loading !== null}
               variant="outline"
               size="sm"
             >
-              {loading === "professional" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Testar Professional (R$ {STRIPE_PRICES.PROFESSIONAL.amount}/mês)
+              {loading === "premium" && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Testar Premium (R$ {STRIPE_PRICES.PREMIUM.amount}/mês)
             </Button>
           </div>
 

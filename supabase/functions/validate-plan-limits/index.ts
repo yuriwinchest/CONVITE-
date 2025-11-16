@@ -60,7 +60,32 @@ serve(async (req) => {
             }
           );
         }
+      } else if (plan === "PREMIUM") {
+        // Verificar limite de 20 eventos por mês
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+        
+        const { count } = await supabase
+          .from("events")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", user.id)
+          .gte("created_at", startOfMonth.toISOString());
+
+        if ((count || 0) >= 20) {
+          return new Response(
+            JSON.stringify({
+              allowed: false,
+              message: "Limite de 20 eventos por mês atingido",
+            }),
+            {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+              status: 403,
+            }
+          );
+        }
       }
+      // ESSENTIAL: sem limite (pagamento por evento)
     }
 
     if (action === "add_guests" && eventId) {
@@ -76,7 +101,7 @@ serve(async (req) => {
       let limit = 50;
 
       if (eventPlan === "ESSENTIAL") limit = 200;
-      if (eventPlan === "PREMIUM" || eventPlan === "PROFESSIONAL") limit = Infinity;
+      if (eventPlan === "PREMIUM") limit = Infinity;
 
       if (limit !== Infinity && guestCount > limit) {
         return new Response(

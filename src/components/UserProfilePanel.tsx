@@ -64,8 +64,6 @@ export const UserProfilePanel = () => {
 
   const getPlanIcon = () => {
     switch (plan) {
-      case "PROFESSIONAL":
-        return <Crown className="h-5 w-5 text-purple-600" />;
       case "PREMIUM":
         return <Sparkles className="h-5 w-5 text-blue-600" />;
       case "ESSENTIAL":
@@ -77,8 +75,6 @@ export const UserProfilePanel = () => {
 
   const getPlanColor = () => {
     switch (plan) {
-      case "PROFESSIONAL":
-        return "bg-purple-100 text-purple-800 border-purple-200";
       case "PREMIUM":
         return "bg-blue-100 text-blue-800 border-blue-200";
       case "ESSENTIAL":
@@ -90,8 +86,6 @@ export const UserProfilePanel = () => {
 
   const getPlanLabel = () => {
     switch (plan) {
-      case "PROFESSIONAL":
-        return "Profissional";
       case "PREMIUM":
         return "Premium";
       case "ESSENTIAL":
