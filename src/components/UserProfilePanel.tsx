@@ -18,6 +18,7 @@ import { useCart } from "@/hooks/useCart";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 
 export const UserProfilePanel = () => {
   const { plan, subscription, canCreateEventThisMonth, getEventsUsedThisMonth } = useSubscription();
@@ -26,6 +27,9 @@ export const UserProfilePanel = () => {
   const [eventsLimit, setEventsLimit] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isManaging, setIsManaging] = useState(false);
+
+  // Ativar atualizações em tempo real
+  useRealtimeUpdates();
 
   useEffect(() => {
     const loadMonthlyUsage = async () => {

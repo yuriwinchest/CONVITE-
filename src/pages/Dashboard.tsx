@@ -12,10 +12,14 @@ import { UserProfilePanel } from "@/components/UserProfilePanel";
 import PlanUpgradeCard from "@/components/PlanUpgradeCard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Ativar atualizações em tempo real
+  useRealtimeUpdates();
 
   // Buscar eventos com plano Essencial para mostrar opção de upgrade
   const { data: essentialEvents } = useQuery({
