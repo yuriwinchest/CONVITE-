@@ -32,18 +32,36 @@ const webhookSecret =
         const userId = session.metadata?.userId;
         const plan = session.metadata?.plan;
 
+        console.log("Processing checkout.session.completed", { 
+          userId, 
+          plan, 
+          sessionId: session.id,
+          customer: session.customer,
+          subscription: session.subscription 
+        });
+
         if (userId && plan === "PROFESSIONAL") {
-          await supabase
+          const { data, error } = await supabase
             .from("user_subscriptions")
-            .update({
+            .upsert({
+              user_id: userId,
               plan: "PROFESSIONAL",
               stripe_customer_id: session.customer as string,
               stripe_subscription_id: session.subscription as string,
               subscription_status: "active",
-            })
-            .eq("user_id", userId);
+              updated_at: new Date().toISOString(),
+            }, {
+              onConflict: 'user_id'
+            });
 
-          console.log("Professional subscription activated for user:", userId);
+          if (error) {
+            console.error("Error updating subscription:", error);
+            throw error;
+          }
+
+          console.log("Professional subscription activated for user:", userId, { data });
+        } else {
+          console.log("Skipping subscription update - missing userId or not PROFESSIONAL plan:", { userId, plan });
         }
         break;
       }

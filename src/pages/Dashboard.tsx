@@ -7,6 +7,7 @@ import EventsList from "@/components/EventsList";
 import Pricing from "@/components/Pricing";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StripeTestPanel } from "@/components/StripeTestPanel";
+import { UserProfilePanel } from "@/components/UserProfilePanel";
 
 const Dashboard = () => {
   const { user, isLoading } = useAuth();
@@ -52,7 +53,14 @@ const Dashboard = () => {
           </p>
         </div>
 
-        <DashboardStats />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2">
+            <DashboardStats />
+          </div>
+          <div>
+            <UserProfilePanel />
+          </div>
+        </div>
         
         <div className="mb-8">
           <StripeTestPanel />
