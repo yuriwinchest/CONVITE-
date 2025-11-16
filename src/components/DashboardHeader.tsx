@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import logo from "@/assets/logo-encontre-meu-lugar.jpg";
 
@@ -14,13 +13,6 @@ const DashboardHeader = () => {
         </div>
         
         <div className="flex items-center gap-3">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="text-primary-foreground hover:bg-primary-foreground/10"
-          >
-            <Settings className="w-5 h-5" />
-          </Button>
           <Button 
             variant="outline" 
             onClick={logout}
