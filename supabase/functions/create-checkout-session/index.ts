@@ -48,15 +48,15 @@ serve(async (req) => {
       );
     }
 
-    // Price ID do plano Professional (produção)
-    const professionalPriceId = "price_1ST98NAihnYHiSyUbdmKmpx2";
+    // Price ID do plano Premium mensal (produção)
+    const premiumPriceId = "price_1ST97TAihnYHiSyUQKzuwseJ";
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
       line_items: [
         {
-          price: professionalPriceId,
+          price: premiumPriceId,
           quantity: 1,
         },
       ],
@@ -64,7 +64,7 @@ serve(async (req) => {
       cancel_url: `${Deno.env.get("APP_URL")}/dashboard`,
       metadata: {
         userId: user.id,
-        plan: "PROFESSIONAL",
+        plan: "PREMIUM",
       },
     });
 

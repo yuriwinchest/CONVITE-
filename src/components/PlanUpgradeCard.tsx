@@ -19,15 +19,13 @@ const PlanUpgradeCard = ({ eventId, currentPlan }: PlanUpgradeCardProps) => {
   const handleUpgrade = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("create-payment-intent", {
-        body: { plan: "PREMIUM", eventId },
-      });
+      const { data, error } = await supabase.functions.invoke("create-checkout-session");
 
       if (error) throw error;
 
       if (data.url) {
         window.open(data.url, "_blank");
-        toast.success("Redirecionando para o pagamento...");
+        toast.success("Redirecionando para a assinatura Premium...");
       }
     } catch (error: any) {
       console.error("Erro ao processar upgrade:", error);
@@ -49,11 +47,11 @@ const PlanUpgradeCard = ({ eventId, currentPlan }: PlanUpgradeCardProps) => {
               Upgrade para Premium
             </CardTitle>
             <CardDescription className="text-base">
-              Desbloqueie todo o potencial do seu evento
+              Gerencie até 20 eventos por mês com uma única assinatura
             </CardDescription>
           </div>
           <div className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-bold">
-            -53% OFF
+            R$ 149/mês
           </div>
         </div>
       </CardHeader>
@@ -98,16 +96,13 @@ const PlanUpgradeCard = ({ eventId, currentPlan }: PlanUpgradeCardProps) => {
         
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t">
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Plano atual</p>
-            <p className="text-sm font-medium">Essencial</p>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Assinatura Premium</p>
+            <p className="text-sm font-medium">Até 20 eventos por mês</p>
             <div className="flex items-baseline gap-2">
               <p className="text-3xl font-bold text-primary">
-                R$ 70
+                R$ 149
               </p>
-              <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground line-through">R$ 149</span>
-                <span className="text-xs font-medium text-primary">pagamento único</span>
-              </div>
+              <span className="text-xs font-medium text-primary">por mês</span>
             </div>
           </div>
           <Button 
@@ -124,7 +119,7 @@ const PlanUpgradeCard = ({ eventId, currentPlan }: PlanUpgradeCardProps) => {
             ) : (
               <>
                 <Sparkles className="h-5 w-5 mr-2" />
-                Fazer Upgrade Agora
+                Assinar Premium
               </>
             )}
           </Button>

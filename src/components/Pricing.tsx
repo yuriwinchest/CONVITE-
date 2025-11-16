@@ -20,6 +20,7 @@ const plans = [
     features: [
       "Até 50 convidados",
       "Funções básicas de setorização",
+      "Mapa do evento",
     ],
     cta: "Começar",
     variant: "outline" as const,
@@ -27,11 +28,14 @@ const plans = [
   {
     name: "Essencial",
     price: "R$ 79,00",
-    period: "/ evento",
+    period: "/ por evento",
+    highlight: "💳 Pagamento único por evento",
     features: [
       "Até 200 convidados",
-      "Inclusão de menus e fotos",
-      "Mapa de assentos interativo",
+      "Mapa de assentos",
+      "Upload em CSV",
+      "Mapa de mesa",
+      "Check-in",
     ],
     cta: "Escolher",
     variant: "outline" as const,
@@ -39,28 +43,21 @@ const plans = [
   {
     name: "Premium",
     price: "R$ 149,00",
-    period: "/ evento",
+    period: "/ mês",
+    highlight: "🎉 Até 20 eventos por mês",
     features: [
+      "Até 20 eventos por mês",
       "Convidados ilimitados",
       "Inclusão de menus e fotos",
       "Mapa de assentos interativo",
       "Relatórios e exportação em PDF",
       "Envio de fotos pelos convidados",
-    ],
-    cta: "Selecionar",
-    variant: "default" as const,
-  },
-  {
-    name: "Profissional",
-    price: "R$ 97,00",
-    period: "/ mês",
-    features: [
-      "Eventos ilimitados",
-      "Painel de múltiplos clientes",
-      "Suporte prioritário",
+      "Upload em CSV",
+      "Mapa de mesa",
+      "Check-in",
     ],
     cta: "Assinar",
-    variant: "outline" as const,
+    variant: "default" as const,
   },
 ];
 
@@ -165,9 +162,9 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
     }
   };
 
-  const handleSubscribeProfessional = async () => {
+  const handleSubscribePremium = async () => {
     try {
-      setLoading("PROFESSIONAL");
+      setLoading("PREMIUM");
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Faça login para continuar");
@@ -199,8 +196,6 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
     
     if (selectedPlan === "Essencial") {
       handlePurchaseEssentialWithEvent(selectedEventId);
-    } else if (selectedPlan === "Premium") {
-      handlePurchasePremiumWithEvent(selectedEventId);
     }
   };
 
@@ -236,38 +231,6 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
     }
   };
 
-  const handlePurchasePremiumWithEvent = async (targetEventId: string) => {
-    try {
-      setLoading("PREMIUM");
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("Faça login para continuar");
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke("create-payment-intent", {
-        body: {
-          plan: "PREMIUM",
-          eventId: targetEventId,
-        },
-      });
-
-      if (error) throw error;
-      
-      if (data?.url) {
-        toast.success("Abrindo página de pagamento...");
-        window.open(data.url, "_blank");
-      } else {
-        throw new Error("URL de checkout não recebida");
-      }
-    } catch (error) {
-      toast.error("Erro ao processar pagamento");
-      console.error(error);
-    } finally {
-      setLoading(null);
-    }
-  };
-
   const handlePlanSelection = (planName: string) => {
     if (planName === "Essencial") {
       if (!eventId) {
@@ -281,18 +244,7 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
       }
       handlePurchaseEssential();
     } else if (planName === "Premium") {
-      if (!eventId) {
-        if (!events || events.length === 0) {
-          toast.error("Você precisa criar um evento primeiro");
-          return;
-        }
-        setSelectedPlan("Premium");
-        setShowEventSelector(true);
-        return;
-      }
-      handlePurchasePremium();
-    } else if (planName === "Profissional") {
-      handleSubscribeProfessional();
+      handleSubscribePremium();
     } else {
       toast.info("Plano FREE já está ativo");
     }
@@ -313,6 +265,11 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
                   <h3 className="text-xl font-semibold text-card-foreground mb-4">
                     {plan.name}
                   </h3>
+                  {plan.highlight && (
+                    <p className="text-sm font-medium text-primary mb-2">
+                      {plan.highlight}
+                    </p>
+                  )}
                   <div className="text-3xl font-bold text-card-foreground">
                     {plan.price}
                     {plan.period && (

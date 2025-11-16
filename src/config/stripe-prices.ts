@@ -10,7 +10,8 @@ export const STRIPE_PRICES = {
     amount: 79.00,
     currency: "BRL",
     guests_limit: 200,
-    description: "Até 200 convidados por evento",
+    description: "R$ 79 por evento - Até 200 convidados",
+    payment_type: "one_time" as const,
   },
   PREMIUM: {
     name: "Premium",
@@ -18,19 +19,11 @@ export const STRIPE_PRICES = {
     product_id: "prod_TPz5OJBGC82YtY",
     amount: 149.00,
     currency: "BRL",
-    guests_limit: Infinity,
-    description: "Convidados ilimitados, mapa interativo, relatórios PDF e envio de fotos",
-  },
-  PROFESSIONAL: {
-    name: "Professional",
-    price_id: "price_1ST98NAihnYHiSyUbdmKmpx2",
-    product_id: "prod_TPz6Vjx8KZO7d1",
-    amount: 97.00,
-    currency: "BRL",
     recurring: "monthly" as const,
-    events_limit: Infinity,
+    events_limit: 20,
     guests_limit: Infinity,
-    description: "Eventos e convidados ilimitados",
+    description: "R$ 149/mês - Até 20 eventos por mês com convidados ilimitados",
+    payment_type: "subscription" as const,
   },
 };
 

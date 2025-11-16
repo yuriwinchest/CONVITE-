@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type SubscriptionPlan = "FREE" | "ESSENTIAL" | "PREMIUM" | "PROFESSIONAL";
+export type SubscriptionPlan = "FREE" | "ESSENTIAL" | "PREMIUM";
 
 interface UserSubscription {
   id: string;
@@ -35,9 +35,9 @@ export const useSubscription = () => {
   const plan = subscription?.plan || "FREE";
 
   const getEventLimit = (): number => {
-    if (plan === "PROFESSIONAL") return Infinity;
+    if (plan === "PREMIUM") return 20; // 20 eventos por mês
     if (plan === "FREE") return 1;
-    return Infinity; // ESSENTIAL and PREMIUM são por evento
+    return Infinity; // ESSENTIAL é por evento, sem limite na conta
   };
 
   const getGuestLimit = (eventPlan?: SubscriptionPlan): number => {
@@ -45,7 +45,7 @@ export const useSubscription = () => {
     
     if (activePlan === "FREE") return 50;
     if (activePlan === "ESSENTIAL") return 200;
-    if (activePlan === "PREMIUM" || activePlan === "PROFESSIONAL") return Infinity;
+    if (activePlan === "PREMIUM") return Infinity;
     
     return 50;
   };
