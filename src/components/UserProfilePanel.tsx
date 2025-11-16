@@ -6,10 +6,36 @@ import { Crown, Sparkles, Zap, User, Settings, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
 
 export const UserProfilePanel = () => {
   const { subscription, plan, isLoading } = useSubscription();
+  const { user } = useAuth();
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
+
+  // Query para buscar planos de eventos pagos
+  const { data: eventPlans } = useQuery({
+    queryKey: ["user-event-plans", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+
+      const { data, error } = await supabase
+        .from("event_purchases")
+        .select(`
+          plan,
+          event_id,
+          events(name)
+        `)
+        .eq("user_id", user.id)
+        .eq("payment_status", "paid")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
 
   const handleManageSubscription = async () => {
     try {

@@ -83,8 +83,44 @@ const webhookSecret =
           .select()
           .single();
 
-        // Se não encontrou pelo payment_intent_id, tenta buscar pelos metadados (eventId + userId)
-        if (purchaseError && paymentIntent.metadata?.eventId && paymentIntent.metadata?.userId) {
+        // Verificar se é um upgrade
+        if (paymentIntent.metadata?.isUpgrade === "true" && paymentIntent.metadata?.purchaseId) {
+          console.log("Processing upgrade payment for purchase:", paymentIntent.metadata.purchaseId);
+          
+          // Atualizar para PREMIUM/paid agora que o pagamento foi confirmado
+          const { error: upgradeError } = await supabase
+            .from("event_purchases")
+            .update({
+              plan: paymentIntent.metadata.targetPlan,
+              payment_status: "paid",
+              stripe_payment_intent_id: paymentIntent.id,
+              amount: parseFloat(paymentIntent.metadata.finalAmount || "149.00"),
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", paymentIntent.metadata.purchaseId);
+
+          if (upgradeError) {
+            console.error("Error updating upgrade:", upgradeError);
+          } else {
+            console.log("Upgrade completed successfully");
+            
+            // Enviar notificação de upgrade
+            try {
+              await supabase.functions.invoke("send-subscription-notification", {
+                body: {
+                  userId: paymentIntent.metadata.userId,
+                  type: "upgrade",
+                  plan: paymentIntent.metadata.targetPlan,
+                  previousPlan: paymentIntent.metadata.currentPlan,
+                  eventId: paymentIntent.metadata.eventId
+                }
+              });
+            } catch (notifError) {
+              console.error("Error sending upgrade notification:", notifError);
+            }
+          }
+        } else if (purchaseError && paymentIntent.metadata?.eventId && paymentIntent.metadata?.userId) {
+          // Lógica original para compras novas - buscar por metadados
           console.log("Attempting to find purchase by metadata:", paymentIntent.metadata);
           
           const { data: foundPurchase, error: findError } = await supabase
@@ -110,30 +146,6 @@ const webhookSecret =
 
         console.log("Payment confirmed:", paymentIntent.id, "Purchase:", purchase?.id);
         
-        // Log especial para upgrades
-        if (paymentIntent.metadata?.isUpgrade === "true") {
-          console.log("✨ Upgrade processado com sucesso:", {
-            previousPlan: paymentIntent.metadata.previousPlan,
-            newPlan: paymentIntent.metadata.plan,
-            eventId: paymentIntent.metadata.eventId,
-            userId: paymentIntent.metadata.userId
-          });
-          
-          // Opcional: enviar notificação de upgrade
-          try {
-            await supabase.functions.invoke("send-subscription-notification", {
-              body: {
-                userId: paymentIntent.metadata.userId,
-                type: "upgrade",
-                plan: paymentIntent.metadata.plan,
-                previousPlan: paymentIntent.metadata.previousPlan,
-                eventId: paymentIntent.metadata.eventId
-              }
-            });
-          } catch (notificationError) {
-            console.error("Erro ao enviar notificação de upgrade:", notificationError);
-          }
-        }
         break;
       }
 
