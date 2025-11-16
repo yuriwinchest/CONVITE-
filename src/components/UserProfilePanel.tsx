@@ -23,7 +23,7 @@ import CreateEventDialog from "@/components/CreateEventDialog";
 
 export const UserProfilePanel = () => {
   const { plan, subscription, canCreateEventThisMonth, getEventsUsedThisMonth } = useSubscription();
-  const { itemCount } = useCart();
+  const { itemCount, totalAmount } = useCart();
   const [eventsUsed, setEventsUsed] = useState(0);
   const [eventsLimit, setEventsLimit] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -233,19 +233,26 @@ export const UserProfilePanel = () => {
               </p>
 
               {eventsUsed >= 1 && (
-                <Button
-                  onClick={handleOpenCart}
-                  className="w-full relative"
-                  variant="default"
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Comprar Mais Eventos (R$ 79/evento)
+                <>
+                  <Button
+                    onClick={handleOpenCart}
+                    className="w-full relative"
+                    variant="default"
+                  >
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Comprar Mais Eventos (R$ 79/evento)
+                    {itemCount > 0 && (
+                      <Badge className="ml-2 bg-primary-foreground text-primary" variant="secondary">
+                        {itemCount}
+                      </Badge>
+                    )}
+                  </Button>
                   {itemCount > 0 && (
-                    <Badge className="ml-2 bg-primary-foreground text-primary" variant="secondary">
-                      {itemCount}
-                    </Badge>
+                    <p className="text-xs text-muted-foreground text-center mt-2">
+                      Total no carrinho: R$ {totalAmount.toFixed(2)}
+                    </p>
                   )}
-                </Button>
+                </>
               )}
             </div>
 
