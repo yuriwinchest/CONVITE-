@@ -8,13 +8,17 @@ import { toast } from "sonner";
 interface PlanUpgradeCardProps {
   eventId: string;
   currentPlan: "ESSENTIAL" | "PREMIUM";
+  eventDate?: string;
 }
 
-const PlanUpgradeCard = ({ eventId, currentPlan }: PlanUpgradeCardProps) => {
+const PlanUpgradeCard = ({ eventId, currentPlan, eventDate }: PlanUpgradeCardProps) => {
   const [loading, setLoading] = useState(false);
 
   // Se já é Premium, não exibe nada
   if (currentPlan === "PREMIUM") return null;
+
+  // Se o evento já passou, não exibe nada
+  if (eventDate && new Date(eventDate) < new Date()) return null;
 
   const handleUpgrade = async () => {
     setLoading(true);

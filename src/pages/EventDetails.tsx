@@ -44,6 +44,8 @@ import PlanUpgradeModal from "@/components/PlanUpgradeModal";
 import PlanUpgradeCard from "@/components/PlanUpgradeCard";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export default function EventDetails() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -87,6 +89,9 @@ export default function EventDetails() {
 
   // Enable realtime check-in notifications
   useRealtimeCheckIns(eventId);
+
+  // Verifica se o evento já passou
+  const isEventPast = event ? new Date(event.date) < new Date() : false;
 
   const handleAddGuest = async (data: { name: string; email?: string; table_number?: number }) => {
     if (!eventId) return;
@@ -382,6 +387,7 @@ Nos vemos lá! 🎉`;
           <Button 
             variant="destructive" 
             onClick={() => setDeleteEventDialogOpen(true)}
+            disabled={isEventPast}
           >
             <Trash2 className="mr-2 h-4 w-4" />
             Deletar Evento
@@ -408,10 +414,21 @@ Nos vemos lá! 🎉`;
           </CardHeader>
         </Card>
 
+        {isEventPast && (
+          <Alert variant="default" className="border-2 border-yellow-200 bg-yellow-50 dark:border-yellow-900 dark:bg-yellow-950/30">
+            <AlertCircle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+            <AlertTitle className="text-yellow-900 dark:text-yellow-200 font-semibold">Evento Realizado</AlertTitle>
+            <AlertDescription className="text-yellow-800 dark:text-yellow-300">
+              Este evento já foi realizado e não pode ser editado ou fazer upgrade de plano.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {eventPurchase?.plan === "ESSENTIAL" && (
           <PlanUpgradeCard 
             eventId={eventId || ""} 
             currentPlan="ESSENTIAL"
+            eventDate={event.date}
           />
         )}
 
@@ -508,11 +525,11 @@ Nos vemos lá! 🎉`;
                     </p>
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={() => setCsvDialogOpen(true)}>
+                    <Button onClick={() => setCsvDialogOpen(true)} disabled={isEventPast}>
                       <Upload className="mr-2 h-4 w-4" />
                       Importar CSV
                     </Button>
-                    <Button onClick={() => setAddGuestDialogOpen(true)}>
+                    <Button onClick={() => setAddGuestDialogOpen(true)} disabled={isEventPast}>
                       <Plus className="mr-2 h-4 w-4" />
                       Adicionar Convidado
                     </Button>
