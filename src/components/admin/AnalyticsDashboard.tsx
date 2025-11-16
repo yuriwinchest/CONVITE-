@@ -280,7 +280,6 @@ export const AnalyticsDashboard = () => {
       </Card>
 
       {/* Taxa de Conversão */}
-      <div className="grid gap-4 md:grid-cols-2">
       <Card className="md:col-span-2">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
