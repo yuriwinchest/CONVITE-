@@ -33,6 +33,17 @@ export default function EventPhotos() {
 
   const { data: photoAccess, isLoading: loadingAccess } = useEventPhotoAccess(eventId);
 
+  // Verificar se o usuário logado é o criador do evento
+  const { data: user } = useQuery({
+    queryKey: ["current-user"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    },
+  });
+
+  const isCreator = user && event?.user_id === user.id;
+
   const isLoading = loadingEvent || loadingAccess;
 
   if (isLoading) {
@@ -133,7 +144,7 @@ export default function EventPhotos() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <EventPhotoGallery eventId={eventId!} />
+              <EventPhotoGallery eventId={eventId!} isCreator={isCreator} />
             </CardContent>
           </Card>
         </div>
