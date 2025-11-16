@@ -46,6 +46,21 @@ const EditEventDialog = ({ open, onOpenChange, event }: EditEventDialogProps) =>
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Verifica se o evento já passou
+  const isEventPast = event ? new Date(event.date) < new Date() : false;
+
+  // Previne abertura do dialog para eventos passados
+  useEffect(() => {
+    if (open && isEventPast) {
+      toast({
+        title: "Evento não pode ser editado",
+        description: "Não é possível editar eventos que já foram realizados.",
+        variant: "destructive",
+      });
+      onOpenChange(false);
+    }
+  }, [open, isEventPast, toast, onOpenChange]);
+
   const {
     register,
     handleSubmit,

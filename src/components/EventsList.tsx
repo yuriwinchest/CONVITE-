@@ -13,6 +13,7 @@ import { Tables } from "@/integrations/supabase/types";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 const EventsList = () => {
   const { data: events, isLoading } = useEvents();
@@ -23,6 +24,11 @@ const EventsList = () => {
   const [upgradeMessage, setUpgradeMessage] = useState("");
   const navigate = useNavigate();
   const { canCreateEvent } = useSubscription();
+
+  // Verifica se o evento já passou
+  const isEventPast = (eventDate: string) => {
+    return new Date(eventDate) < new Date();
+  };
 
   // Buscar planos dos eventos
   const { data: eventPurchases } = useQuery({
@@ -110,6 +116,7 @@ const EventsList = () => {
           {events.map((event) => {
             const eventPurchase = eventPurchases?.find(p => p.event_id === event.id);
             const planType = eventPurchase?.plan || "FREE";
+            const isPast = isEventPast(event.date);
             
             const getBadgeVariant = (plan: string) => {
               switch (plan) {
@@ -136,14 +143,23 @@ const EventsList = () => {
             return (
               <Card 
                 key={event.id} 
-                className="border-border/40 hover:shadow-lg transition-shadow relative group"
+                className={cn(
+                  "border-border/40 hover:shadow-lg transition-shadow relative group",
+                  isPast && "opacity-60"
+                )}
               >
-                <Badge 
-                  className="absolute top-2 right-2 z-10"
-                  variant={getBadgeVariant(planType) as any}
-                >
-                  {getBadgeLabel(planType)}
-                </Badge>
+                <div className="absolute top-2 right-2 z-10 flex gap-2">
+                  {isPast && (
+                    <Badge variant="secondary" className="opacity-70">
+                      ✓ Realizado
+                    </Badge>
+                  )}
+                  <Badge 
+                    variant={getBadgeVariant(planType) as any}
+                  >
+                    {getBadgeLabel(planType)}
+                  </Badge>
+                </div>
                 <CardContent className="p-6 cursor-pointer" onClick={() => navigate(`/events/${event.id}`)}>
                   <h3 className="text-lg font-semibold text-foreground mb-2">
                     {event.name}
@@ -159,19 +175,21 @@ const EventsList = () => {
                     <p className="text-sm text-muted-foreground">Local: {event.location}</p>
                   )}
                 </CardContent>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
-                  aria-label="Editar evento"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedEvent(event);
-                    setIsEditDialogOpen(true);
-                  }}
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
+                {!isPast && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
+                    aria-label="Editar evento"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedEvent(event);
+                      setIsEditDialogOpen(true);
+                    }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                )}
               </Card>
             );
           })}
