@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Check, Sparkles, Loader2 } from "lucide-react";
+import { Check, Sparkles, Loader2, Calendar, Users, Camera, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -66,44 +66,73 @@ const PlanUpgradeCard = ({ eventId, currentPlan }: PlanUpgradeCardProps) => {
             <li className="flex items-start gap-3 text-sm group">
               <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
               <div>
-                <span className="font-medium">Convidados ilimitados</span>
-                <p className="text-muted-foreground text-xs">Sem limite de pessoas no seu evento</p>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <span className="font-medium">Até 20 eventos por mês</span>
+                </div>
+                <p className="text-muted-foreground text-xs mt-1">Crie múltiplos eventos sem pagamentos extras</p>
               </div>
             </li>
             <li className="flex items-start gap-3 text-sm group">
               <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
               <div>
-                <span className="font-medium">Envio de fotos pelos convidados</span>
-                <p className="text-muted-foreground text-xs">Até 30 fotos por pessoa diretamente no app</p>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  <span className="font-medium">Convidados ilimitados</span>
+                </div>
+                <p className="text-muted-foreground text-xs mt-1">Sem limite de pessoas em cada evento</p>
               </div>
             </li>
             <li className="flex items-start gap-3 text-sm group">
               <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
               <div>
-                <span className="font-medium">Mapa interativo de mesas</span>
-                <p className="text-muted-foreground text-xs">Visualização completa da disposição</p>
+                <div className="flex items-center gap-2">
+                  <Camera className="h-4 w-4 text-primary" />
+                  <span className="font-medium">Envio de fotos pelos convidados</span>
+                </div>
+                <p className="text-muted-foreground text-xs mt-1">Galeria completa com fotos do evento</p>
               </div>
             </li>
             <li className="flex items-start gap-3 text-sm group">
               <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
               <div>
-                <span className="font-medium">Relatórios avançados</span>
-                <p className="text-muted-foreground text-xs">Exportação em PDF e análises detalhadas</p>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  <span className="font-medium">Mapa interativo + Relatórios PDF</span>
+                </div>
+                <p className="text-muted-foreground text-xs mt-1">Visualização completa e documentação avançada</p>
+              </div>
+            </li>
+            <li className="flex items-start gap-3 text-sm group">
+              <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+              <div>
+                <span className="font-medium">Upload em CSV + Check-in + Mapa de mesa</span>
+                <p className="text-muted-foreground text-xs mt-1">Todas as ferramentas profissionais incluídas</p>
               </div>
             </li>
           </ul>
         </div>
         
+        <div className="bg-muted/50 rounded-lg p-4 border border-border">
+          <div className="flex items-start gap-2">
+            <div className="text-2xl">💡</div>
+            <div className="flex-1">
+              <p className="text-sm font-medium mb-1">Economize com a assinatura mensal</p>
+              <p className="text-xs text-muted-foreground">
+                Se você precisa criar mais de 1 evento por mês, o plano Premium é mais vantajoso que pagar R$ 79 por evento no plano Essencial.
+              </p>
+            </div>
+          </div>
+        </div>
+        
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t">
           <div className="space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">Assinatura Premium</p>
-            <p className="text-sm font-medium">Até 20 eventos por mês</p>
-            <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-bold text-primary">
-                R$ 149
-              </p>
-              <span className="text-xs font-medium text-primary">por mês</span>
-            </div>
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Seu plano atual</p>
+            <p className="text-sm font-medium">Essencial - R$ 79 por evento</p>
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <span className="text-amber-500">⚠️</span>
+              <span>Pagamento único a cada novo evento</span>
+            </p>
           </div>
           <Button 
             onClick={handleUpgrade} 
