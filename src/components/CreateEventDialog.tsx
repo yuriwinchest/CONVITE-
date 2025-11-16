@@ -48,9 +48,11 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { hasUsedMonthlyFreeEvent } = useSubscription();
+  const { plan, canCreateEventThisMonth } = useSubscription();
   const { addToCart } = useCart();
-  const [hasUsedFree, setHasUsedFree] = useState(false);
+  const [canCreate, setCanCreate] = useState(true);
+  const [needsToPay, setNeedsToPay] = useState(false);
+  const [statusMessage, setStatusMessage] = useState("");
 
   const {
     register,
@@ -67,8 +69,24 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
 
   const handleOpenChange = async (newOpen: boolean) => {
     if (newOpen) {
-      const used = await hasUsedMonthlyFreeEvent();
-      setHasUsedFree(used);
+      const status = await canCreateEventThisMonth();
+      
+      if (plan === "PREMIUM") {
+        // Premium pode criar até 20 eventos por mês gratuitamente
+        setCanCreate(status.allowed);
+        setNeedsToPay(false);
+        setStatusMessage(status.allowed ? "" : status.message || "");
+      } else if (plan === "FREE") {
+        // FREE tem 1 evento gratuito, depois adiciona ao carrinho
+        setCanCreate(true); // Sempre pode, mas pode precisar pagar
+        setNeedsToPay(!status.allowed);
+        setStatusMessage(status.allowed ? "" : "");
+      } else {
+        // ESSENTIAL sempre adiciona ao carrinho
+        setCanCreate(true);
+        setNeedsToPay(true);
+        setStatusMessage("");
+      }
     }
     onOpenChange(newOpen);
   };
@@ -118,11 +136,13 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
   };
 
   const onSubmit = async (data: EventFormData) => {
-    if (hasUsedFree) {
+    // Se precisa pagar, adiciona ao carrinho
+    if (needsToPay) {
       await handleAddToCart(data);
       return;
     }
 
+    // Criar evento gratuitamente (FREE com quota ou PREMIUM)
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -152,8 +172,13 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
         }
       }
 
-      toast({ title: "Evento criado!", description: "Seu evento gratuito foi criado." });
+      const description = plan === "PREMIUM" 
+        ? "Seu evento Premium foi criado com sucesso."
+        : "Seu evento gratuito foi criado com sucesso.";
+
+      toast({ title: "Evento criado!", description });
       queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["user-subscription"] });
       reset();
       setSelectedImage(null);
       setImagePreview(null);
@@ -169,8 +194,26 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{hasUsedFree ? "Adicionar ao Carrinho (R$ 79)" : "Criar Evento Gratuito"}</DialogTitle>
+          <DialogTitle>
+            {plan === "PREMIUM" 
+              ? "Criar Evento Premium" 
+              : needsToPay 
+              ? "Adicionar ao Carrinho (R$ 79)" 
+              : "Criar Evento Gratuito"}
+          </DialogTitle>
+          {statusMessage && (
+            <p className="text-sm text-destructive mt-2">{statusMessage}</p>
+          )}
         </DialogHeader>
+
+        {!canCreate ? (
+          <div className="py-8 text-center space-y-4">
+            <p className="text-muted-foreground">{statusMessage}</p>
+            <Button onClick={() => onOpenChange(false)} variant="outline">
+              Fechar
+            </Button>
+          </div>
+        ) : (
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
@@ -228,10 +271,17 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
           <div className="flex gap-3">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">Cancelar</Button>
             <Button type="submit" disabled={isLoading} className="flex-1">
-              {isLoading ? "Processando..." : hasUsedFree ? "Adicionar (R$ 79)" : "Criar Grátis"}
+              {isLoading 
+                ? "Processando..." 
+                : needsToPay 
+                ? "Adicionar ao Carrinho (R$ 79)" 
+                : plan === "PREMIUM"
+                ? "Criar Evento Premium"
+                : "Criar Evento Gratuito"}
             </Button>
           </div>
         </form>
+        )}
       </DialogContent>
     </Dialog>
   );

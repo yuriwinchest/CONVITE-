@@ -35,9 +35,30 @@ export const useSubscription = () => {
   const plan = subscription?.plan || "FREE";
 
   const getEventLimit = (): number => {
-    if (plan === "PREMIUM") return 20; // 20 eventos por mês
-    if (plan === "FREE") return 1;
-    return Infinity; // ESSENTIAL é por evento, sem limite na conta
+    if (plan === "PREMIUM") return 20; // 20 eventos por mês com assinatura
+    if (plan === "FREE") return 1; // 1 evento gratuito por mês
+    return Infinity; // ESSENTIAL é por evento via carrinho, sem limite
+  };
+
+  const getEventsUsedThisMonth = async (): Promise<number> => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return 0;
+
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    const { count, error } = await supabase
+      .from("events")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("created_at", firstDayOfMonth.toISOString());
+
+    if (error) {
+      console.error("Error counting monthly events:", error);
+      return 0;
+    }
+
+    return count || 0;
   };
 
   const getGuestLimit = (eventPlan?: SubscriptionPlan): number => {
@@ -75,6 +96,9 @@ export const useSubscription = () => {
   };
 
   const hasUsedMonthlyFreeEvent = async (): Promise<boolean> => {
+    // Usuários PREMIUM não usam evento gratuito, têm 20 eventos por mês
+    if (plan === "PREMIUM") return false;
+    
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
@@ -85,8 +109,7 @@ export const useSubscription = () => {
       .from("events")
       .select("*", { count: "exact", head: true })
       .eq("user_id", user.id)
-      .gte("created_at", firstDayOfMonth.toISOString())
-      .is("event_purchases.id", null);
+      .gte("created_at", firstDayOfMonth.toISOString());
 
     if (error) {
       console.error("Error checking monthly free event:", error);
@@ -94,6 +117,40 @@ export const useSubscription = () => {
     }
 
     return (count || 0) >= 1;
+  };
+
+  const canCreateEventThisMonth = async (): Promise<{ allowed: boolean; message?: string; eventsUsed?: number; eventsLimit?: number }> => {
+    const eventsUsed = await getEventsUsedThisMonth();
+    const limit = getEventLimit();
+
+    // PREMIUM: até 20 eventos por mês
+    if (plan === "PREMIUM") {
+      if (eventsUsed >= limit) {
+        return {
+          allowed: false,
+          message: `Você atingiu o limite de ${limit} eventos este mês. Aguarde o próximo mês ou entre em contato.`,
+          eventsUsed,
+          eventsLimit: limit,
+        };
+      }
+      return { allowed: true, eventsUsed, eventsLimit: limit };
+    }
+
+    // FREE: 1 evento gratuito por mês, depois adiciona ao carrinho
+    if (plan === "FREE") {
+      if (eventsUsed >= 1) {
+        return {
+          allowed: false,
+          message: "Você já usou seu evento gratuito deste mês. Adicione eventos ao carrinho (R$ 79/evento).",
+          eventsUsed,
+          eventsLimit: 1,
+        };
+      }
+      return { allowed: true, eventsUsed, eventsLimit: 1 };
+    }
+
+    // ESSENTIAL ou outros: sempre podem adicionar ao carrinho
+    return { allowed: true, eventsUsed, eventsLimit: Infinity };
   };
 
   const canAddGuests = async (
@@ -142,5 +199,7 @@ export const useSubscription = () => {
     getEventLimit,
     getGuestLimit,
     hasUsedMonthlyFreeEvent,
+    canCreateEventThisMonth,
+    getEventsUsedThisMonth,
   };
 };
