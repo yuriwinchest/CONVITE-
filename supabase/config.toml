@@ -3,5 +3,8 @@ project_id = "zjmvpvxteixzbnjazplp"
 [functions.send-scheduled-reminders]
 verify_jwt = false
 
+[functions.send-subscription-expiry-reminders]
+verify_jwt = false
+
 [functions.stripe-webhook]
 verify_jwt = false

@@ -5,8 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowUpDown } from "lucide-react";
-import { format } from "date-fns";
+import { Search, ArrowUpDown, Clock } from "lucide-react";
+import { format, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useState, useMemo } from "react";
 
@@ -123,30 +123,52 @@ export const UsersManager = () => {
             <TableHead>Plano</TableHead>
             <TableHead>Eventos</TableHead>
             <TableHead>Convidados</TableHead>
+            <TableHead>Vencimento</TableHead>
             <TableHead>Cadastro</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filteredAndSortedUsers.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                 Nenhum usuário encontrado
               </TableCell>
             </TableRow>
           ) : (
-            filteredAndSortedUsers.map((user: any) => (
-            <TableRow key={user.id}>
-              <TableCell className="font-medium">{user.full_name}</TableCell>
-              <TableCell>
-                <Badge>{user.plan}</Badge>
-              </TableCell>
-              <TableCell>{user.events_count}</TableCell>
-              <TableCell>{user.guests_count}</TableCell>
-              <TableCell>
-                {format(new Date(user.created_at), "dd/MM/yyyy", { locale: ptBR })}
-              </TableCell>
-            </TableRow>
-            ))
+            filteredAndSortedUsers.map((user: any) => {
+              const daysUntilExpiry = user.expires_at 
+                ? differenceInDays(new Date(user.expires_at), new Date())
+                : null;
+              
+              return (
+                <TableRow key={user.id}>
+                  <TableCell className="font-medium">{user.full_name}</TableCell>
+                  <TableCell>
+                    <Badge>{user.plan}</Badge>
+                  </TableCell>
+                  <TableCell>{user.events_count}</TableCell>
+                  <TableCell>{user.guests_count}</TableCell>
+                  <TableCell>
+                    {user.expires_at ? (
+                      <div className="flex items-center gap-2">
+                        <span>{format(new Date(user.expires_at), "dd/MM/yyyy", { locale: ptBR })}</span>
+                        {daysUntilExpiry !== null && daysUntilExpiry <= 5 && daysUntilExpiry >= 0 && (
+                          <Badge variant="destructive" className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {daysUntilExpiry} {daysUntilExpiry === 1 ? "dia" : "dias"}
+                          </Badge>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {format(new Date(user.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                  </TableCell>
+                </TableRow>
+              );
+            })
           )}
         </TableBody>
       </Table>
