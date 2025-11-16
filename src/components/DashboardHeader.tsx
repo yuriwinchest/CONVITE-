@@ -19,6 +19,14 @@ const DashboardHeader = () => {
         
         <div className="flex items-center gap-3">
           <CartButton />
+          <Link to="/subscription">
+            <Button 
+              variant="ghost"
+              className="text-primary-foreground hover:bg-primary-foreground/10"
+            >
+              Minha Assinatura
+            </Button>
+          </Link>
           {isAdmin && (
             <Link to="/admin">
               <Button 

@@ -14,6 +14,7 @@ import NotFound from "./pages/NotFound";
 
 import EventPhotos from "./pages/EventPhotos";
 import GuestPhotoGallery from "./pages/GuestPhotoGallery";
+import Subscription from "./pages/Subscription";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/confirm" element={<ConfirmPresence />} />
           <Route path="/confirm/:eventId" element={<ConfirmPresence />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
+          <Route path="/subscription" element={<Subscription />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
