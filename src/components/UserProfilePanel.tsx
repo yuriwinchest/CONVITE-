@@ -29,16 +29,22 @@ export const UserProfilePanel = () => {
 
   useEffect(() => {
     const loadMonthlyUsage = async () => {
-      setIsLoading(true);
-      const used = await getEventsUsedThisMonth();
-      const status = await canCreateEventThisMonth();
-      setEventsUsed(used);
-      setEventsLimit(status.eventsLimit || 1);
-      setIsLoading(false);
+      try {
+        setIsLoading(true);
+        const used = await getEventsUsedThisMonth();
+        const status = await canCreateEventThisMonth();
+        setEventsUsed(used);
+        setEventsLimit(status.eventsLimit || 1);
+      } catch (error) {
+        console.error("Error loading monthly usage:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     
     loadMonthlyUsage();
-  }, [canCreateEventThisMonth, getEventsUsedThisMonth]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Executa apenas uma vez quando o componente monta
 
   // Buscar eventos com planos pagos (ESSENTIAL)
   const { data: eventPlans, isLoading: eventsLoading } = useQuery({
