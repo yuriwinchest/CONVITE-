@@ -69,16 +69,46 @@ const webhookSecret =
       case "payment_intent.succeeded": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         
-        const { data: purchase } = await supabase
+        console.log("Payment intent succeeded:", paymentIntent.id, "Metadata:", paymentIntent.metadata);
+        
+        // Primeiro tenta buscar pelo payment_intent_id
+        let { data: purchase, error: purchaseError } = await supabase
           .from("event_purchases")
           .update({
             payment_status: "paid",
+            stripe_payment_intent_id: paymentIntent.id,
+            updated_at: new Date().toISOString(),
           })
           .eq("stripe_payment_intent_id", paymentIntent.id)
           .select()
           .single();
 
-        console.log("Payment confirmed:", paymentIntent.id);
+        // Se não encontrou pelo payment_intent_id, tenta buscar pelos metadados (eventId + userId)
+        if (purchaseError && paymentIntent.metadata?.eventId && paymentIntent.metadata?.userId) {
+          console.log("Attempting to find purchase by metadata:", paymentIntent.metadata);
+          
+          const { data: foundPurchase, error: findError } = await supabase
+            .from("event_purchases")
+            .update({
+              payment_status: "paid",
+              stripe_payment_intent_id: paymentIntent.id,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("event_id", paymentIntent.metadata.eventId)
+            .eq("user_id", paymentIntent.metadata.userId)
+            .eq("payment_status", "pending")
+            .select()
+            .single();
+            
+          if (!findError && foundPurchase) {
+            purchase = foundPurchase;
+            console.log("Found and updated purchase by metadata:", foundPurchase.id);
+          } else {
+            console.error("Failed to find purchase by metadata:", findError);
+          }
+        }
+
+        console.log("Payment confirmed:", paymentIntent.id, "Purchase:", purchase?.id);
         
         // Log especial para upgrades
         if (paymentIntent.metadata?.isUpgrade === "true") {
