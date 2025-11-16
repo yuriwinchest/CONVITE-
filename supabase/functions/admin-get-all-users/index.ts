@@ -44,12 +44,19 @@ serve(async (req) => {
 
     console.log("Admin fetching all users");
 
-    // Buscar todos os perfis com suas assinaturas
+    // Buscar todos os perfis
     const { data: profiles, error: profilesError } = await supabase
       .from("profiles")
-      .select("*, user_subscriptions!inner(*)");
+      .select("*");
 
     if (profilesError) throw profilesError;
+
+    // Buscar todas as assinaturas
+    const { data: subscriptions, error: subsError } = await supabase
+      .from("user_subscriptions")
+      .select("*");
+
+    if (subsError) throw subsError;
 
     // Buscar estatísticas de eventos e convidados por usuário
     const { data: eventStats, error: statsError } = await supabase
@@ -64,7 +71,12 @@ serve(async (req) => {
 
     if (guestStatsError) throw guestStatsError;
 
-    // Agregar dados
+    // Criar mapas para facilitar o acesso
+    const subscriptionMap = subscriptions.reduce((acc: any, sub: any) => {
+      acc[sub.user_id] = sub;
+      return acc;
+    }, {});
+
     const eventsCount = eventStats.reduce((acc: any, event: any) => {
       acc[event.user_id] = (acc[event.user_id] || 0) + 1;
       return acc;
@@ -76,16 +88,20 @@ serve(async (req) => {
       return acc;
     }, {});
 
-    const users = profiles.map((profile: any) => ({
-      id: profile.user_id,
-      email: profile.user_id, // Email virá do auth
-      full_name: profile.full_name,
-      plan: profile.user_subscriptions[0]?.plan || "FREE",
-      subscription_status: profile.user_subscriptions[0]?.subscription_status,
-      events_count: eventsCount[profile.user_id] || 0,
-      guests_count: guestsCount[profile.user_id] || 0,
-      created_at: profile.created_at,
-    }));
+    // Combinar os dados
+    const users = profiles.map((profile: any) => {
+      const subscription = subscriptionMap[profile.user_id];
+      return {
+        id: profile.user_id,
+        email: profile.user_id,
+        full_name: profile.full_name,
+        plan: subscription?.plan || "FREE",
+        subscription_status: subscription?.subscription_status,
+        events_count: eventsCount[profile.user_id] || 0,
+        guests_count: guestsCount[profile.user_id] || 0,
+        created_at: profile.created_at,
+      };
+    });
 
     return new Response(
       JSON.stringify({ users }),
