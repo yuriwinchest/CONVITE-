@@ -76,6 +76,8 @@ export const useCart = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shopping-cart"] });
+      queryClient.invalidateQueries({ queryKey: ["user-subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["user-event-plans"] });
       toast({
         title: "Evento adicionado ao carrinho",
         description: "Você pode continuar adicionando mais eventos.",
@@ -118,6 +120,8 @@ export const useCart = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shopping-cart"] });
+      queryClient.invalidateQueries({ queryKey: ["user-subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["user-event-plans"] });
       toast({
         title: "Evento removido",
         description: "O evento foi removido do carrinho.",
@@ -138,6 +142,8 @@ export const useCart = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["shopping-cart"] });
+      queryClient.invalidateQueries({ queryKey: ["user-subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["user-event-plans"] });
     },
   });
 

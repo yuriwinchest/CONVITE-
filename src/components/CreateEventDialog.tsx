@@ -179,6 +179,8 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
       toast({ title: "Evento criado!", description });
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["user-subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["user-event-plans"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
       reset();
       setSelectedImage(null);
       setImagePreview(null);

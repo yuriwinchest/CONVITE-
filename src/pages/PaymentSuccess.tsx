@@ -8,6 +8,7 @@ import { CheckCircle2, Calendar, CreditCard, Package } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface PurchaseDetails {
   plan: string;
@@ -22,6 +23,7 @@ const PaymentSuccess = () => {
   const [searchParams] = useSearchParams();
   const [purchaseDetails, setPurchaseDetails] = useState<PurchaseDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -30,9 +32,16 @@ const PaymentSuccess = () => {
     }
 
     if (user) {
+      // Invalidar todas as queries relevantes após pagamento
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["user-subscription"] });
+      queryClient.invalidateQueries({ queryKey: ["user-event-plans"] });
+      queryClient.invalidateQueries({ queryKey: ["shopping-cart"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+      
       fetchPurchaseDetails();
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, queryClient]);
 
   const fetchPurchaseDetails = async () => {
     try {
