@@ -1,4 +1,4 @@
-import { Calendar, Plus } from "lucide-react";
+import { Calendar, Plus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEvents } from "@/hooks/useEvents";
@@ -7,11 +7,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateEventDialog from "@/components/CreateEventDialog";
+import EditEventDialog from "@/components/EditEventDialog";
 import PlanUpgradeModal from "@/components/PlanUpgradeModal";
+import { Tables } from "@/integrations/supabase/types";
 
 const EventsList = () => {
   const { data: events, isLoading } = useEvents();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<Tables<"events"> | null>(null);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeMessage, setUpgradeMessage] = useState("");
   const navigate = useNavigate();
@@ -84,24 +88,35 @@ const EventsList = () => {
           {events.map((event) => (
             <Card 
               key={event.id} 
-              className="border-border/40 hover:shadow-lg transition-shadow cursor-pointer"
-              onClick={() => navigate(`/events/${event.id}`)}
+              className="border-border/40 hover:shadow-lg transition-shadow relative group"
             >
-              <CardContent className="p-6">
+              <CardContent className="p-6 cursor-pointer" onClick={() => navigate(`/events/${event.id}`)}>
                 <h3 className="text-lg font-semibold text-foreground mb-2">
                   {event.name}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-1">
-                  {new Date(event.date).toLocaleDateString("pt-BR", {
+                  Data: {new Date(event.date).toLocaleDateString("pt-BR", {
                     day: "numeric",
                     month: "long",
                     year: "numeric",
                   })}
                 </p>
                 {event.location && (
-                  <p className="text-sm text-muted-foreground">{event.location}</p>
+                  <p className="text-sm text-muted-foreground">Local: {event.location}</p>
                 )}
               </CardContent>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedEvent(event);
+                  setIsEditDialogOpen(true);
+                }}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
             </Card>
           ))}
         </div>
@@ -110,6 +125,12 @@ const EventsList = () => {
       <CreateEventDialog 
         open={isCreateDialogOpen} 
         onOpenChange={setIsCreateDialogOpen} 
+      />
+
+      <EditEventDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        event={selectedEvent}
       />
       
       <PlanUpgradeModal
