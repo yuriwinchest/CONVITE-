@@ -2,8 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Trash2, Image as ImageIcon } from "lucide-react";
+import { Download, Trash2, Image as ImageIcon, FileArchive } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import JSZip from "jszip";
+import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +32,8 @@ interface EventPhoto {
 }
 
 export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: EventPhotoGalleryProps) => {
+  const [downloadingZip, setDownloadingZip] = useState(false);
+  
   const { data: photos, isLoading, refetch } = useQuery({
     queryKey: ["event-photos", eventId, guestId],
     queryFn: async () => {
@@ -128,6 +132,69 @@ export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: Event
     }
   };
 
+  const handleDownloadZip = async () => {
+    if (!photos || photos.length === 0) return;
+
+    setDownloadingZip(true);
+    
+    try {
+      toast({
+        title: "Preparando ZIP",
+        description: `Baixando ${photos.length} foto(s)...`,
+      });
+
+      const zip = new JSZip();
+      const folder = zip.folder("fotos-evento");
+
+      // Baixar todas as fotos e adicionar ao ZIP
+      const downloadPromises = photos.map(async (photo, index) => {
+        try {
+          const response = await fetch(photo.photo_url);
+          const blob = await response.blob();
+          
+          // Usar um nome de arquivo sequencial se houver duplicatas
+          const fileName = `foto_${index + 1}_${photo.file_name}`;
+          folder?.file(fileName, blob);
+        } catch (error) {
+          console.error(`Erro ao baixar foto ${photo.file_name}:`, error);
+        }
+      });
+
+      await Promise.all(downloadPromises);
+
+      // Gerar o arquivo ZIP
+      toast({
+        title: "Gerando arquivo ZIP",
+        description: "Isso pode levar alguns segundos...",
+      });
+
+      const content = await zip.generateAsync({ type: "blob" });
+
+      // Fazer download do ZIP
+      const url = window.URL.createObjectURL(content);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fotos-evento-${eventId}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Download concluído!",
+        description: `${photos.length} foto(s) baixadas em ZIP.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Erro ao criar ZIP",
+        description: error.message || "Não foi possível criar o arquivo ZIP.",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloadingZip(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="text-center py-8">
@@ -164,10 +231,23 @@ export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: Event
           {photos.length} foto(s) {guestId && !isCreator ? "enviadas por você" : "do evento"}
         </p>
         {photos.length > 0 && (
-          <Button variant="outline" size="sm" onClick={handleDownloadAll}>
-            <Download className="h-4 w-4 mr-2" />
-            Baixar Todas
-          </Button>
+          <div className="flex gap-2">
+            {isCreator && (
+              <Button 
+                variant="default" 
+                size="sm" 
+                onClick={handleDownloadZip}
+                disabled={downloadingZip}
+              >
+                <FileArchive className="h-4 w-4 mr-2" />
+                {downloadingZip ? "Gerando ZIP..." : "Baixar ZIP"}
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={handleDownloadAll}>
+              <Download className="h-4 w-4 mr-2" />
+              Baixar Todas
+            </Button>
+          </div>
         )}
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
