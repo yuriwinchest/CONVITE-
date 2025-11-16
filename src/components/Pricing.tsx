@@ -44,9 +44,9 @@ const plans = [
     name: "Premium",
     price: "R$ 149,00",
     period: "/ mês",
-    highlight: "🎉 Até 20 eventos por mês",
+    highlight: "🎉 Até 5 eventos por mês",
     features: [
-      "Até 20 eventos por mês",
+      "Até 5 eventos por mês",
       "Convidados ilimitados",
       "Inclusão de menus e fotos",
       "Mapa de assentos interativo",
