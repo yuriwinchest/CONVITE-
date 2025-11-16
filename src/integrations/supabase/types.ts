@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      event_purchases: {
+        Row: {
+          amount: number
+          created_at: string | null
+          event_id: string
+          id: string
+          payment_status: Database["public"]["Enums"]["payment_status"]
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          stripe_payment_intent_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          event_id: string
+          id?: string
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          event_id?: string
+          id?: string
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          stripe_payment_intent_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_purchases_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: true
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           capacity: number | null
@@ -162,6 +206,45 @@ export type Database = {
           },
         ]
       }
+      user_subscriptions: {
+        Row: {
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          plan: Database["public"]["Enums"]["subscription_plan"]
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          plan?: Database["public"]["Enums"]["subscription_plan"]
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -194,7 +277,8 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      payment_status: "pending" | "paid" | "failed" | "refunded"
+      subscription_plan: "FREE" | "ESSENTIAL" | "PREMIUM" | "PROFESSIONAL"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -321,6 +405,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      payment_status: ["pending", "paid", "failed", "refunded"],
+      subscription_plan: ["FREE", "ESSENTIAL", "PREMIUM", "PROFESSIONAL"],
+    },
   },
 } as const
