@@ -18,6 +18,7 @@ import {
 
 interface EventPhotoGalleryProps {
   eventId: string;
+  guestId?: string;
   isCreator?: boolean;
 }
 
@@ -28,15 +29,21 @@ interface EventPhoto {
   uploaded_at: string;
 }
 
-export const EventPhotoGallery = ({ eventId, isCreator = false }: EventPhotoGalleryProps) => {
+export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: EventPhotoGalleryProps) => {
   const { data: photos, isLoading, refetch } = useQuery({
-    queryKey: ["event-photos", eventId],
+    queryKey: ["event-photos", eventId, guestId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("event_photos")
         .select("*")
-        .eq("event_id", eventId)
-        .order("uploaded_at", { ascending: false });
+        .eq("event_id", eventId);
+
+      // Se for convidado específico, filtrar apenas suas fotos
+      if (guestId && !isCreator) {
+        query = query.eq("guest_id", guestId);
+      }
+
+      const { data, error } = await query.order("uploaded_at", { ascending: false });
 
       if (error) throw error;
       return (data || []) as unknown as EventPhoto[];
@@ -106,6 +113,21 @@ export const EventPhotoGallery = ({ eventId, isCreator = false }: EventPhotoGall
     }
   };
 
+  const handleDownloadAll = async () => {
+    if (!photos || photos.length === 0) return;
+
+    toast({
+      title: "Baixando fotos",
+      description: "Preparando download de todas as fotos...",
+    });
+
+    for (const photo of photos) {
+      await handleDownload(photo.photo_url, photo.file_name);
+      // Pequeno delay entre downloads para não sobrecarregar
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="text-center py-8">
@@ -128,9 +150,17 @@ export const EventPhotoGallery = ({ eventId, isCreator = false }: EventPhotoGall
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        {photos.length} foto(s) do evento
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          {photos.length} foto(s) {guestId && !isCreator ? "enviadas por você" : "do evento"}
+        </p>
+        {photos.length > 0 && (
+          <Button variant="outline" size="sm" onClick={handleDownloadAll}>
+            <Download className="h-4 w-4 mr-2" />
+            Baixar Todas
+          </Button>
+        )}
+      </div>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {photos.map((photo) => (
           <Card key={photo.id} className="relative group overflow-hidden">

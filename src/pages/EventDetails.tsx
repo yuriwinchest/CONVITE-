@@ -528,8 +528,8 @@ Nos vemos lá! 🎉`;
                 <CardTitle>Fotos do Evento</CardTitle>
                 <CardDescription>
                   {photoAccess?.canUpload 
-                    ? "Veja e gerencie as fotos enviadas pelos convidados" 
-                    : "Recurso disponível apenas nos planos Premium e Professional"}
+                    ? "Veja e gerencie as fotos enviadas pelos convidados (até 30 fotos por convidado)" 
+                    : "Recurso disponível apenas no plano Premium"}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -538,7 +538,7 @@ Nos vemos lá! 🎉`;
                 ) : (
                   <div className="text-center py-8 space-y-4">
                     <p className="text-muted-foreground">
-                      Upgrade para Premium ou Professional para permitir que seus convidados enviem fotos do evento.
+                      Upgrade para Premium para permitir que seus convidados enviem até 30 fotos cada no evento.
                     </p>
                     <Button onClick={() => setShowUpgradeModal(true)}>
                       Ver Planos

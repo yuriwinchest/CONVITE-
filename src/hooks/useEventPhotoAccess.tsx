@@ -18,30 +18,8 @@ export const useEventPhotoAccess = (eventId: string | undefined) => {
 
       if (!purchaseError && purchase?.plan) {
         const planValue = purchase.plan as string;
-        if (planValue === "PREMIUM" || planValue === "PROFESSIONAL") {
+        if (planValue === "PREMIUM") {
           return { canUpload: true, plan: planValue as SubscriptionPlan };
-        }
-      }
-
-      // Verificar se o criador tem plano Professional
-      const { data: event } = await supabase
-        .from("events")
-        .select("user_id")
-        .eq("id", eventId)
-        .single();
-
-      if (event) {
-        const { data: subscription, error: subError } = await supabase
-          .from("user_subscriptions")
-          .select("plan")
-          .eq("user_id", event.user_id)
-          .maybeSingle();
-
-        if (!subError && subscription?.plan) {
-          const planValue = subscription.plan as string;
-          if (planValue === "PROFESSIONAL") {
-            return { canUpload: true, plan: "PROFESSIONAL" as SubscriptionPlan };
-          }
         }
       }
 

@@ -58,7 +58,6 @@ const plans = [
       "Eventos ilimitados",
       "Painel de múltiplos clientes",
       "Suporte prioritário",
-      "Envio de fotos pelos convidados",
     ],
     cta: "Assinar",
     variant: "outline" as const,
