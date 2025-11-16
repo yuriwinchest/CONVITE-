@@ -12,6 +12,8 @@ import ConfirmPresence from "./pages/ConfirmPresence";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import NotFound from "./pages/NotFound";
 
+import EventPhotos from "./pages/EventPhotos";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -26,6 +28,7 @@ const App = () => (
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/events/:eventId" element={<EventDetails />} />
+          <Route path="/event/:eventId/photos" element={<EventPhotos />} />
           <Route path="/confirm" element={<ConfirmPresence />} />
           <Route path="/confirm/:eventId" element={<ConfirmPresence />} />
           <Route path="/payment-success" element={<PaymentSuccess />} />
