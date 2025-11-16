@@ -138,14 +138,14 @@ const Dashboard = () => {
           </DashboardSection>
         )}
 
-        {/* Stats and Profile Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-1">
-          <div className="lg:col-span-2">
-            <DashboardStats />
-          </div>
-          <div>
-            <UserProfilePanel />
-          </div>
+        {/* Stats Cards */}
+        <div className="mb-4">
+          <DashboardStats />
+        </div>
+
+        {/* User Profile Panel */}
+        <div className="mb-4">
+          <UserProfilePanel />
         </div>
 
         {/* Events Available for Upgrade */}
