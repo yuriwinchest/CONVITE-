@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { UserProfilePanel } from "@/components/UserProfilePanel";
 import PlanUpgradeCard from "@/components/PlanUpgradeCard";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { PremiumUpgradeBanner } from "@/components/PremiumUpgradeBanner";
 import { AlertCircle } from "lucide-react";
 import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import { DashboardSection } from "@/components/DashboardSection";
@@ -158,6 +159,9 @@ const Dashboard = () => {
         </DashboardSection>
 
       </main>
+
+      {/* Premium Upgrade Banner */}
+      <PremiumUpgradeBanner />
     </div>
   );
 };
