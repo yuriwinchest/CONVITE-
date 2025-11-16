@@ -1,4 +1,4 @@
-import { useState, useRef, ChangeEvent, DragEvent } from "react";
+import { useState, useRef, useEffect, ChangeEvent, DragEvent } from "react";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -27,10 +27,24 @@ export const EventPhotosUploader = ({
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [existingPhotosCount, setExistingPhotosCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const MAX_PHOTOS_PER_GUEST = 30;
   const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+  // Buscar quantidade de fotos já enviadas pelo convidado
+  useEffect(() => {
+    if (guestId) {
+      supabase
+        .from("event_photos")
+        .select("*", { count: "exact", head: true })
+        .eq("event_id", eventId)
+        .eq("guest_id", guestId)
+        .then(({ count }) => setExistingPhotosCount(count || 0));
+    }
+  }, [eventId, guestId]);
 
   const validateFile = (file: File): boolean => {
     if (file.size > MAX_FILE_SIZE) {
@@ -57,9 +71,28 @@ export const EventPhotosUploader = ({
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
 
+    const remainingSlots = MAX_PHOTOS_PER_GUEST - existingPhotosCount - photos.length;
+    
+    if (remainingSlots <= 0) {
+      toast({
+        title: "Limite atingido",
+        description: `Você já atingiu o limite de ${MAX_PHOTOS_PER_GUEST} fotos.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const filesToProcess = Array.from(files).slice(0, remainingSlots);
     const newPhotos: PhotoPreview[] = [];
 
-    Array.from(files).forEach((file) => {
+    if (files.length > remainingSlots) {
+      toast({
+        title: "Limite de fotos",
+        description: `Você pode enviar apenas mais ${remainingSlots} foto(s).`,
+      });
+    }
+
+    filesToProcess.forEach((file) => {
       if (validateFile(file)) {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -69,7 +102,7 @@ export const EventPhotosUploader = ({
             preview: e.target?.result as string,
           });
 
-          if (newPhotos.length === files.length) {
+          if (newPhotos.length === filesToProcess.length) {
             setPhotos((prev) => [...prev, ...newPhotos]);
           }
         };
@@ -145,6 +178,7 @@ export const EventPhotosUploader = ({
       });
 
       setPhotos([]);
+      setExistingPhotosCount((prev) => prev + photos.length);
       onUploadComplete?.();
     } catch (error: any) {
       toast({
@@ -158,8 +192,20 @@ export const EventPhotosUploader = ({
     }
   };
 
+  const remainingSlots = MAX_PHOTOS_PER_GUEST - existingPhotosCount - photos.length;
+
   return (
     <div className="space-y-4">
+      {guestId && (
+        <div className="text-center p-4 bg-muted/50 rounded-lg">
+          <p className="text-sm text-muted-foreground">
+            Você pode enviar até <strong>{MAX_PHOTOS_PER_GUEST}</strong> fotos
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {existingPhotosCount} enviada(s) • {remainingSlots} disponível(is)
+          </p>
+        </div>
+      )}
       <Card
         className={`border-2 border-dashed transition-colors ${
           isDragging
@@ -182,7 +228,7 @@ export const EventPhotosUploader = ({
             type="button"
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
+            disabled={uploading || remainingSlots <= 0}
           >
             Selecionar Fotos
           </Button>

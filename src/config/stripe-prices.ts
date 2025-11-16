@@ -30,7 +30,7 @@ export const STRIPE_PRICES = {
     recurring: "monthly" as const,
     events_limit: Infinity,
     guests_limit: Infinity,
-    description: "Eventos e convidados ilimitados com todos os recursos",
+    description: "Eventos e convidados ilimitados",
   },
 };
 
