@@ -148,24 +148,6 @@ const Dashboard = () => {
           <UserProfilePanel />
         </div>
 
-        {/* Events Available for Upgrade */}
-        {plan !== "PREMIUM" && essentialEvents && essentialEvents.length > 0 && (
-          <DashboardSection
-            title="Eventos disponíveis para Upgrade"
-            description="Desbloqueie recursos Premium para seus eventos"
-            className="animate-fade-in mb-4"
-          >
-            <div className="space-y-4">
-              {essentialEvents.map((event) => (
-                <PlanUpgradeCard 
-                  key={event.id}
-                  eventId={event.id}
-                  currentPlan="ESSENTIAL"
-                />
-              ))}
-            </div>
-          </DashboardSection>
-        )}
         
         {/* Events List */}
         <DashboardSection 

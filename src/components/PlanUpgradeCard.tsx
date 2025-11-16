@@ -47,7 +47,7 @@ const PlanUpgradeCard = ({ eventId, currentPlan }: PlanUpgradeCardProps) => {
               Upgrade para Premium
             </CardTitle>
             <CardDescription className="text-base">
-              Gerencie até 20 eventos por mês com uma única assinatura
+              Gerencie até 5 eventos por mês com uma única assinatura
             </CardDescription>
           </div>
           <div className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-sm font-bold">
@@ -68,7 +68,7 @@ const PlanUpgradeCard = ({ eventId, currentPlan }: PlanUpgradeCardProps) => {
               <div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-primary" />
-                  <span className="font-medium">Até 20 eventos por mês</span>
+                  <span className="font-medium">Até 5 eventos por mês</span>
                 </div>
                 <p className="text-muted-foreground text-xs mt-1">Crie múltiplos eventos sem pagamentos extras</p>
               </div>
