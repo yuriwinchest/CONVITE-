@@ -17,7 +17,11 @@ export const CartButton = () => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="relative">
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="relative bg-accent text-accent-foreground border-accent hover:bg-accent/90"
+        >
           <ShoppingCart className="h-5 w-5" />
           {itemCount > 0 && (
             <Badge
