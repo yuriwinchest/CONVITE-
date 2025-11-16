@@ -20,8 +20,10 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    const STRIPE_KEY = Deno.env.get("STRIPE_SECRET_KEY") || Deno.env.get("vento") || "";
+    if (!STRIPE_KEY || !STRIPE_KEY.startsWith("sk_")) {
+      throw new Error("STRIPE_SECRET_KEY is not set or invalid. Configure a key starting with 'sk_'.");
+    }
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -40,7 +42,7 @@ serve(async (req) => {
     
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const stripe = new Stripe(STRIPE_KEY, { apiVersion: "2025-08-27.basil" });
     
     // Buscar customer do Stripe
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });

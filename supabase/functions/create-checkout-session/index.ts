@@ -1,8 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
+import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-const stripe = new Stripe(Deno.env.get("vento") as string, {
+const STRIPE_KEY = Deno.env.get("STRIPE_SECRET_KEY") || Deno.env.get("vento") || "";
+if (!STRIPE_KEY || !STRIPE_KEY.startsWith("sk_")) {
+  console.warn("[CREATE-CHECKOUT-SESSION] Stripe key missing or invalid format. Check secrets.");
+}
+const stripe = new Stripe(STRIPE_KEY, {
   apiVersion: "2025-08-27.basil",
 });
 

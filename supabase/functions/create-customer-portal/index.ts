@@ -2,7 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
-const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") as string, {
+const STRIPE_KEY = Deno.env.get("STRIPE_SECRET_KEY") || Deno.env.get("vento") || "";
+const stripe = new Stripe(STRIPE_KEY, {
   apiVersion: "2025-08-27.basil",
 });
 
@@ -32,6 +33,14 @@ serve(async (req) => {
     
     if (userError || !user) {
       throw new Error("Unauthorized");
+    }
+    
+    // Restrição: apenas o admin pode abrir o portal
+    if (user.email !== "dani@danibaidaeventos.com.br") {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: only admin can manage subscription." }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 403 }
+      );
     }
 
     console.log("Creating customer portal session for user:", user.id);
