@@ -139,7 +139,7 @@ const Dashboard = () => {
         )}
 
         {/* Stats and Profile Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
           <div className="lg:col-span-2">
             <DashboardStats />
           </div>
@@ -153,7 +153,6 @@ const Dashboard = () => {
           <DashboardSection
             title="Eventos disponíveis para Upgrade"
             description="Desbloqueie recursos Premium para seus eventos"
-            showSeparator
             className="animate-fade-in"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch max-w-4xl mx-auto">
