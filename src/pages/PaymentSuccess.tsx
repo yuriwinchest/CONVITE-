@@ -88,6 +88,14 @@ const PaymentSuccess = () => {
           eventName,
           createdAt: purchase.created_at,
         });
+
+        // Mostrar toast de sucesso
+        const { toast } = await import("@/hooks/use-toast");
+        toast({
+          title: "🎉 Pagamento confirmado!",
+          description: `Seu plano ${getPlanName(purchase.plan)} foi ativado com sucesso.`,
+          duration: 5000,
+        });
       }
     } catch (error) {
       console.error("Erro ao buscar detalhes da compra:", error);

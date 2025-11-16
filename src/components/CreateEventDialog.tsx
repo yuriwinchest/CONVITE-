@@ -173,10 +173,14 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
       }
 
       const description = plan === "PREMIUM" 
-        ? "Seu evento Premium foi criado com sucesso."
-        : "Seu evento gratuito foi criado com sucesso.";
+        ? "🎉 Seu evento Premium foi criado com sucesso!"
+        : "✅ Seu evento gratuito foi criado com sucesso!";
 
-      toast({ title: "Evento criado!", description });
+      toast({ 
+        title: "Evento criado!", 
+        description,
+        duration: 4000,
+      });
       queryClient.invalidateQueries({ queryKey: ["events"] });
       queryClient.invalidateQueries({ queryKey: ["user-subscription"] });
       queryClient.invalidateQueries({ queryKey: ["user-event-plans"] });
