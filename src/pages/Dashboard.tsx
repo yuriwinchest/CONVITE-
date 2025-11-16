@@ -137,16 +137,14 @@ const Dashboard = () => {
         )}
 
         {/* Stats and Profile Grid */}
-        <DashboardSection>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <DashboardStats />
-            </div>
-            <div>
-              <UserProfilePanel />
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <div className="lg:col-span-2">
+            <DashboardStats />
           </div>
-        </DashboardSection>
+          <div>
+            <UserProfilePanel />
+          </div>
+        </div>
 
         {/* Events Available for Upgrade */}
         {essentialEvents && essentialEvents.length > 0 && (
@@ -169,18 +167,21 @@ const Dashboard = () => {
         )}
         
         {/* Events List */}
-        <DashboardSection showSeparator={essentialEvents && essentialEvents.length > 0}>
+        <DashboardSection 
+          showSeparator={essentialEvents && essentialEvents.length > 0}
+          className="mb-8"
+        >
           <EventsList />
         </DashboardSection>
 
-        {/* Separator */}
-        <div className="border-t border-border/40 my-8" />
+        {/* Separator antes do Pricing */}
+        <div className="border-t border-border/40 my-6" />
       </main>
       
       {/* Pricing Section */}
-      <div className="bg-muted/30 py-12">
+      <div className="bg-muted/30 py-10">
         <div className="container mx-auto px-6">
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h2 className="text-4xl font-bold text-foreground mb-4">
               Conheça nossos planos
             </h2>
