@@ -253,49 +253,85 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
   return (
     <>
       <section className="animate-fade-in">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {plans.map((plan, index) => (
-              <Card key={index} className="bg-card border-0 flex flex-col">
-                <CardHeader className="pb-4">
-                  <h3 className="text-xl font-semibold text-card-foreground mb-4">
-                    {plan.name}
-                  </h3>
-                  {plan.highlight && (
-                    <p className="text-sm font-medium text-primary mb-2">
-                      {plan.highlight}
-                    </p>
+        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            {plans.map((plan, index) => {
+              const isPremium = plan.name === "Premium";
+              return (
+                <Card 
+                  key={index} 
+                  className={`
+                    relative flex flex-col transition-all duration-300
+                    ${isPremium 
+                      ? 'border-2 border-primary shadow-xl scale-105 bg-gradient-to-b from-primary/5 to-background' 
+                      : 'border border-border/40 hover:border-border hover:shadow-md bg-background'
+                    }
+                  `}
+                >
+                  {/* Badge para Premium */}
+                  {isPremium && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full shadow-lg">
+                      Mais Popular
+                    </div>
                   )}
-                  <div className="text-3xl font-bold text-card-foreground">
-                    {plan.price}
-                    {plan.period && (
-                      <span className="text-base font-normal text-muted-foreground">
-                        {plan.period}
+
+                  <CardHeader className="pb-6 pt-8 space-y-4">
+                    {/* Nome do plano */}
+                    <div className="space-y-1">
+                      <h3 className={`text-lg font-semibold ${isPremium ? 'text-primary' : 'text-foreground'}`}>
+                        {plan.name}
+                      </h3>
+                      {plan.highlight && (
+                        <p className="text-xs text-muted-foreground">
+                          {plan.highlight}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Preço */}
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-4xl font-bold tracking-tight text-foreground">
+                        {plan.price}
                       </span>
-                    )}
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="flex-1 flex flex-col">
-                  <ul className="space-y-3 mb-8 flex-1">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2 text-card-foreground">
-                        <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+                      {plan.period && (
+                        <span className="text-sm text-muted-foreground">
+                          {plan.period}
+                        </span>
+                      )}
+                    </div>
+                  </CardHeader>
                   
-                  <Button 
-                    variant={plan.variant}
-                    className="w-full bg-primary hover:bg-accent text-primary-foreground"
-                    onClick={() => handlePlanSelection(plan.name)}
-                    disabled={loading !== null}
-                  >
-                    {loading === plan.name.toUpperCase() ? "Processando..." : plan.cta}
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+                  <CardContent className="flex-1 flex flex-col pt-0">
+                    {/* Features */}
+                    <ul className="space-y-3 mb-6 flex-1">
+                      {plan.features.map((feature, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <div className={`mt-0.5 rounded-full p-0.5 ${isPremium ? 'bg-primary/20' : 'bg-muted'}`}>
+                            <Check className={`w-3.5 h-3.5 ${isPremium ? 'text-primary' : 'text-muted-foreground'}`} />
+                          </div>
+                          <span className="text-sm text-foreground leading-relaxed">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    {/* CTA Button */}
+                    <Button 
+                      variant={isPremium ? "default" : "outline"}
+                      className={`
+                        w-full h-11 font-semibold transition-all
+                        ${isPremium 
+                          ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl' 
+                          : 'hover:bg-muted'
+                        }
+                      `}
+                      onClick={() => handlePlanSelection(plan.name)}
+                      disabled={loading !== null}
+                    >
+                      {loading === plan.name.toUpperCase() ? "Processando..." : plan.cta}
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
       </section>
 
