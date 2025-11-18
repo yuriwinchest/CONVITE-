@@ -11,47 +11,25 @@ import { Loader2, CheckCircle2, XCircle, MapPin, Calendar, Users, Download, Zoom
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-// Helper to validate UUID v4 format
 function isUuid(value: string): boolean {
   return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(value.trim());
 }
 
-// Helper to extract event ID from various formats
 function extractEventId(input: string): string | null {
   const trimmed = input.trim();
-
-  // 1) Try to find any UUID in the text
   const uuidMatch = trimmed.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/);
-  if (uuidMatch && isUuid(uuidMatch[0])) {
-    return uuidMatch[0];
-  }
+  if (uuidMatch && isUuid(uuidMatch[0])) return uuidMatch[0];
 
-  // 2) Try to parse as URL
   try {
     const url = new URL(trimmed);
-
-    // a) Check query parameters
     const eventIdParam = url.searchParams.get("eventId") || url.searchParams.get("event_id");
-    if (eventIdParam && isUuid(eventIdParam)) {
-      return eventIdParam;
-    }
-
-    // b) Check path segments /confirm/:id or /events/:id
+    if (eventIdParam && isUuid(eventIdParam)) return eventIdParam;
     const parts = url.pathname.split("/").filter(Boolean);
-    
     const confirmIndex = parts.indexOf("confirm");
-    if (confirmIndex !== -1 && parts[confirmIndex + 1] && isUuid(parts[confirmIndex + 1])) {
-      return parts[confirmIndex + 1];
-    }
-
+    if (confirmIndex !== -1 && parts[confirmIndex + 1] && isUuid(parts[confirmIndex + 1])) return parts[confirmIndex + 1];
     const eventsIndex = parts.indexOf("events");
-    if (eventsIndex !== -1 && parts[eventsIndex + 1] && isUuid(parts[eventsIndex + 1])) {
-      return parts[eventsIndex + 1];
-    }
-  } catch {
-    // Not a valid URL, that's okay
-  }
-
+    if (eventsIndex !== -1 && parts[eventsIndex + 1] && isUuid(parts[eventsIndex + 1])) return parts[eventsIndex + 1];
+  } catch {}
   return null;
 }
 
@@ -62,6 +40,7 @@ export default function ConfirmPresence() {
   const [searchParams] = useSearchParams();
   const guestIdFromQR = searchParams.get("guest");
   const viaQR = searchParams.get("via") === "qr";
+  const kioskMode = searchParams.get("mode") === "kiosk";
   
   const [guestName, setGuestName] = useState("");
   const [searchState, setSearchState] = useState<"idle" | "searching" | "found" | "not-found" | "confirmed">("idle");
@@ -70,6 +49,7 @@ export default function ConfirmPresence() {
   const [invalidEventId, setInvalidEventId] = useState(false);
   const [showGuestQRScanner, setShowGuestQRScanner] = useState(false);
   const [isProcessingGuestQR, setIsProcessingGuestQR] = useState(false);
+  const [kioskCountdown, setKioskCountdown] = useState<number | null>(null);
 
   // Validate eventId from route
   useEffect(() => {
@@ -217,6 +197,8 @@ export default function ConfirmPresence() {
     setSearchState("idle");
     setGuestName("");
     setGuestData(null);
+    setShowGuestQRScanner(false);
+    setKioskCountdown(null);
   };
 
   const handleGuestQRScan = async (qrCode: string) => {
@@ -283,6 +265,25 @@ export default function ConfirmPresence() {
       setIsProcessingGuestQR(false);
     }
   };
+
+  // Auto-reset in kiosk mode after confirmation
+  useEffect(() => {
+    if (kioskMode && searchState === "confirmed") {
+      setKioskCountdown(10);
+      const interval = setInterval(() => {
+        setKioskCountdown((prev) => {
+          if (prev === null || prev <= 1) {
+            clearInterval(interval);
+            handleReset();
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [kioskMode, searchState]);
 
   // Auto-process check-in when guestId comes from URL (scanned guest QR)
   useEffect(() => {
@@ -429,151 +430,168 @@ export default function ConfirmPresence() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background flex items-center justify-center p-4">
-      <Card className="max-w-2xl w-full shadow-lg">
-        <CardHeader className="text-center space-y-3 pb-8">
-          <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-2">
-            <Users className="h-8 w-8 text-primary" />
+    <div className={`min-h-screen ${kioskMode ? 'bg-background' : 'bg-gradient-to-br from-background via-muted/20 to-background'} flex items-center justify-center p-4`}>
+      <Card className={`${kioskMode ? 'max-w-4xl h-[90vh]' : 'max-w-2xl'} w-full shadow-lg ${kioskMode ? 'flex flex-col' : ''}`}>
+        <CardHeader className={`text-center ${kioskMode ? 'space-y-4 pb-6' : 'space-y-3 pb-8'}`}>
+          {kioskMode && (
+            <div className="flex justify-between items-center">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => navigate(`/confirm/${eventId}`)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Sair do modo Totem
+              </Button>
+            </div>
+          )}
+          <div className={`mx-auto ${kioskMode ? 'w-20 h-20' : 'w-16 h-16'} bg-primary/10 rounded-full flex items-center justify-center mb-2`}>
+            <Users className={`${kioskMode ? 'h-10 w-10' : 'h-8 w-8'} text-primary`} />
           </div>
-          <CardTitle className="text-3xl">🎉 Confirme sua Presença</CardTitle>
-          <CardDescription className="text-base">{eventDetails.name}</CardDescription>
+          <CardTitle className={kioskMode ? 'text-4xl' : 'text-3xl'}>🎉 Confirme sua Presença</CardTitle>
+          <CardDescription className={kioskMode ? 'text-xl' : 'text-base'}>{eventDetails.name}</CardDescription>
         </CardHeader>
 
-        <CardContent className="space-y-6">
+        <CardContent className={`space-y-6 ${kioskMode ? 'flex-1 overflow-y-auto' : ''}`}>
           {/* Event Details */}
-          <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+          <div className={`bg-muted/50 rounded-lg p-4 space-y-3 ${kioskMode ? 'text-lg' : ''}`}>
             <div className="flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-primary" />
+              <Calendar className={`${kioskMode ? 'h-6 w-6' : 'h-5 w-5'} text-primary`} />
               <div>
-                <p className="font-medium">Data do Evento</p>
-                <p className="text-sm text-muted-foreground">
+                <p className={`font-medium ${kioskMode ? 'text-lg' : ''}`}>Data do Evento</p>
+                <p className={`${kioskMode ? 'text-base' : 'text-sm'} text-muted-foreground`}>
                   {format(new Date(eventDetails.date), "PPP 'às' p", { locale: ptBR })}
                 </p>
               </div>
             </div>
             {eventDetails.location && (
               <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-primary" />
+                <MapPin className={`${kioskMode ? 'h-6 w-6' : 'h-5 w-5'} text-primary`} />
                 <div>
-                  <p className="font-medium">Local</p>
-                  <p className="text-sm text-muted-foreground">{eventDetails.location}</p>
+                  <p className={`font-medium ${kioskMode ? 'text-lg' : ''}`}>Localização</p>
+                  <p className={`${kioskMode ? 'text-base' : 'text-sm'} text-muted-foreground`}>{eventDetails.location}</p>
                 </div>
               </div>
             )}
           </div>
 
-          {/* Search State: Idle or Not Found */}
-          {(searchState === "idle" || searchState === "not-found") && (
+          {/* Initial Form: Name Input + QR Scan */}
+          {searchState === "idle" && (
             <div className="space-y-4">
-              <div className="space-y-2">
-                <label htmlFor="guestName" className="text-sm font-medium">
-                  Digite seu nome completo
-                </label>
-                <Input
-                  id="guestName"
-                  type="text"
-                  placeholder="Ex: João da Silva"
-                  value={guestName}
-                  onChange={(e) => setGuestName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                  className="text-base"
-                />
-              </div>
-              <Button onClick={handleSearch} className="w-full" size="lg">
-                Buscar Meu Lugar
+              {!kioskMode && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-lg">🔎 Encontre seu nome na lista</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Para confirmar sua presença, digite seu nome completo abaixo.
+                  </p>
+                </div>
+              )}
+              <Input
+                type="text"
+                placeholder="Digite seu nome completo"
+                value={guestName}
+                onChange={(e) => setGuestName(e.target.value)}
+                className={`${kioskMode ? 'text-2xl h-14' : ''}`}
+              />
+              <Button onClick={handleSearch} className={`w-full ${kioskMode ? 'h-16 text-2xl' : ''}`}>
+                {searchState === "searching" ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Buscando...
+                  </>
+                ) : (
+                  "Confirmar Presença"
+                )}
               </Button>
 
-              {/* Alternative: Check-in by guest QR code */}
-              <div className="space-y-2 pt-4 border-t">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">
-                    Prefere usar o QR Code?
-                  </span>
+              {!kioskMode && (
+                <div className="border-t pt-6">
+                  <h4 className="font-semibold text-lg">
+                    📱 Confirmar com QR Code
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Se você possui um QR Code, escaneie-o para confirmar sua
+                    presença mais rapidamente.
+                  </p>
                   <Button
                     variant="outline"
-                    size="sm"
-                    onClick={() => setShowGuestQRScanner((v) => !v)}
+                    className="w-full mt-3"
+                    onClick={() => setShowGuestQRScanner(true)}
                   >
-                    <Camera className="mr-2 h-4 w-4" />
-                    {showGuestQRScanner ? "Fechar scanner" : "Escanear QR Code"}
+                    Escanear QR Code
                   </Button>
                 </div>
+              )}
 
-                {showGuestQRScanner && (
-                  <QRCodeScanner
-                    onScan={handleGuestQRScan}
-                    isProcessing={isProcessingGuestQR}
-                    mode="checkin"
-                  />
-                )}
-              </div>
+              {showGuestQRScanner && (
+                <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                  <Card className="max-w-md w-full">
+                    <CardHeader>
+                      <CardTitle>Escanear QR Code do Convite</CardTitle>
+                      <CardDescription>
+                        Aponte a câmera para o QR Code para confirmar sua
+                        presença automaticamente.
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <QRCodeScanner
+                        onScan={handleGuestQRScan}
+                        isProcessing={isProcessingGuestQR}
+                        mode="guest-access"
+                      />
+                      <Button
+                        variant="secondary"
+                        className="w-full mt-4"
+                        onClick={() => setShowGuestQRScanner(false)}
+                      >
+                        Cancelar
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </div>
           )}
 
-          {/* Search State: Searching */}
-          {searchState === "searching" && (
-            <div className="flex flex-col items-center justify-center py-8 space-y-4">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
-              <p className="text-muted-foreground">Procurando seu nome...</p>
+          {/* Search State: Not Found */}
+          {searchState === "not-found" && (
+            <div className="text-center space-y-4">
+              <div className="mx-auto w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center">
+                <XCircle className="h-8 w-8 text-destructive" />
+              </div>
+              <p className="text-lg font-medium">
+                🤔 Convidado não encontrado
+              </p>
+              <p className="text-muted-foreground">
+                Não encontramos nenhum convidado com esse nome. Verifique a
+                ortografia ou tente um nome diferente.
+              </p>
+              <Button variant="outline" className="w-full" onClick={handleReset}>
+                Tentar Novamente
+              </Button>
             </div>
           )}
 
           {/* Search State: Found */}
           {searchState === "found" && guestData && (
             <div className="space-y-6">
-              <div className="bg-primary/5 border-2 border-primary/20 rounded-lg p-6 space-y-4">
-                <div className="flex items-center gap-2 text-primary">
-                  <CheckCircle2 className="h-6 w-6" />
-                  <h3 className="text-xl font-semibold">Convidado encontrado!</h3>
-                </div>
-                
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Nome</p>
-                    <p className="text-lg font-medium">{guestData.name}</p>
-                  </div>
-                  
-                  {guestData.table_number && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Sua Mesa</p>
-                      <p className="text-2xl font-bold text-primary">Mesa {guestData.table_number}</p>
-                    </div>
-                  )}
-
-                  {guestData.confirmed && (
-                    <div className="bg-accent/10 border border-accent/20 rounded-md p-3">
-                      <p className="text-sm text-accent-foreground">
-                        ✅ Presença já confirmada anteriormente
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Check-in blocked message */}
-                  {!isCheckInAllowed().allowed && !guestData.confirmed && (
-                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-md p-3">
-                      <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
-                        ⏰ {isCheckInAllowed().message}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        O check-in será liberado automaticamente no horário do evento
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex gap-3">
-                <Button 
-                  onClick={handleConfirm} 
-                  className="flex-1" 
-                  size="lg"
-                  disabled={guestData.confirmed || !isCheckInAllowed().allowed}
-                >
-                  {guestData.confirmed ? "Já Confirmado" : "Confirmar Presença"}
+              <div className="bg-muted/50 rounded-lg p-6 text-center space-y-4">
+                <p className={`text-xl font-medium ${kioskMode ? 'text-3xl' : ''}`}>
+                  🎉 Olá, <strong>{guestData.name}</strong>!
+                </p>
+                {guestData.table_number && (
+                  <p className={`text-muted-foreground ${kioskMode ? 'text-2xl' : ''}`}>
+                    Sua mesa é a <strong className="text-primary">Mesa {guestData.table_number}</strong>
+                  </p>
+                )}
+                <Button onClick={handleConfirm} className={`w-full ${kioskMode ? 'h-16 text-2xl' : ''}`}>
+                  Confirmar Presença
                 </Button>
-                <Button onClick={handleReset} variant="outline" size="lg">
-                  Cancelar
-                </Button>
+                {!kioskMode && (
+                  <Button variant="outline" className="w-full" onClick={handleReset}>
+                    Cancelar
+                  </Button>
+                )}
               </div>
             </div>
           )}
@@ -581,28 +599,38 @@ export default function ConfirmPresence() {
           {/* Search State: Confirmed */}
           {searchState === "confirmed" && guestData && (
             <div className="space-y-6">
-              <div className="bg-primary/5 border-2 border-primary rounded-lg p-6 text-center space-y-4">
-                <div className="mx-auto w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                  <CheckCircle2 className="h-10 w-10 text-primary" />
+              <div className={`bg-primary/5 border-2 border-primary rounded-lg ${kioskMode ? 'p-10' : 'p-6'} text-center space-y-4`}>
+                <div className={`mx-auto ${kioskMode ? 'w-24 h-24' : 'w-16 h-16'} bg-primary/10 rounded-full flex items-center justify-center`}>
+                  <CheckCircle2 className={`${kioskMode ? 'h-16 w-16' : 'h-10 w-10'} text-primary`} />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-primary mb-2">Presença Confirmada!</h3>
-                  <p className="text-muted-foreground">
+                  <h3 className={`${kioskMode ? 'text-4xl' : 'text-2xl'} font-bold text-primary mb-2`}>Presença Confirmada!</h3>
+                  <p className={`${kioskMode ? 'text-xl' : 'text-base'} text-muted-foreground`}>
                     Obrigado, <strong>{guestData.name}</strong>! Sua presença foi confirmada com sucesso.
                   </p>
                   {guestData.table_number && (
-                    <p className="mt-4 text-lg">
+                    <p className={`${kioskMode ? 'mt-6 text-3xl' : 'mt-4 text-lg'}`}>
                       Você está na <strong className="text-primary">Mesa {guestData.table_number}</strong>
                     </p>
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground border-t pt-4">
+                {kioskMode && kioskCountdown !== null && (
+                  <div className="bg-muted/50 rounded-md p-4 mt-6">
+                    <p className="text-lg text-muted-foreground">
+                      Voltando ao início em <strong className="text-primary text-2xl">{kioskCountdown}</strong> segundos
+                    </p>
+                  </div>
+                )}
+                <p className={`${kioskMode ? 'text-lg' : 'text-sm'} text-muted-foreground border-t pt-4`}>
                   Aguardamos você no evento! 🎉
                 </p>
               </div>
 
-              {/* Mapa das Mesas */}
-              {eventDetails.table_map_url ? (
+              {/* Show table map and photos only in non-kiosk mode */}
+              {!kioskMode && (
+                <>
+                  {/* Mapa das Mesas */}
+                  {eventDetails.table_map_url ? (
                 <div className="space-y-3">
                   <h4 className="font-semibold text-lg">📍 Localização da sua mesa</h4>
                   {!mapImageError ? (
