@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useGuestConfirmation } from "@/hooks/useGuestConfirmation";
 import { QRCodeScanner } from "@/components/QRCodeScanner";
-import { generateQRCodeImage } from "@/lib/qrCodeGenerator";
+import { generateQRCodeImage, parseQRCodeData } from "@/lib/qrCodeGenerator";
 import { Loader2, CheckCircle2, XCircle, MapPin, Calendar, Users, Download, ZoomIn, ArrowLeft, Camera } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -59,11 +59,17 @@ export default function ConfirmPresence() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const guestIdFromQR = searchParams.get("guest");
+  const viaQR = searchParams.get("via") === "qr";
+  
   const [guestName, setGuestName] = useState("");
   const [searchState, setSearchState] = useState<"idle" | "searching" | "found" | "not-found" | "confirmed">("idle");
   const [guestData, setGuestData] = useState<any>(null);
   const [isProcessingQR, setIsProcessingQR] = useState(false);
   const [invalidEventId, setInvalidEventId] = useState(false);
+  const [showGuestQRScanner, setShowGuestQRScanner] = useState(false);
+  const [isProcessingGuestQR, setIsProcessingGuestQR] = useState(false);
 
   // Validate eventId from route
   useEffect(() => {
@@ -86,6 +92,19 @@ export default function ConfirmPresence() {
   const handleQRScan = async (scannedData: string) => {
     setIsProcessingQR(true);
     try {
+      // 1) Try to parse as guest QR code first
+      const parsed = parseQRCodeData(scannedData);
+      if (parsed && parsed.guestId && parsed.eventId) {
+        // Navigate with guestId in URL for auto check-in
+        navigate(`/confirm/${parsed.eventId}?guest=${parsed.guestId}&via=qr`);
+        toast({
+          title: "QR Code escaneado!",
+          description: "Carregando suas informações...",
+        });
+        return;
+      }
+
+      // 2) Otherwise, treat as event QR code
       const extractedEventId = extractEventId(scannedData);
 
       if (!extractedEventId) {
@@ -200,6 +219,126 @@ export default function ConfirmPresence() {
     setGuestData(null);
   };
 
+  const handleGuestQRScan = async (qrCode: string) => {
+    if (!eventId) {
+      toast({
+        title: "Evento não encontrado",
+        description: "Não foi possível identificar o evento deste QR Code.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsProcessingGuestQR(true);
+
+    try {
+      // 1) Try to decode structured QR code
+      const parsed = parseQRCodeData(qrCode);
+      if (!parsed || !parsed.guestId || !parsed.eventId) {
+        throw new Error("QR Code inválido ou em formato antigo.");
+      }
+
+      if (parsed.eventId !== eventId) {
+        throw new Error("Este QR Code pertence a outro evento.");
+      }
+
+      // 2) Check if check-in is allowed
+      const checkInStatus = isCheckInAllowed();
+      if (!checkInStatus.allowed) {
+        throw new Error(checkInStatus.message || "Check-in não disponível no momento.");
+      }
+
+      // 3) Confirm presence via existing RPC
+      const result = await confirmPresence(parsed.guestId);
+      const data = result as any | null;
+
+      // 4) Update UI to confirmed state
+      setGuestData({
+        id: parsed.guestId,
+        name: data?.guestName ?? "Convidado",
+        table_number: data?.tableNumber ?? null,
+        confirmed: true,
+      });
+      setSearchState("confirmed");
+
+      // Generate photos QR code
+      if (eventId) {
+        const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery`;
+        const qrImage = await generateQRCodeImage(photosUrl);
+        setPhotosQRCode(qrImage);
+      }
+
+      toast({
+        title: "Check-in realizado!",
+        description: "Sua presença foi confirmada pelo QR Code.",
+      });
+    } catch (error: any) {
+      console.error("Erro ao processar QR de convidado:", error);
+      toast({
+        title: "Erro ao ler QR Code",
+        description: error.message || "Não foi possível processar este QR Code.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingGuestQR(false);
+    }
+  };
+
+  // Auto-process check-in when guestId comes from URL (scanned guest QR)
+  useEffect(() => {
+    if (
+      !isLoadingEvent &&
+      eventDetails &&
+      guestIdFromQR &&
+      viaQR &&
+      searchState === "idle"
+    ) {
+      const checkInStatus = isCheckInAllowed();
+      if (!checkInStatus.allowed) {
+        toast({
+          title: "Check-in não disponível",
+          description: checkInStatus.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      (async () => {
+        try {
+          const result = await confirmPresence(guestIdFromQR);
+          const data = result as any | null;
+
+          setGuestData({
+            id: guestIdFromQR,
+            name: data?.guestName ?? "Convidado",
+            table_number: data?.tableNumber ?? null,
+            confirmed: true,
+          });
+          setSearchState("confirmed");
+
+          // Generate photos QR code
+          if (eventId) {
+            const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery`;
+            const qrImage = await generateQRCodeImage(photosUrl);
+            setPhotosQRCode(qrImage);
+          }
+
+          toast({
+            title: "Presença confirmada!",
+            description: "Seu check-in foi realizado com sucesso.",
+          });
+        } catch (error: any) {
+          console.error("Erro no check-in via QR:", error);
+          toast({
+            title: "Erro ao confirmar presença",
+            description: error.message || "Não foi possível confirmar sua presença pelo QR Code.",
+            variant: "destructive",
+          });
+        }
+      })();
+    }
+  }, [isLoadingEvent, eventDetails, guestIdFromQR, viaQR, searchState, isCheckInAllowed, confirmPresence, eventId, toast]);
+
   if (isLoadingEvent) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -277,8 +416,11 @@ export default function ConfirmPresence() {
             <Button onClick={() => navigate("/")} variant="outline" className="w-full">
               Voltar para o início
             </Button>
+            <Button onClick={() => navigate("/confirm")} className="w-full">
+              Tentar com outro QR Code
+            </Button>
             <p className="text-xs text-center text-muted-foreground">
-              Verifique o QR Code ou link com o organizador do evento
+              Se o problema continuar, peça ao organizador para enviar um novo link ou QR Code.
             </p>
           </CardContent>
         </Card>
@@ -340,6 +482,31 @@ export default function ConfirmPresence() {
               <Button onClick={handleSearch} className="w-full" size="lg">
                 Buscar Meu Lugar
               </Button>
+
+              {/* Alternative: Check-in by guest QR code */}
+              <div className="space-y-2 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">
+                    Prefere usar o QR Code?
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowGuestQRScanner((v) => !v)}
+                  >
+                    <Camera className="mr-2 h-4 w-4" />
+                    {showGuestQRScanner ? "Fechar scanner" : "Escanear QR Code"}
+                  </Button>
+                </div>
+
+                {showGuestQRScanner && (
+                  <QRCodeScanner
+                    onScan={handleGuestQRScan}
+                    isProcessing={isProcessingGuestQR}
+                    mode="checkin"
+                  />
+                )}
+              </div>
             </div>
           )}
 
