@@ -151,12 +151,16 @@ export const UserProfilePanel = () => {
     );
   }
 
+  const planIcon = plan === "PREMIUM"
+    ? <Crown key="premium-icon" className="h-5 w-5 text-primary" aria-hidden />
+    : <Calendar key="default-icon" className="h-5 w-5" aria-hidden />;
+
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          {plan === "PREMIUM" ? <Crown className="h-5 w-5 text-primary" /> : <Calendar className="h-5 w-5" />}
-          Seu Plano
+          {planIcon}
+          <span>Seu Plano</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">

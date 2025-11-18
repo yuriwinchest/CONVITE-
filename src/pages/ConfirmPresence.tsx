@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useGuestConfirmation } from "@/hooks/useGuestConfirmation";
 import { QRCodeScanner } from "@/components/QRCodeScanner";
@@ -33,14 +34,37 @@ function extractEventId(input: string): string | null {
   return null;
 }
 
+interface GuestLookupMatch {
+  guest_id: string;
+  guest_name: string;
+  event_id: string;
+  event_name: string;
+  event_date: string;
+  event_location: string | null;
+  table_number: number | null;
+  confirmed: boolean;
+}
+
 export default function ConfirmPresence() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  
+  const {
+    searchGuest,
+    confirmPresence,
+    getEventDetails,
+    eventDetails,
+    isLoadingEvent,
+    isCheckInAllowed,
+    searchGuestAcrossEvents,
+  } = useGuestConfirmation(eventId || "");
+
   const guestIdFromQR = searchParams.get("guest");
   const viaQR = searchParams.get("via") === "qr";
   const kioskMode = searchParams.get("mode") === "kiosk";
+  const prefillNameParam = searchParams.get("prefillName");
   
   const [guestName, setGuestName] = useState("");
   const [searchState, setSearchState] = useState<"idle" | "searching" | "found" | "not-found" | "confirmed">("idle");
@@ -50,6 +74,30 @@ export default function ConfirmPresence() {
   const [showGuestQRScanner, setShowGuestQRScanner] = useState(false);
   const [isProcessingGuestQR, setIsProcessingGuestQR] = useState(false);
   const [kioskCountdown, setKioskCountdown] = useState<number | null>(null);
+  const [manualEventInput, setManualEventInput] = useState("");
+  const [isManualLookupLoading, setIsManualLookupLoading] = useState(false);
+  const [guestLookupMatches, setGuestLookupMatches] = useState<GuestLookupMatch[]>([]);
+  const [showGuestLookupDialog, setShowGuestLookupDialog] = useState(false);
+
+  const [timeUntilCheckIn, setTimeUntilCheckIn] = useState<number>(0);
+  const [photosQRCode, setPhotosQRCode] = useState<string>("");
+  const [mapImageError, setMapImageError] = useState(false);
+
+  const toggleKioskMode = (enable: boolean) => {
+    if (!eventId) return;
+    const params = new URLSearchParams(searchParams);
+
+    if (enable) {
+      params.set("mode", "kiosk");
+      params.delete("guest");
+      params.delete("via");
+    } else {
+      params.delete("mode");
+    }
+
+    const query = params.toString();
+    navigate(`/confirm/${eventId}${query ? `?${query}` : ""}`);
+  };
 
   // Validate eventId from route
   useEffect(() => {
@@ -64,10 +112,72 @@ export default function ConfirmPresence() {
     }
   }, [eventId, toast]);
 
-  const { searchGuest, confirmPresence, getEventDetails, eventDetails, isLoadingEvent, isCheckInAllowed } = useGuestConfirmation(eventId || "");
-  const [timeUntilCheckIn, setTimeUntilCheckIn] = useState<number>(0);
-  const [photosQRCode, setPhotosQRCode] = useState<string>("");
-  const [mapImageError, setMapImageError] = useState(false);
+  useEffect(() => {
+    if (!prefillNameParam || !eventId || searchState !== "idle") {
+      return;
+    }
+
+    const decodedName = decodeURIComponent(prefillNameParam);
+    const normalized = decodedName.trim();
+
+    if (!normalized) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const runPrefillSearch = async () => {
+      try {
+        setGuestName(decodedName);
+        setSearchState("searching");
+        const result = await searchGuest(normalized);
+
+        if (cancelled) {
+          return;
+        }
+
+        if (result) {
+          if (result.confirmed) {
+            toast({
+              title: "Presença já confirmada",
+              description: "Sua presença já foi confirmada anteriormente.",
+            });
+          }
+          setGuestData(result);
+          setSearchState("found");
+        } else {
+          setSearchState("not-found");
+          toast({
+            title: "Convidado não encontrado",
+            description: "Não encontramos nenhum convidado com esse nome. Verifique a ortografia.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setSearchState("idle");
+          toast({
+            title: "Erro ao buscar",
+            description: "Ocorreu um erro ao buscar seu nome. Tente novamente.",
+            variant: "destructive",
+          });
+        }
+      } finally {
+        if (!cancelled) {
+          const params = new URLSearchParams(searchParams.toString());
+          params.delete("prefillName");
+          const query = params.toString();
+          navigate(`/confirm/${eventId}${query ? `?${query}` : ""}`, { replace: true });
+        }
+      }
+    };
+
+    runPrefillSearch();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [prefillNameParam, eventId, searchState, searchGuest, toast, navigate, searchParams]);
 
   const handleQRScan = async (scannedData: string) => {
     setIsProcessingQR(true);
@@ -113,8 +223,11 @@ export default function ConfirmPresence() {
     }
   };
 
-  const handleSearch = async () => {
-    if (!guestName.trim() || !eventId) {
+  const handleSearch = async (nameOverride?: string) => {
+    const valueToSearch = nameOverride !== undefined ? nameOverride : guestName;
+    const normalized = valueToSearch.trim();
+
+    if (!normalized || !eventId) {
       toast({
         title: "Nome obrigatório",
         description: "Por favor, digite seu nome para buscar.",
@@ -123,10 +236,14 @@ export default function ConfirmPresence() {
       return;
     }
 
+    if (nameOverride !== undefined) {
+      setGuestName(valueToSearch);
+    }
+
     setSearchState("searching");
 
     try {
-      const result = await searchGuest(guestName);
+      const result = await searchGuest(normalized);
       
       if (result) {
         if (result.confirmed) {
@@ -266,6 +383,66 @@ export default function ConfirmPresence() {
     }
   };
 
+  const handleManualEventAccess = async () => {
+    const typedValue = manualEventInput.trim();
+
+    if (!typedValue) {
+      toast({
+        title: "Informe um nome ou código",
+        description: "Digite seu nome completo ou cole o link/código do evento.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const extractedId = extractEventId(typedValue);
+
+    if (extractedId) {
+      navigate(`/confirm/${extractedId}`);
+      setManualEventInput("");
+      return;
+    }
+
+    setIsManualLookupLoading(true);
+
+    try {
+      const matches = await searchGuestAcrossEvents(typedValue);
+
+      if (!matches || matches.length === 0) {
+        toast({
+          title: "Convidado não encontrado",
+          description: "Não encontramos nenhum evento recente com esse nome. Verifique a ortografia.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (matches.length === 1) {
+        handleSelectGuestMatch(matches[0]);
+        return;
+      }
+
+      setGuestLookupMatches(matches);
+      setShowGuestLookupDialog(true);
+    } catch (error: any) {
+      console.error("Erro ao buscar convidado globalmente:", error);
+      toast({
+        title: "Erro ao buscar",
+        description: "Ocorreu um problema ao procurar seu nome. Tente novamente em instantes.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsManualLookupLoading(false);
+    }
+  };
+
+  const handleSelectGuestMatch = (match: GuestLookupMatch) => {
+    setShowGuestLookupDialog(false);
+    setGuestLookupMatches([]);
+    setManualEventInput("");
+    navigate(`/confirm/${match.event_id}?prefillName=${encodeURIComponent(match.guest_name)}`);
+  };
+
   // Auto-reset in kiosk mode after confirmation
   useEffect(() => {
     if (kioskMode && searchState === "confirmed") {
@@ -383,6 +560,39 @@ export default function ConfirmPresence() {
                 isProcessing={isProcessingQR}
                 mode="event-access"
               />
+              <div className="mt-6 space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Ou informe o link/código do evento para abrir a tela de confirmação manualmente.
+                </p>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Input
+                    placeholder="Cole o link ou código do evento"
+                    value={manualEventInput}
+                    onChange={(event) => setManualEventInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" && !isManualLookupLoading) {
+                        event.preventDefault();
+                        handleManualEventAccess();
+                      }
+                    }}
+                    disabled={isManualLookupLoading}
+                  />
+                  <Button
+                    className="sm:w-40"
+                    onClick={handleManualEventAccess}
+                    disabled={isManualLookupLoading}
+                  >
+                    {isManualLookupLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Buscando...
+                      </>
+                    ) : (
+                      "Buscar evento"
+                    )}
+                  </Button>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -438,10 +648,21 @@ export default function ConfirmPresence() {
               <Button 
                 variant="ghost" 
                 size="sm"
-                onClick={() => navigate(`/confirm/${eventId}`)}
+                onClick={() => toggleKioskMode(false)}
                 className="text-muted-foreground hover:text-foreground"
               >
                 Sair do modo Totem
+              </Button>
+            </div>
+          )}
+          {!kioskMode && (
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => toggleKioskMode(true)}
+              >
+                Ativar modo Totem
               </Button>
             </div>
           )}
@@ -628,163 +849,225 @@ export default function ConfirmPresence() {
 
               {/* Show table map and photos only in non-kiosk mode */}
               {!kioskMode && (
-                <>
+                <div className="space-y-6">
                   {/* Mapa das Mesas */}
                   {eventDetails.table_map_url ? (
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-lg">📍 Localização da sua mesa</h4>
-                  {!mapImageError ? (
-                    <>
-                      <div className="border rounded-lg overflow-hidden bg-muted/20">
-                        <img 
-                          src={eventDetails.table_map_url} 
-                          alt="Mapa das mesas"
-                          className="w-full h-auto"
-                          onLoad={() => {
-                            console.log("Mapa carregado com sucesso:", eventDetails.table_map_url);
-                          }}
-                          onError={(e) => {
-                            console.error("Erro ao carregar imagem do mapa:", eventDetails.table_map_url);
-                            setMapImageError(true);
-                          }}
-                        />
-                      </div>
-                      
-                      <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => {
-                        console.log("Download button clicked, URL:", eventDetails.table_map_url);
-                        try {
-                          const link = document.createElement('a');
-                          link.href = eventDetails.table_map_url!;
-                          link.download = `mapa-mesas-${eventDetails.name}.jpg`;
-                          link.target = '_blank';
-                          link.rel = 'noopener noreferrer';
-                          document.body.appendChild(link);
-                          link.click();
-                          document.body.removeChild(link);
-                          console.log("Download link clicked successfully");
-                        } catch (error) {
-                          console.error("Error downloading map:", error);
-                          toast({
-                            title: "Erro ao baixar mapa",
-                            description: "Não foi possível baixar o mapa. Tente abrir em tela cheia.",
-                            variant: "destructive"
-                          });
-                        }
-                      }}
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      Baixar Mapa
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => {
-                        console.log("Fullscreen button clicked, URL:", eventDetails.table_map_url);
-                        try {
-                          window.open(eventDetails.table_map_url, '_blank', 'noopener,noreferrer');
-                          console.log("Window opened successfully");
-                        } catch (error) {
-                          console.error("Error opening fullscreen:", error);
-                          toast({
-                            title: "Erro ao abrir mapa",
-                            description: "Não foi possível abrir o mapa em tela cheia.",
-                            variant: "destructive"
-                          });
-                        }
-                      }}
-                    >
-                      <ZoomIn className="mr-2 h-4 w-4" />
-                      Ver em Tela Cheia
-                    </Button>
-                  </div>
-                    </>
-                  ) : (
-                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 space-y-3">
-                      <div className="flex items-start gap-2">
-                        <XCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-                        <div className="space-y-1">
-                          <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
-                            Não foi possível carregar o mapa das mesas
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Isso pode acontecer por problemas temporários de conexão ou se o mapa foi removido.
-                          </p>
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-lg">📍 Localização da sua mesa</h4>
+                      {!mapImageError ? (
+                        <>
+                          <div className="border rounded-lg overflow-hidden bg-muted/20">
+                            <img
+                              src={eventDetails.table_map_url}
+                              alt="Mapa das mesas"
+                              className="w-full h-auto"
+                              onLoad={() => {
+                                console.log("Mapa carregado com sucesso:", eventDetails.table_map_url);
+                              }}
+                              onError={() => {
+                                console.error("Erro ao carregar imagem do mapa:", eventDetails.table_map_url);
+                                setMapImageError(true);
+                              }}
+                            />
+                          </div>
+
+                          <div className="flex gap-3">
+                            <Button
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => {
+                                console.log("Download button clicked, URL:", eventDetails.table_map_url);
+                                try {
+                                  const link = document.createElement("a");
+                                  link.href = eventDetails.table_map_url!;
+                                  link.download = `mapa-mesas-${eventDetails.name}.jpg`;
+                                  link.target = "_blank";
+                                  link.rel = "noopener noreferrer";
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                  console.log("Download link clicked successfully");
+                                } catch (error) {
+                                  console.error("Error downloading map:", error);
+                                  toast({
+                                    title: "Erro ao baixar mapa",
+                                    description: "Não foi possível baixar o mapa. Tente abrir em tela cheia.",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                            >
+                              <Download className="mr-2 h-4 w-4" />
+                              Baixar Mapa
+                            </Button>
+
+                            <Button
+                              variant="outline"
+                              className="flex-1"
+                              onClick={() => {
+                                console.log("Fullscreen button clicked, URL:", eventDetails.table_map_url);
+                                try {
+                                  window.open(eventDetails.table_map_url, "_blank", "noopener,noreferrer");
+                                  console.log("Window opened successfully");
+                                } catch (error) {
+                                  console.error("Error opening fullscreen:", error);
+                                  toast({
+                                    title: "Erro ao abrir mapa",
+                                    description: "Não foi possível abrir o mapa em tela cheia.",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                            >
+                              <ZoomIn className="mr-2 h-4 w-4" />
+                              Ver em Tela Cheia
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 space-y-3">
+                          <div className="flex items-start gap-2">
+                            <XCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                            <div className="space-y-1">
+                              <p className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
+                                Não foi possível carregar o mapa das mesas
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Isso pode acontecer por problemas temporários de conexão ou se o mapa foi removido.
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => {
+                                setMapImageError(false);
+                                toast({
+                                  title: "Recarregando...",
+                                  description: "Tentando carregar o mapa novamente.",
+                                });
+                              }}
+                            >
+                              Tentar Novamente
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1"
+                              onClick={() => {
+                                window.open(eventDetails.table_map_url, "_blank");
+                              }}
+                            >
+                              Abrir em Nova Aba
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex gap-2">
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-muted/50 rounded-lg p-4 text-center text-muted-foreground text-sm">
+                      O organizador não adicionou um mapa das mesas para este evento.
+                    </div>
+                  )}
+
+                  {/* QR Code para Envio de Fotos */}
+                  {photosQRCode && (
+                    <div className="space-y-3 border-t pt-6">
+                      <h4 className="font-semibold text-lg">📸 Compartilhe Fotos do Evento</h4>
+                      <div className="bg-muted/50 rounded-lg p-4 text-center">
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Escaneie o QR Code ou clique no botão para enviar suas fotos do evento
+                        </p>
+                        <div className="flex justify-center mb-3">
+                          <img
+                            src={photosQRCode}
+                            alt="QR Code para enviar fotos"
+                            className="w-48 h-48 border-2 border-border rounded-lg p-2 bg-white"
+                          />
+                        </div>
                         <Button
                           variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => {
-                            setMapImageError(false);
-                            toast({
-                              title: "Recarregando...",
-                              description: "Tentando carregar o mapa novamente.",
-                            });
-                          }}
+                          className="w-full"
+                          onClick={() => navigate(`/event/${eventId}/guest-gallery`)}
                         >
-                          Tentar Novamente
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          onClick={() => {
-                            window.open(eventDetails.table_map_url, '_blank');
-                          }}
-                        >
-                          Abrir em Nova Aba
+                          <Camera className="mr-2 h-4 w-4" />
+                          Enviar Fotos
                         </Button>
                       </div>
                     </div>
                   )}
-                </div>
-              ) : (
-                <div className="bg-muted/50 rounded-lg p-4 text-center text-muted-foreground text-sm">
-                  O organizador não adicionou um mapa das mesas para este evento.
-                </div>
-              )}
-              
-              {/* QR Code para Envio de Fotos */}
-              {photosQRCode && (
-                <div className="space-y-3 border-t pt-6">
-                  <h4 className="font-semibold text-lg">📸 Compartilhe Fotos do Evento</h4>
-                  <div className="bg-muted/50 rounded-lg p-4 text-center">
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Escaneie o QR Code ou clique no botão para enviar suas fotos do evento
-                    </p>
-                    <div className="flex justify-center mb-3">
-                      <img 
-                        src={photosQRCode} 
-                        alt="QR Code para enviar fotos" 
-                        className="w-48 h-48 border-2 border-border rounded-lg p-2 bg-white"
-                      />
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => navigate(`/event/${eventId}/guest-gallery`)}
-                    >
-                      <Camera className="mr-2 h-4 w-4" />
-                      Enviar Fotos
-                    </Button>
-                  </div>
+
+                  <Button onClick={() => navigate("/")} variant="outline" className="w-full">
+                    Voltar para o início
+                  </Button>
                 </div>
               )}
-              
-              <Button onClick={() => navigate("/")} variant="outline" className="w-full">
-                Voltar para o início
-              </Button>
+
             </div>
           )}
         </CardContent>
       </Card>
+
+      <Dialog
+        open={showGuestLookupDialog}
+        onOpenChange={(open) => {
+          setShowGuestLookupDialog(open);
+          if (!open) {
+            setGuestLookupMatches([]);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Encontramos mais de um evento</DialogTitle>
+            <DialogDescription>
+              Selecione abaixo o evento correto para continuar com a confirmação de presença.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+            {guestLookupMatches.map((match) => (
+              <Button
+                key={`${match.event_id}-${match.guest_id}`}
+                variant="outline"
+                className="w-full justify-between"
+                onClick={() => handleSelectGuestMatch(match)}
+              >
+                <div className="flex flex-col items-start text-left">
+                  <span className="font-medium">{match.event_name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {format(new Date(match.event_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    {match.event_location ? ` • ${match.event_location}` : ""}
+                  </span>
+                </div>
+                <div className="flex flex-col items-end text-right text-xs text-muted-foreground">
+                  <span>{match.guest_name}</span>
+                  {typeof match.table_number === "number" && (
+                    <span>Mesa {match.table_number}</span>
+                  )}
+                  {match.confirmed && (
+                    <span className="text-amber-600 dark:text-amber-400">Presença já confirmada</span>
+                  )}
+                </div>
+              </Button>
+            ))}
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setShowGuestLookupDialog(false);
+                setGuestLookupMatches([]);
+              }}
+            >
+              Cancelar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

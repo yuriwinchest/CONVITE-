@@ -124,6 +124,38 @@ export function useGuestConfirmation(eventId: string) {
     return eventDetails;
   };
 
+  const searchGuestAcrossEvents = async (
+    guestName: string,
+    limit = 5,
+  ): Promise<
+    {
+      guest_id: string;
+      guest_name: string;
+      event_id: string;
+      event_name: string;
+      event_date: string;
+      event_location: string | null;
+      table_number: number | null;
+      confirmed: boolean;
+    }[]
+  > => {
+    try {
+      const { data, error } = await supabase.rpc(
+        "search_guest_by_name_global",
+        {
+          p_name: guestName.trim(),
+          p_limit: limit,
+        },
+      );
+
+      if (error) throw error;
+      return data || [];
+    } catch (error: any) {
+      console.error("Error searching guest globally:", error);
+      throw error;
+    }
+  };
+
   const isCheckInAllowed = (): { allowed: boolean; message?: string; timeUntil?: number } => {
     if (!eventDetails) {
       return { allowed: false, message: "Evento não encontrado" };
@@ -151,5 +183,6 @@ export function useGuestConfirmation(eventId: string) {
     eventDetails,
     isLoadingEvent,
     isCheckInAllowed,
+    searchGuestAcrossEvents,
   };
 }
