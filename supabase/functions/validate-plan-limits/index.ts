@@ -30,6 +30,25 @@ serve(async (req) => {
       throw new Error("Unauthorized");
     }
 
+    // Verificar se é admin - admins não têm limites
+    const { data: adminRole } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (adminRole) {
+      console.log("✅ Admin detected, bypassing limits for user:", user.id);
+      return new Response(
+        JSON.stringify({ allowed: true, reason: "admin" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
+
     const { action, eventId, guestCount } = await req.json();
 
     // Buscar assinatura do usuário
