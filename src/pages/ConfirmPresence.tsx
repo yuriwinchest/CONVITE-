@@ -180,11 +180,18 @@ export default function ConfirmPresence() {
   }, [prefillNameParam, eventId, searchState, searchGuest, toast, navigate, searchParams]);
 
   const handleQRScan = async (scannedData: string) => {
+    console.log("📱 [QR Scan] Iniciando processamento do QR code");
+    console.log("📱 [QR Scan] Dados escaneados:", scannedData);
+    
     setIsProcessingQR(true);
     try {
       // 1) Try to parse as guest QR code first
+      console.log("📱 [QR Scan] Tentando parsear como QR de convidado...");
       const parsed = parseQRCodeData(scannedData);
+      console.log("📱 [QR Scan] Resultado do parse:", parsed);
+      
       if (parsed && parsed.guestId && parsed.eventId) {
+        console.log("✅ [QR Scan] QR de convidado detectado!", { guestId: parsed.guestId, eventId: parsed.eventId });
         // Navigate with guestId in URL for auto check-in
         navigate(`/confirm/${parsed.eventId}?guest=${parsed.guestId}&via=qr`);
         toast({
@@ -195,9 +202,12 @@ export default function ConfirmPresence() {
       }
 
       // 2) Otherwise, treat as event QR code
+      console.log("📱 [QR Scan] Não é QR de convidado, tentando extrair eventId...");
       const extractedEventId = extractEventId(scannedData);
+      console.log("📱 [QR Scan] EventId extraído:", extractedEventId);
 
       if (!extractedEventId) {
+        console.error("❌ [QR Scan] Nenhum eventId válido encontrado");
         toast({
           title: "QR Code inválido",
           description: "O QR Code escaneado não contém um evento válido.",
@@ -206,13 +216,14 @@ export default function ConfirmPresence() {
         return;
       }
 
+      console.log("✅ [QR Scan] QR de evento detectado, navegando para:", extractedEventId);
       navigate(`/confirm/${extractedEventId}`);
       toast({
         title: "QR Code escaneado!",
         description: "Carregando informações do evento...",
       });
     } catch (error) {
-      console.error("Erro ao processar QR Code:", error);
+      console.error("❌ [QR Scan] Erro ao processar QR Code:", error);
       toast({
         title: "Erro ao processar QR Code",
         description: "Não foi possível processar o QR Code escaneado.",
