@@ -11,6 +11,7 @@ import { generateQRCodeImage, parseQRCodeData } from "@/lib/qrCodeGenerator";
 import { Loader2, CheckCircle2, XCircle, MapPin, Calendar, Users, Download, ZoomIn, ArrowLeft, Camera } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
 
 function isUuid(value: string): boolean {
   return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/.test(value.trim());
@@ -190,9 +191,9 @@ export default function ConfirmPresence() {
       const parsed = parseQRCodeData(scannedData);
       console.log("📱 [QR Scan] Resultado do parse:", parsed);
       
+      // Formato novo: tem guestId e eventId
       if (parsed && parsed.guestId && parsed.eventId) {
-        console.log("✅ [QR Scan] QR de convidado detectado!", { guestId: parsed.guestId, eventId: parsed.eventId });
-        // Navigate with guestId in URL for auto check-in
+        console.log("✅ [QR Scan] QR novo (Base64 JSON) detectado!", { guestId: parsed.guestId, eventId: parsed.eventId });
         navigate(`/confirm/${parsed.eventId}?guest=${parsed.guestId}&via=qr`);
         toast({
           title: "QR Code escaneado!",
@@ -200,8 +201,54 @@ export default function ConfirmPresence() {
         });
         return;
       }
+      
+      // Formato antigo: só tem guestId, precisa buscar eventId
+      if (parsed && parsed.guestId && parsed.isLegacyFormat) {
+        console.log("✅ [QR Scan] QR antigo (UUID) detectado, guestId:", parsed.guestId);
+        
+        // Se já estamos em um evento, usar o eventId atual
+        if (eventId) {
+          console.log("📱 [QR Scan] Usando eventId do contexto:", eventId);
+          navigate(`/confirm/${eventId}?guest=${parsed.guestId}&via=qr`);
+          toast({
+            title: "QR Code escaneado!",
+            description: "Carregando suas informações...",
+          });
+          return;
+        }
+        
+        // Se não tem eventId no contexto, buscar no banco
+        console.log("📱 [QR Scan] Buscando evento do convidado no banco...");
+        try {
+          const { data: guest, error } = await supabase
+            .from("guests")
+            .select("event_id")
+            .eq("id", parsed.guestId)
+            .single();
+            
+          if (error) throw error;
+          
+          if (guest?.event_id) {
+            console.log("✅ [QR Scan] Evento encontrado no banco:", guest.event_id);
+            navigate(`/confirm/${guest.event_id}?guest=${parsed.guestId}&via=qr`);
+            toast({
+              title: "QR Code escaneado!",
+              description: "Carregando suas informações...",
+            });
+            return;
+          }
+        } catch (error) {
+          console.error("❌ [QR Scan] Erro ao buscar convidado no banco:", error);
+          toast({
+            title: "Convidado não encontrado",
+            description: "Não foi possível encontrar o convidado com este QR Code.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
 
-      // 2) Otherwise, treat as event QR code
+      // 2) Fallback: tentar como QR de evento
       console.log("📱 [QR Scan] Não é QR de convidado, tentando extrair eventId...");
       const extractedEventId = extractEventId(scannedData);
       console.log("📱 [QR Scan] EventId extraído:", extractedEventId);
