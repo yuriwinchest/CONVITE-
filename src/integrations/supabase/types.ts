@@ -405,6 +405,7 @@ export type Database = {
           table_number: number
         }[]
       }
+      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       app_role: "admin" | "user"

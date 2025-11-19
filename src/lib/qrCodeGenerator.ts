@@ -8,7 +8,13 @@ export function generateQRCodeData(guestId: string, eventId: string): string {
     timestamp: Date.now(),
   });
   
-  return btoa(qrData); // Base64 encode for security
+  console.log("🔧 [QR Debug] Generating QR code data:", { guestId, eventId });
+  console.log("🔧 [QR Debug] JSON stringified:", qrData);
+  
+  const encoded = btoa(qrData);
+  console.log("🔧 [QR Debug] Base64 encoded:", encoded.substring(0, 50) + "...");
+  
+  return encoded; // Base64 encode for security
 }
 
 export function parseQRCodeData(qrCode: string): {
@@ -17,10 +23,15 @@ export function parseQRCodeData(qrCode: string): {
   timestamp: number;
 } | null {
   try {
+    console.log("🔍 [QR Debug] Parsing QR code:", qrCode.substring(0, 50) + "...");
     const decoded = atob(qrCode);
-    return JSON.parse(decoded);
+    console.log("🔍 [QR Debug] Decoded data:", decoded);
+    const parsed = JSON.parse(decoded);
+    console.log("🔍 [QR Debug] Parsed result:", parsed);
+    return parsed;
   } catch (error) {
-    console.error("Invalid QR code data:", error);
+    console.error("❌ [QR Debug] Failed to parse QR code:", error);
+    console.error("❌ [QR Debug] QR code value:", qrCode);
     return null;
   }
 }
