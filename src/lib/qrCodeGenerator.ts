@@ -7,50 +7,43 @@ export function generateQRCodeData(guestId: string, eventId: string): string {
     eventId,
     timestamp: Date.now(),
   });
-  
-  console.log("🔧 [QR Debug] Generating QR code data:", { guestId, eventId });
-  console.log("🔧 [QR Debug] JSON stringified:", qrData);
-  
-  const encoded = btoa(qrData);
-  console.log("🔧 [QR Debug] Base64 encoded:", encoded.substring(0, 50) + "...");
-  
-  return encoded; // Base64 encode for security
+
+  return btoa(qrData); // Base64 encode for security
 }
 
 export function parseQRCodeData(qrCode: string): {
   guestId: string;
   eventId: string;
   timestamp: number;
-  isLegacyFormat?: boolean;
 } | null {
-  console.log("🔍 [QR Debug] Parsing QR code:", qrCode.substring(0, 50) + "...");
-  
+  console.log("🔍 [parseQRCodeData] Attempting to parse QR code:", qrCode.substring(0, 50) + "...");
+
   // Tentativa 1: Formato novo (JSON Base64)
   try {
     const decoded = atob(qrCode);
-    console.log("🔍 [QR Debug] Decoded as Base64:", decoded);
+    console.log("✅ [parseQRCodeData] Successfully decoded as Base64:", decoded);
     const parsed = JSON.parse(decoded);
+
     if (parsed.guestId && parsed.eventId) {
-      console.log("✅ [QR Debug] Formato novo (Base64 JSON) detectado");
+      console.log("✅ [parseQRCodeData] New format detected with guestId and eventId");
       return parsed;
     }
   } catch (e) {
-    console.log("⚠️ [QR Debug] Não é formato novo Base64");
+    console.log("⚠️ [parseQRCodeData] Not a Base64 JSON format, trying legacy format...");
   }
-  
+
   // Tentativa 2: UUID direto (formato antigo)
   const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   if (uuidPattern.test(qrCode.trim())) {
-    console.log("✅ [QR Debug] Formato antigo (UUID direto) detectado:", qrCode.trim());
+    console.log("✅ [parseQRCodeData] Legacy UUID format detected:", qrCode.trim());
     return {
       guestId: qrCode.trim(),
-      eventId: "", // Será preenchido pelo contexto
+      eventId: "", // Will be filled by context or database lookup
       timestamp: Date.now(),
-      isLegacyFormat: true,
-    };
+    } as any;
   }
-  
-  console.error("❌ [QR Debug] Formato de QR não reconhecido");
+
+  console.error("❌ [parseQRCodeData] QR code format not recognized");
   return null;
 }
 
