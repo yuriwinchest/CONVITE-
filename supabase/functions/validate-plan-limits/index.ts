@@ -30,6 +30,33 @@ serve(async (req) => {
       throw new Error("Unauthorized");
     }
 
+    console.log("🔍 [validate-plan-limits] Checking limits for user:", user.id);
+
+    // ✅ VERIFICAR SE É ADMIN - ADMINS NÃO TÊM LIMITES
+    const { data: adminRole, error: roleError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (adminRole) {
+      console.log("✅ [validate-plan-limits] User is ADMIN - bypassing all limits");
+      return new Response(
+        JSON.stringify({
+          allowed: true,
+          reason: "admin",
+          message: "Admin users have unlimited access"
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        }
+      );
+    }
+
+    console.log("📋 [validate-plan-limits] User is not admin, checking plan limits...");
+
     const { action, eventId, guestCount } = await req.json();
 
     // Buscar assinatura do usuário
@@ -65,7 +92,7 @@ serve(async (req) => {
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
         startOfMonth.setHours(0, 0, 0, 0);
-        
+
         const { count } = await supabase
           .from("events")
           .select("*", { count: "exact", head: true })
