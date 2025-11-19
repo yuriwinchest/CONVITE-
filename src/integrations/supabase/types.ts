@@ -402,19 +402,6 @@ export type Database = {
           event_name: string
           id: string
           name: string
-          table_number: number | null
-        }[]
-      }
-      search_guest_by_name_global: {
-        Args: { p_name: string; p_limit?: number }
-        Returns: {
-          confirmed: boolean
-          event_date: string
-          event_id: string
-          event_location: string | null
-          event_name: string
-          guest_id: string
-          guest_name: string
           table_number: number
         }[]
       }

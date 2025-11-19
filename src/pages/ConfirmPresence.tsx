@@ -714,15 +714,12 @@ export default function ConfirmPresence() {
                 onChange={(e) => setGuestName(e.target.value)}
                 className={`${kioskMode ? 'text-2xl h-14' : ''}`}
               />
-              <Button onClick={handleSearch} className={`w-full ${kioskMode ? 'h-16 text-2xl' : ''}`}>
-                {searchState === "searching" ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Buscando...
-                  </>
-                ) : (
-                  "Confirmar Presença"
-                )}
+              <Button 
+                onClick={() => handleSearch()} 
+                disabled={!guestName.trim()} 
+                className={`w-full ${kioskMode ? 'h-16 text-2xl' : ''}`}
+              >
+                Confirmar Presença
               </Button>
 
               {!kioskMode && (
@@ -758,7 +755,7 @@ export default function ConfirmPresence() {
                       <QRCodeScanner
                         onScan={handleGuestQRScan}
                         isProcessing={isProcessingGuestQR}
-                        mode="guest-access"
+                        mode="checkin"
                       />
                       <Button
                         variant="secondary"
