@@ -6,40 +6,78 @@ export const useEventPhotoAccess = (eventId: string | undefined) => {
   return useQuery({
     queryKey: ["event-photo-access", eventId],
     queryFn: async () => {
-      if (!eventId) return { canUpload: false, plan: "FREE" as SubscriptionPlan };
+      console.log("🔍 [useEventPhotoAccess] Starting photo access check for eventId:", eventId);
 
-      // Verificar assinatura do usuário primeiro
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        const { data: subscription } = await supabase
-          .from("user_subscriptions")
+      if (!eventId) {
+        console.log("❌ [useEventPhotoAccess] No eventId provided");
+        return { canUpload: false, plan: "FREE" as SubscriptionPlan };
+      }
+
+      try {
+        // Verificar assinatura do usuário primeiro
+        console.log("👤 [useEventPhotoAccess] Checking user subscription...");
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+        if (userError) {
+          console.error("❌ [useEventPhotoAccess] Error getting user:", userError);
+        }
+
+        if (user) {
+          console.log("✅ [useEventPhotoAccess] User found:", user.id);
+          const { data: subscription, error: subError } = await supabase
+            .from("user_subscriptions")
+            .select("plan")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (subError) {
+            console.error("❌ [useEventPhotoAccess] Error checking subscription:", subError);
+          }
+
+          if (subscription?.plan === "PREMIUM") {
+            console.log("✅ [useEventPhotoAccess] User has PREMIUM subscription");
+            return { canUpload: true, plan: "PREMIUM" as SubscriptionPlan };
+          }
+        } else {
+          console.log("ℹ️ [useEventPhotoAccess] No authenticated user");
+        }
+
+        // Se não tem assinatura PREMIUM, verificar compra do evento
+        console.log("💳 [useEventPhotoAccess] Checking event purchases...");
+        const { data: purchase, error: purchaseError } = await supabase
+          .from("event_purchases")
           .select("plan")
-          .eq("user_id", user.id)
+          .eq("event_id", eventId)
+          .eq("payment_status", "paid")
           .maybeSingle();
 
-        if (subscription?.plan === "PREMIUM") {
-          return { canUpload: true, plan: "PREMIUM" as SubscriptionPlan };
+        if (purchaseError) {
+          console.error("❌ [useEventPhotoAccess] Error checking event purchases:", purchaseError);
+          // Se houver erro na tabela event_purchases, retornar FREE ao invés de travar
+          console.log("⚠️ [useEventPhotoAccess] Defaulting to FREE plan due to error");
+          return { canUpload: false, plan: "FREE" as SubscriptionPlan };
         }
-      }
 
-      // Se não tem assinatura PREMIUM, verificar compra do evento
-      const { data: purchase, error: purchaseError } = await supabase
-        .from("event_purchases")
-        .select("plan")
-        .eq("event_id", eventId)
-        .eq("payment_status", "paid")
-        .maybeSingle();
-
-      if (!purchaseError && purchase?.plan) {
-        const planValue = purchase.plan as string;
-        if (planValue === "PREMIUM") {
-          return { canUpload: true, plan: planValue as SubscriptionPlan };
+        if (purchase?.plan) {
+          console.log("✅ [useEventPhotoAccess] Found event purchase with plan:", purchase.plan);
+          const planValue = purchase.plan as string;
+          if (planValue === "PREMIUM") {
+            return { canUpload: true, plan: planValue as SubscriptionPlan };
+          }
+        } else {
+          console.log("ℹ️ [useEventPhotoAccess] No event purchase found");
         }
-      }
 
-      return { canUpload: false, plan: "FREE" as SubscriptionPlan };
+        console.log("📋 [useEventPhotoAccess] Defaulting to FREE plan");
+        return { canUpload: false, plan: "FREE" as SubscriptionPlan };
+      } catch (error) {
+        console.error("❌ [useEventPhotoAccess] Unexpected error:", error);
+        // Em caso de erro, retornar FREE ao invés de travar
+        return { canUpload: false, plan: "FREE" as SubscriptionPlan };
+      }
     },
     enabled: !!eventId,
+    retry: false, // Não tentar novamente em caso de erro
+    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
   });
 };
