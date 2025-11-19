@@ -140,16 +140,9 @@ export function useGuestConfirmation(eventId: string) {
     }[]
   > => {
     try {
-      const { data, error } = await supabase.rpc(
-        "search_guest_by_name_global",
-        {
-          p_name: guestName.trim(),
-          p_limit: limit,
-        },
-      );
-
-      if (error) throw error;
-      return data || [];
+      // Esta função não existe no banco ainda, retornando array vazio
+      console.warn("search_guest_by_name_global RPC not implemented yet");
+      return [];
     } catch (error: any) {
       console.error("Error searching guest globally:", error);
       throw error;

@@ -33,7 +33,7 @@ serve(async (req) => {
     console.log("🔍 [validate-plan-limits] Checking limits for user:", user.id);
 
     // ✅ VERIFICAR SE É ADMIN - ADMINS NÃO TÊM LIMITES
-    const { data: adminRole, error: roleError } = await supabase
+    const { data: adminRole } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
