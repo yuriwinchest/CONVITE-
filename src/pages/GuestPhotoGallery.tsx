@@ -38,11 +38,16 @@ export default function GuestPhotoGallery() {
     enabled: !!eventId,
   });
 
-  const { data: photoAccess, isLoading: loadingAccess } = useEventPhotoAccess(eventId);
-
   // Auto-login if guestId is in URL
   const [searchParams] = useSearchParams();
   const guestIdParam = searchParams.get("guestId");
+  const hasGuestIdInUrl = !!guestIdParam;
+
+  // Use modo de convidado se tem guestId na URL
+  const { data: photoAccess, isLoading: loadingAccess } = useEventPhotoAccess(
+    eventId,
+    hasGuestIdInUrl
+  );
 
   useEffect(() => {
     if (guestIdParam && !guestId) {
@@ -121,7 +126,34 @@ export default function GuestPhotoGallery() {
     );
   }
 
-  if (!photoAccess?.canUpload) {
+  // Se não é acesso de convidado (não tem guestId na URL) e não tem permissão, mostrar upgrade
+  if (!hasGuestIdInUrl && !photoAccess?.canUpload) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-2xl w-full">
+          <CardHeader className="text-center">
+            <Lock className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+            <CardTitle className="text-2xl">{event.name}</CardTitle>
+            <CardDescription className="text-base">
+              {format(new Date(event.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <Alert>
+              <AlertDescription className="text-center">
+                O envio de fotos não está disponível para este evento.
+                <br />
+                <strong>Recurso disponível apenas no plano Premium.</strong>
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Se é acesso de convidado mas não tem plano premium, mostrar mensagem
+  if (hasGuestIdInUrl && !photoAccess?.canUpload) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-2xl w-full">

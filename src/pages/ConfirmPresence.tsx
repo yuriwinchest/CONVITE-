@@ -143,8 +143,8 @@ export default function ConfirmPresence() {
             setSearchState("confirmed");
 
             // Generate QR Code for photos if confirmed
-            if (eventId) {
-              const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery`;
+            if (eventId && result.id) {
+              const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery?guestId=${result.id}`;
               const qrImage = await generateQRCodeImage(photosUrl);
               setPhotosQRCode(qrImage);
             }
@@ -320,8 +320,8 @@ export default function ConfirmPresence() {
           setGuestData(result);
           setSearchState("confirmed");
 
-          if (eventId) {
-            const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery`;
+          if (eventId && result.id) {
+            const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery?guestId=${result.id}`;
             const qrImage = await generateQRCodeImage(photosUrl);
             setPhotosQRCode(qrImage);
           }
@@ -353,8 +353,8 @@ export default function ConfirmPresence() {
         setGuestData({ ...result, confirmed: true });
         setSearchState("confirmed");
 
-        if (eventId) {
-          const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery`;
+        if (eventId && result.id) {
+          const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery?guestId=${result.id}`;
           const qrImage = await generateQRCodeImage(photosUrl);
           setPhotosQRCode(qrImage);
         }
@@ -401,8 +401,8 @@ export default function ConfirmPresence() {
       setSearchState("confirmed");
 
       // Gerar QR Code para galeria de fotos do convidado
-      if (eventId) {
-        const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery`;
+      if (eventId && guestData.id) {
+        const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery?guestId=${guestData.id}`;
         const qrImage = await generateQRCodeImage(photosUrl);
         setPhotosQRCode(qrImage);
       }
@@ -472,8 +472,8 @@ export default function ConfirmPresence() {
       setSearchState("confirmed");
 
       // Generate photos QR code
-      if (eventId) {
-        const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery`;
+      if (eventId && parsed.guestId) {
+        const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery?guestId=${parsed.guestId}`;
         const qrImage = await generateQRCodeImage(photosUrl);
         setPhotosQRCode(qrImage);
       }
@@ -606,8 +606,8 @@ export default function ConfirmPresence() {
           setSearchState("confirmed");
 
           // Generate photos QR code
-          if (eventId) {
-            const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery`;
+          if (eventId && guestIdFromQR) {
+            const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery?guestId=${guestIdFromQR}`;
             const qrImage = await generateQRCodeImage(photosUrl);
             setPhotosQRCode(qrImage);
           }
@@ -1180,7 +1180,7 @@ export default function ConfirmPresence() {
                         <Button
                           variant="outline"
                           className="w-full"
-                          onClick={() => navigate(`/event/${eventId}/guest-gallery`)}
+                          onClick={() => navigate(`/event/${eventId}/guest-gallery?guestId=${guestData?.id}`)}
                         >
                           <Camera className="mr-2 h-4 w-4" />
                           <span>Enviar Fotos</span>

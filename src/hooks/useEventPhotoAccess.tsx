@@ -2,11 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { SubscriptionPlan } from "./useSubscription";
 
-export const useEventPhotoAccess = (eventId: string | undefined) => {
+export const useEventPhotoAccess = (
+  eventId: string | undefined,
+  isGuestAccess: boolean = false
+) => {
   return useQuery({
-    queryKey: ["event-photo-access", eventId],
+    queryKey: ["event-photo-access", eventId, isGuestAccess],
     queryFn: async () => {
-      console.log("🔍 [useEventPhotoAccess] Starting photo access check for eventId:", eventId);
+      console.log("🔍 [useEventPhotoAccess] Starting photo access check", { eventId, isGuestAccess });
 
       if (!eventId) {
         console.log("❌ [useEventPhotoAccess] No eventId provided");
@@ -14,7 +17,32 @@ export const useEventPhotoAccess = (eventId: string | undefined) => {
       }
 
       try {
-        // Verificar assinatura do usuário primeiro
+        // Se é acesso de convidado, pular verificação de usuário autenticado
+        if (isGuestAccess) {
+          console.log("👥 [useEventPhotoAccess] Guest access mode - checking event purchase only");
+          
+          const { data: purchase, error: purchaseError } = await supabase
+            .from("event_purchases")
+            .select("plan")
+            .eq("event_id", eventId)
+            .eq("payment_status", "paid")
+            .maybeSingle();
+
+          if (purchaseError) {
+            console.error("❌ [useEventPhotoAccess] Error checking event purchases:", purchaseError);
+            return { canUpload: false, plan: "FREE" as SubscriptionPlan };
+          }
+
+          if (purchase?.plan === "PREMIUM") {
+            console.log("✅ [useEventPhotoAccess] Event has PREMIUM plan");
+            return { canUpload: true, plan: "PREMIUM" as SubscriptionPlan };
+          }
+
+          console.log("📋 [useEventPhotoAccess] Event has FREE plan");
+          return { canUpload: false, plan: "FREE" as SubscriptionPlan };
+        }
+
+        // Verificar assinatura do usuário primeiro (apenas para usuários autenticados)
         console.log("👤 [useEventPhotoAccess] Checking user subscription...");
         const { data: { user }, error: userError } = await supabase.auth.getUser();
 
