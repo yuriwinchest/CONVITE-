@@ -15,6 +15,7 @@ export function parseQRCodeData(qrCode: string): {
   guestId: string;
   eventId: string;
   timestamp: number;
+  isLegacyFormat?: boolean;
 } | null {
   console.log("🔍 [parseQRCodeData] Attempting to parse QR code:", qrCode.substring(0, 50) + "...");
 
