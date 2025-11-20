@@ -59,7 +59,7 @@ serve(async (req) => {
     const premiumPriceId = "price_1ST97TAihnYHiSyUQKzuwseJ";
 
     // Get origin from request header for dynamic URLs
-    const origin = req.headers.get("origin") || "https://zjmvpvxteixzbnjazplp.supabase.co";
+    const origin = req.headers.get("origin") || "https://hvmdogtwaxddnkwakobh.supabase.co";
     console.log("Using origin for redirect URLs:", origin);
 
     const session = await stripe.checkout.sessions.create({

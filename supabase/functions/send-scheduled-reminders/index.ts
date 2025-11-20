@@ -112,7 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
           minute: "2-digit",
         });
 
-        const frontendUrl = Deno.env.get("VITE_SUPABASE_URL") || "https://zjmvpvxteixzbnjazplp.lovable.app";
+        const frontendUrl = Deno.env.get("VITE_SUPABASE_URL") || "https://hvmdogtwaxddnkwakobh.supabase.co";
         const confirmationUrl = `${frontendUrl}/confirm/${event.id}`;
 
         // Send reminders to all guests

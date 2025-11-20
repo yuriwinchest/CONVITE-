@@ -10,6 +10,10 @@ export const useRealtimeUpdates = () => {
 
   useEffect(() => {
     // Escutar mudanças na tabela events
+    // Realtime updates disabled to prevent 403 errors with current key
+    // const eventsChannel = supabase.channel('events-changes')...
+
+    /*
     const eventsChannel = supabase
       .channel('events-changes')
       .on(
@@ -27,7 +31,6 @@ export const useRealtimeUpdates = () => {
       )
       .subscribe();
 
-    // Escutar mudanças na tabela event_purchases
     const purchasesChannel = supabase
       .channel('purchases-changes')
       .on(
@@ -45,7 +48,6 @@ export const useRealtimeUpdates = () => {
       )
       .subscribe();
 
-    // Escutar mudanças na tabela user_subscriptions
     const subscriptionsChannel = supabase
       .channel('subscriptions-changes')
       .on(
@@ -62,11 +64,12 @@ export const useRealtimeUpdates = () => {
       )
       .subscribe();
 
-    // Limpar subscriptions ao desmontar
     return () => {
       supabase.removeChannel(eventsChannel);
       supabase.removeChannel(purchasesChannel);
       supabase.removeChannel(subscriptionsChannel);
     };
+    */
+    return () => { };
   }, [queryClient]);
 };

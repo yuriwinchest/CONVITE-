@@ -31,7 +31,7 @@ function extractEventId(input: string): string | null {
     if (confirmIndex !== -1 && parts[confirmIndex + 1] && isUuid(parts[confirmIndex + 1])) return parts[confirmIndex + 1];
     const eventsIndex = parts.indexOf("events");
     if (eventsIndex !== -1 && parts[eventsIndex + 1] && isUuid(parts[eventsIndex + 1])) return parts[eventsIndex + 1];
-  } catch {}
+  } catch { }
   return null;
 }
 
@@ -51,7 +51,7 @@ export default function ConfirmPresence() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
-  
+
   const {
     searchGuest,
     confirmPresence,
@@ -66,7 +66,7 @@ export default function ConfirmPresence() {
   const viaQR = searchParams.get("via") === "qr";
   const kioskMode = searchParams.get("mode") === "kiosk";
   const prefillNameParam = searchParams.get("prefillName");
-  
+
   const [guestName, setGuestName] = useState("");
   const [searchState, setSearchState] = useState<"idle" | "searching" | "found" | "not-found" | "confirmed">("idle");
   const [guestData, setGuestData] = useState<any>(null);
@@ -139,13 +139,24 @@ export default function ConfirmPresence() {
 
         if (result) {
           if (result.confirmed) {
+            setGuestData(result);
+            setSearchState("confirmed");
+
+            // Generate QR Code for photos if confirmed
+            if (eventId) {
+              const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery`;
+              const qrImage = await generateQRCodeImage(photosUrl);
+              setPhotosQRCode(qrImage);
+            }
+
             toast({
               title: "Presença já confirmada",
               description: "Sua presença já foi confirmada anteriormente.",
             });
+          } else {
+            setGuestData(result);
+            setSearchState("found");
           }
-          setGuestData(result);
-          setSearchState("found");
         } else {
           setSearchState("not-found");
           toast({
@@ -183,14 +194,14 @@ export default function ConfirmPresence() {
   const handleQRScan = async (scannedData: string) => {
     console.log("📱 [QR Scan] Iniciando processamento do QR code");
     console.log("📱 [QR Scan] Dados escaneados:", scannedData);
-    
+
     setIsProcessingQR(true);
     try {
       // 1) Try to parse as guest QR code first
       console.log("📱 [QR Scan] Tentando parsear como QR de convidado...");
       const parsed = parseQRCodeData(scannedData);
       console.log("📱 [QR Scan] Resultado do parse:", parsed);
-      
+
       // Formato novo: tem guestId e eventId
       if (parsed && parsed.guestId && parsed.eventId) {
         console.log("✅ [QR Scan] QR novo (Base64 JSON) detectado!", { guestId: parsed.guestId, eventId: parsed.eventId });
@@ -201,11 +212,11 @@ export default function ConfirmPresence() {
         });
         return;
       }
-      
+
       // Formato antigo: só tem guestId, precisa buscar eventId
       if (parsed && parsed.guestId && parsed.isLegacyFormat) {
         console.log("✅ [QR Scan] QR antigo (UUID) detectado, guestId:", parsed.guestId);
-        
+
         // Se já estamos em um evento, usar o eventId atual
         if (eventId) {
           console.log("📱 [QR Scan] Usando eventId do contexto:", eventId);
@@ -216,7 +227,7 @@ export default function ConfirmPresence() {
           });
           return;
         }
-        
+
         // Se não tem eventId no contexto, buscar no banco
         console.log("📱 [QR Scan] Buscando evento do convidado no banco...");
         try {
@@ -225,9 +236,9 @@ export default function ConfirmPresence() {
             .select("event_id")
             .eq("id", parsed.guestId)
             .single();
-            
+
           if (error) throw error;
-          
+
           if (guest?.event_id) {
             console.log("✅ [QR Scan] Evento encontrado no banco:", guest.event_id);
             navigate(`/confirm/${guest.event_id}?guest=${parsed.guestId}&via=qr`);
@@ -302,16 +313,57 @@ export default function ConfirmPresence() {
 
     try {
       const result = await searchGuest(normalized);
-      
+
       if (result) {
+        // Se já estiver confirmado, vai direto para a tela de confirmado
         if (result.confirmed) {
+          setGuestData(result);
+          setSearchState("confirmed");
+
+          if (eventId) {
+            const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery`;
+            const qrImage = await generateQRCodeImage(photosUrl);
+            setPhotosQRCode(qrImage);
+          }
+
           toast({
             title: "Presença já confirmada",
             description: "Sua presença já foi confirmada anteriormente.",
           });
+          return;
         }
-        setGuestData(result);
-        setSearchState("found");
+
+        // Se não estiver confirmado, tenta confirmar agora (Auto-Checkin)
+        const checkInStatus = isCheckInAllowed();
+        if (!checkInStatus.allowed) {
+          // Se não puder fazer check-in (horário, etc), mostra encontrado mas avisa
+          setGuestData(result);
+          setSearchState("found");
+          toast({
+            title: "Check-in não disponível",
+            description: checkInStatus.message,
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Realiza o check-in
+        await confirmPresence(result.id);
+
+        setGuestData({ ...result, confirmed: true });
+        setSearchState("confirmed");
+
+        if (eventId) {
+          const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery`;
+          const qrImage = await generateQRCodeImage(photosUrl);
+          setPhotosQRCode(qrImage);
+        }
+
+        toast({
+          title: "✅ Presença confirmada!",
+          description: "Obrigado por confirmar. Aguardamos você no evento!",
+        });
+
       } else {
         setSearchState("not-found");
         toast({
@@ -347,14 +399,14 @@ export default function ConfirmPresence() {
     try {
       await confirmPresence(guestData.id);
       setSearchState("confirmed");
-      
+
       // Gerar QR Code para galeria de fotos do convidado
       if (eventId) {
         const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery`;
         const qrImage = await generateQRCodeImage(photosUrl);
         setPhotosQRCode(qrImage);
       }
-      
+
       toast({
         title: "✅ Presença confirmada!",
         description: "Obrigado por confirmar. Aguardamos você no evento!",
@@ -374,6 +426,7 @@ export default function ConfirmPresence() {
     setGuestData(null);
     setShowGuestQRScanner(false);
     setKioskCountdown(null);
+    setPhotosQRCode("");
   };
 
   const handleGuestQRScan = async (qrCode: string) => {
@@ -598,10 +651,10 @@ export default function ConfirmPresence() {
           <div className="flex items-center gap-3">
             <Button variant="ghost" onClick={() => navigate("/")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar
+              <span>Voltar</span>
             </Button>
           </div>
-          
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -613,8 +666,8 @@ export default function ConfirmPresence() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <QRCodeScanner 
-                onScan={handleQRScan} 
+              <QRCodeScanner
+                onScan={handleQRScan}
                 isProcessing={isProcessingQR}
                 mode="event-access"
               />
@@ -643,10 +696,10 @@ export default function ConfirmPresence() {
                     {isManualLookupLoading ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Buscando...
+                        <span>Buscando...</span>
                       </>
                     ) : (
-                      "Buscar evento"
+                      <span>Buscar evento</span>
                     )}
                   </Button>
                 </div>
@@ -663,7 +716,66 @@ export default function ConfirmPresence() {
             </CardContent>
           </Card>
         </div>
-      </div>
+
+        <Dialog
+          open={showGuestLookupDialog}
+          onOpenChange={(open) => {
+            setShowGuestLookupDialog(open);
+            if (!open) {
+              setGuestLookupMatches([]);
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Encontramos mais de um evento</DialogTitle>
+              <DialogDescription>
+                Selecione abaixo o evento correto para continuar com a confirmação de presença.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+              {guestLookupMatches.map((match) => (
+                <Button
+                  key={`${match.event_id}-${match.guest_id}`}
+                  variant="outline"
+                  className="w-full justify-between"
+                  onClick={() => handleSelectGuestMatch(match)}
+                >
+                  <div className="flex flex-col items-start text-left">
+                    <span className="font-medium">{match.event_name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {format(new Date(match.event_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      {match.event_location ? ` • ${match.event_location}` : ""}
+                    </span>
+                  </div>
+                  <div className="flex flex-col items-end text-right text-xs text-muted-foreground">
+                    <span>{match.guest_name}</span>
+                    {typeof match.table_number === "number" && (
+                      <span>Mesa {match.table_number}</span>
+                    )}
+                    {match.confirmed && (
+                      <span className="text-amber-600 dark:text-amber-400">Presença já confirmada</span>
+                    )}
+                  </div>
+                </Button>
+              ))}
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setShowGuestLookupDialog(false);
+                  setGuestLookupMatches([]);
+                }}
+              >
+                <span>Cancelar</span>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div >
     );
   }
 
@@ -683,10 +795,10 @@ export default function ConfirmPresence() {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button onClick={() => navigate("/")} variant="outline" className="w-full">
-              Voltar para o início
+              <span>Voltar para o início</span>
             </Button>
             <Button onClick={() => navigate("/confirm")} className="w-full">
-              Tentar com outro QR Code
+              <span>Tentar com outro QR Code</span>
             </Button>
             <p className="text-xs text-center text-muted-foreground">
               Se o problema continuar, peça ao organizador para enviar um novo link ou QR Code.
@@ -703,13 +815,13 @@ export default function ConfirmPresence() {
         <CardHeader className={`text-center ${kioskMode ? 'space-y-4 pb-6' : 'space-y-3 pb-8'}`}>
           {kioskMode && (
             <div className="flex justify-between items-center">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={() => toggleKioskMode(false)}
                 className="text-muted-foreground hover:text-foreground"
               >
-                Sair do modo Totem
+                <span>Sair do modo Totem</span>
               </Button>
             </div>
           )}
@@ -720,7 +832,7 @@ export default function ConfirmPresence() {
                 size="sm"
                 onClick={() => toggleKioskMode(true)}
               >
-                Ativar modo Totem
+                <span>Ativar modo Totem</span>
               </Button>
             </div>
           )}
@@ -772,12 +884,12 @@ export default function ConfirmPresence() {
                 onChange={(e) => setGuestName(e.target.value)}
                 className={`${kioskMode ? 'text-2xl h-14' : ''}`}
               />
-              <Button 
-                onClick={() => handleSearch()} 
-                disabled={!guestName.trim()} 
+              <Button
+                onClick={() => handleSearch()}
+                disabled={!guestName.trim()}
                 className={`w-full ${kioskMode ? 'h-16 text-2xl' : ''}`}
               >
-                Confirmar Presença
+                <span>Confirmar Presença</span>
               </Button>
 
               {!kioskMode && (
@@ -794,7 +906,7 @@ export default function ConfirmPresence() {
                     className="w-full mt-3"
                     onClick={() => setShowGuestQRScanner(true)}
                   >
-                    Escanear QR Code
+                    <span>Escanear QR Code</span>
                   </Button>
                 </div>
               )}
@@ -820,7 +932,7 @@ export default function ConfirmPresence() {
                         className="w-full mt-4"
                         onClick={() => setShowGuestQRScanner(false)}
                       >
-                        Cancelar
+                        <span>Cancelar</span>
                       </Button>
                     </CardContent>
                   </Card>
@@ -843,7 +955,7 @@ export default function ConfirmPresence() {
                 ortografia ou tente um nome diferente.
               </p>
               <Button variant="outline" className="w-full" onClick={handleReset}>
-                Tentar Novamente
+                <span>Tentar Novamente</span>
               </Button>
             </div>
           )}
@@ -861,11 +973,11 @@ export default function ConfirmPresence() {
                   </p>
                 )}
                 <Button onClick={handleConfirm} className={`w-full ${kioskMode ? 'h-16 text-2xl' : ''}`}>
-                  Confirmar Presença
+                  <span>Confirmar Presença</span>
                 </Button>
                 {!kioskMode && (
                   <Button variant="outline" className="w-full" onClick={handleReset}>
-                    Cancelar
+                    <span>Cancelar</span>
                   </Button>
                 )}
               </div>
@@ -890,6 +1002,25 @@ export default function ConfirmPresence() {
                     </p>
                   )}
                 </div>
+
+                {photosQRCode && (
+                  <div className="mt-6 flex flex-col items-center space-y-2">
+                    <p className={`font-medium ${kioskMode ? 'text-xl' : 'text-sm'} text-muted-foreground`}>
+                      Escaneie para ver as fotos do evento
+                    </p>
+                    <div className="bg-white p-2 rounded-lg shadow-sm border">
+                      <img src={photosQRCode} alt="QR Code para fotos" className={kioskMode ? "w-64 h-64" : "w-48 h-48"} />
+                    </div>
+                    <Button
+                      variant="secondary"
+                      className="mt-4"
+                      onClick={() => window.open(`${window.location.origin}/event/${eventId}/guest-gallery?guestId=${guestData.id}`, '_blank')}
+                    >
+                      <Camera className="mr-2 h-4 w-4" />
+                      Ver Fotos do Evento
+                    </Button>
+                  </div>
+                )}
                 {kioskMode && kioskCountdown !== null && (
                   <div className="bg-muted/50 rounded-md p-4 mt-6">
                     <p className="text-lg text-muted-foreground">
@@ -901,6 +1032,10 @@ export default function ConfirmPresence() {
                   Aguardamos você no evento! 🎉
                 </p>
               </div>
+
+              <Button onClick={handleReset} variant="outline" className="w-full">
+                <span>Voltar para o início</span>
+              </Button>
 
               {/* Show table map and photos only in non-kiosk mode */}
               {!kioskMode && (
@@ -953,7 +1088,7 @@ export default function ConfirmPresence() {
                               }}
                             >
                               <Download className="mr-2 h-4 w-4" />
-                              Baixar Mapa
+                              <span>Baixar Mapa</span>
                             </Button>
 
                             <Button
@@ -975,7 +1110,7 @@ export default function ConfirmPresence() {
                               }}
                             >
                               <ZoomIn className="mr-2 h-4 w-4" />
-                              Ver em Tela Cheia
+                              <span>Ver em Tela Cheia</span>
                             </Button>
                           </div>
                         </>
@@ -1005,7 +1140,7 @@ export default function ConfirmPresence() {
                                 });
                               }}
                             >
-                              Tentar Novamente
+                              <span>Tentar Novamente</span>
                             </Button>
                             <Button
                               variant="outline"
@@ -1015,7 +1150,7 @@ export default function ConfirmPresence() {
                                 window.open(eventDetails.table_map_url, "_blank");
                               }}
                             >
-                              Abrir em Nova Aba
+                              <span>Abrir em Nova Aba</span>
                             </Button>
                           </div>
                         </div>
@@ -1048,14 +1183,14 @@ export default function ConfirmPresence() {
                           onClick={() => navigate(`/event/${eventId}/guest-gallery`)}
                         >
                           <Camera className="mr-2 h-4 w-4" />
-                          Enviar Fotos
+                          <span>Enviar Fotos</span>
                         </Button>
                       </div>
                     </div>
                   )}
 
                   <Button onClick={() => navigate("/")} variant="outline" className="w-full">
-                    Voltar para o início
+                    <span>Voltar para o início</span>
                   </Button>
                 </div>
               )}
@@ -1118,11 +1253,11 @@ export default function ConfirmPresence() {
                 setGuestLookupMatches([]);
               }}
             >
-              Cancelar
+              <span>Cancelar</span>
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 }

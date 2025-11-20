@@ -21,7 +21,7 @@ export function QRCodeScanner({ onScan, isProcessing, mode = "checkin" }: QRCode
 
   const startScanning = async () => {
     if (isTransitioning || isScanning) return;
-    
+
     setIsTransitioning(true);
     try {
       if (!scannerRef.current) {
@@ -37,7 +37,7 @@ export function QRCodeScanner({ onScan, isProcessing, mode = "checkin" }: QRCode
         async (decodedText) => {
           // Prevent duplicate scans
           if (decodedText === lastScanned) return;
-          
+
           setLastScanned(decodedText);
           setScanResult(null);
 
@@ -70,7 +70,7 @@ export function QRCodeScanner({ onScan, isProcessing, mode = "checkin" }: QRCode
 
   const stopScanning = async () => {
     if (isTransitioning || !scannerRef.current || !isScanning) return;
-    
+
     setIsTransitioning(true);
     try {
       await scannerRef.current.stop();
@@ -93,10 +93,10 @@ export function QRCodeScanner({ onScan, isProcessing, mode = "checkin" }: QRCode
     };
   }, [isScanning, isTransitioning]);
 
-  const title = mode === "event-access" 
-    ? "Escanear QR Code do Evento" 
+  const title = mode === "event-access"
+    ? "Escanear QR Code do Evento"
     : "Scanner de QR Code";
-  
+
   const description = mode === "event-access"
     ? "Escaneie o QR Code fornecido pelo organizador do evento"
     : "Posicione o QR code do convidado dentro da área de leitura";
@@ -140,13 +140,13 @@ export function QRCodeScanner({ onScan, isProcessing, mode = "checkin" }: QRCode
 
         <div className="flex gap-2">
           {!isScanning ? (
-            <Button 
-              onClick={startScanning} 
-              className="w-full" 
+            <Button
+              onClick={startScanning}
+              className="w-full"
               disabled={isProcessing || isTransitioning}
             >
               <Camera className="mr-2 h-4 w-4" />
-              {isTransitioning ? "Iniciando..." : "Iniciar Scanner"}
+              {isTransitioning ? <span>Iniciando...</span> : <span>Iniciar Scanner</span>}
             </Button>
           ) : (
             <Button
@@ -156,7 +156,7 @@ export function QRCodeScanner({ onScan, isProcessing, mode = "checkin" }: QRCode
               disabled={isProcessing || isTransitioning}
             >
               <CameraOff className="mr-2 h-4 w-4" />
-              {isTransitioning ? "Parando..." : "Parar Scanner"}
+              {isTransitioning ? <span>Parando...</span> : <span>Parar Scanner</span>}
             </Button>
           )}
         </div>

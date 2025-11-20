@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -25,7 +25,7 @@ export default function GuestPhotoGallery() {
     queryKey: ["event", eventId],
     queryFn: async () => {
       if (!eventId) throw new Error("Event ID is required");
-      
+
       const { data, error } = await supabase
         .from("events")
         .select("*")
@@ -39,6 +39,16 @@ export default function GuestPhotoGallery() {
   });
 
   const { data: photoAccess, isLoading: loadingAccess } = useEventPhotoAccess(eventId);
+
+  // Auto-login if guestId is in URL
+  const [searchParams] = useSearchParams();
+  const guestIdParam = searchParams.get("guestId");
+
+  useEffect(() => {
+    if (guestIdParam && !guestId) {
+      setGuestId(guestIdParam);
+    }
+  }, [guestIdParam, guestId]);
 
   const handleAccessGallery = async (e: React.FormEvent) => {
     e.preventDefault();

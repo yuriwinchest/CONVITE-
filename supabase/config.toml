@@ -1,4 +1,4 @@
-project_id = "zjmvpvxteixzbnjazplp"
+project_id = "hvmdogtwaxddnkwakobh"
 
 [functions.send-scheduled-reminders]
 verify_jwt = false

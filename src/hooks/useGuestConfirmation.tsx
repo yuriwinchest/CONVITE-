@@ -35,7 +35,15 @@ export function useGuestConfirmation(eventId: string) {
       setIsLoadingEvent(false);
       return;
     }
-    
+
+    // Validate UUID format before fetching
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+    if (!uuidRegex.test(eventId)) {
+      console.error("Invalid event ID format:", eventId);
+      setIsLoadingEvent(false);
+      return;
+    }
+
     fetchEventDetails();
   }, [eventId]);
 
@@ -45,7 +53,7 @@ export function useGuestConfirmation(eventId: string) {
         .rpc("get_public_event_details", { p_event_id: eventId });
 
       if (error) throw error;
-      
+
       if (data && data.length > 0) {
         console.log("Event details loaded:", data[0]);
         console.log("Table map URL:", data[0].table_map_url);
@@ -79,7 +87,7 @@ export function useGuestConfirmation(eventId: string) {
       if (data && data.length > 0) {
         return data[0];
       }
-      
+
       return null;
     } catch (error: any) {
       console.error("Error searching guest:", error);
@@ -140,9 +148,34 @@ export function useGuestConfirmation(eventId: string) {
     }[]
   > => {
     try {
-      // Esta função não existe no banco ainda, retornando array vazio
-      console.warn("search_guest_by_name_global RPC not implemented yet");
-      return [];
+      console.log("🔍 Searching globally for:", guestName);
+
+      // @ts-ignore - RPC not yet in types
+      const { data, error } = await supabase
+        .rpc("search_guest_globally", {
+          query_name: guestName,
+          match_limit: limit
+        });
+
+      if (error) {
+        console.error("❌ Error in global search query:", error);
+        throw error;
+      }
+
+      console.log("✅ Global search results:", data);
+
+      if (!data) return [];
+
+      return (data as any[]).map((guest: any) => ({
+        guest_id: guest.guest_id,
+        guest_name: guest.guest_name,
+        event_id: guest.event_id,
+        event_name: guest.event_name,
+        event_date: guest.event_date,
+        event_location: guest.event_location,
+        table_number: guest.table_number,
+        confirmed: guest.confirmed,
+      }));
     } catch (error: any) {
       console.error("Error searching guest globally:", error);
       throw error;
@@ -156,13 +189,22 @@ export function useGuestConfirmation(eventId: string) {
 
     const now = new Date().getTime();
     const eventTime = new Date(eventDetails.date).getTime();
-    
+
     if (now < eventTime) {
       const timeUntil = eventTime - now;
-      return { 
-        allowed: false, 
+      return {
+        allowed: false,
         message: `Check-in disponível apenas a partir de ${format(new Date(eventDetails.date), "PPP 'às' HH:mm", { locale: ptBR })}`,
-        timeUntil 
+        timeUntil
+      };
+    }
+
+    // Check if event has ended (3 hours after start)
+    const threeHoursInMs = 3 * 60 * 60 * 1000;
+    if (now > eventTime + threeHoursInMs) {
+      return {
+        allowed: false,
+        message: "O período de check-in para este evento já encerrou (limite de 3 horas após o início).",
       };
     }
 

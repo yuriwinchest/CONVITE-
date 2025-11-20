@@ -13,5 +13,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-  }
+  },
+  // Realtime is enabled by default, but without a valid JWT (anon key), 
+  // it may throw 403 errors. These can be ignored if not using Realtime features.
 });

@@ -40,6 +40,7 @@ export function parseQRCodeData(qrCode: string): {
       guestId: qrCode.trim(),
       eventId: "", // Will be filled by context or database lookup
       timestamp: Date.now(),
+      isLegacyFormat: true,
     } as any;
   }
 

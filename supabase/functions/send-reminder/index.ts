@@ -74,7 +74,7 @@ const handler = async (req: Request): Promise<Response> => {
         minute: "2-digit",
       });
 
-      const frontendUrl = Deno.env.get("VITE_SUPABASE_URL") || "https://zjmvpvxteixzbnjazplp.lovable.app";
+      const frontendUrl = Deno.env.get("VITE_SUPABASE_URL") || "https://hvmdogtwaxddnkwakobh.supabase.co";
       const confirmationUrl = `${frontendUrl}/confirm/${eventId}`;
 
       // Send emails in parallel
@@ -180,7 +180,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.log(`Bulk reminders completed. Success: ${results.success.length}, Failed: ${results.failed.length}`);
 
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           success: true,
           message: "Lembretes enviados em massa",
           results
@@ -235,7 +235,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     // Generate confirmation link to frontend
-    const frontendUrl = Deno.env.get("VITE_SUPABASE_URL") || "https://zjmvpvxteixzbnjazplp.lovable.app";
+    const frontendUrl = Deno.env.get("VITE_SUPABASE_URL") || "https://hvmdogtwaxddnkwakobh.supabase.co";
     const confirmationUrl = `${frontendUrl}/confirm/${eventId}`;
 
     const emailResponse = await resend.emails.send({
@@ -317,9 +317,9 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Reminder sent successfully:", emailResponse);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: true,
-        message: "Lembrete enviado com sucesso" 
+        message: "Lembrete enviado com sucesso"
       }),
       {
         status: 200,
@@ -332,15 +332,15 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Error sending reminder:", error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: false,
-        error: error.message 
+        error: error.message
       }),
       {
         status: 500,
-        headers: { 
-          "Content-Type": "application/json", 
-          ...corsHeaders 
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders
         },
       }
     );

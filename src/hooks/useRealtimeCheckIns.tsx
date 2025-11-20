@@ -15,6 +15,8 @@ export const useRealtimeCheckIns = (eventId: string | undefined) => {
     console.log(`🔔 Iniciando escuta de check-ins em tempo real para evento: ${eventId}`);
 
     // Subscribe to realtime changes on guests table
+    // Realtime check-ins disabled to prevent 403 errors with current key
+    /*
     const channel = supabase
       .channel(`guests-checkin-${eventId}`)
       .on(
@@ -57,5 +59,7 @@ export const useRealtimeCheckIns = (eventId: string | undefined) => {
       console.log(`🔕 Removendo escuta de check-ins para evento: ${eventId}`);
       supabase.removeChannel(channel);
     };
+    */
+    return () => { };
   }, [eventId]);
 };
