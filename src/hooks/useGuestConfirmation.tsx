@@ -150,29 +150,42 @@ export function useGuestConfirmation(eventId: string) {
     try {
       console.log("🔍 Searching globally for:", guestName);
 
-      // @ts-ignore - RPC not yet in types
-      const { data, error } = await supabase
-        .rpc("search_guest_globally", {
-          query_name: guestName,
-          match_limit: limit
-        });
+      // Busca simplificada usando joins
+      const { data: guests, error } = await supabase
+        .from("guests")
+        .select(`
+          id,
+          name,
+          table_number,
+          confirmed,
+          event_id,
+          events!inner (
+            id,
+            name,
+            date,
+            location
+          )
+        `)
+        .ilike("name", `%${guestName}%`)
+        .order("name")
+        .limit(limit);
 
       if (error) {
         console.error("❌ Error in global search query:", error);
         throw error;
       }
 
-      console.log("✅ Global search results:", data);
+      console.log("✅ Global search results:", guests);
 
-      if (!data) return [];
+      if (!guests) return [];
 
-      return (data as any[]).map((guest: any) => ({
-        guest_id: guest.guest_id,
-        guest_name: guest.guest_name,
+      return guests.map((guest: any) => ({
+        guest_id: guest.id,
+        guest_name: guest.name,
         event_id: guest.event_id,
-        event_name: guest.event_name,
-        event_date: guest.event_date,
-        event_location: guest.event_location,
+        event_name: guest.events.name,
+        event_date: guest.events.date,
+        event_location: guest.events.location,
         table_number: guest.table_number,
         confirmed: guest.confirmed,
       }));
