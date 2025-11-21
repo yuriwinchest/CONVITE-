@@ -26,14 +26,20 @@ export default function GuestPhotoGallery() {
     queryFn: async () => {
       if (!eventId) throw new Error("Event ID is required");
 
-      const { data, error } = await supabase
-        .from("events")
-        .select("*")
-        .eq("id", eventId)
-        .single();
+      console.log("🔍 Buscando detalhes públicos do evento:", eventId);
 
-      if (error) throw error;
-      return data;
+      const { data, error } = await supabase
+        .rpc("get_public_event_details", { p_event_id: eventId });
+
+      if (error) {
+        console.error("❌ Erro ao carregar detalhes públicos do evento:", error);
+        throw error;
+      }
+
+      console.log("✅ Detalhes do evento carregados:", data);
+
+      // A função retorna um array, pegamos o primeiro elemento
+      return data && data.length > 0 ? data[0] : null;
     },
     enabled: !!eventId,
   });
