@@ -17,6 +17,40 @@ export const useEventPhotoAccess = (
       }
 
       try {
+        // Primeiro, verificar se o criador do evento é admin (aplica tanto para guest quanto user autenticado)
+        console.log("🔍 [useEventPhotoAccess] Checking if event creator is admin...");
+        const { data: event, error: eventError } = await supabase
+          .from("events")
+          .select("user_id")
+          .eq("id", eventId)
+          .maybeSingle();
+
+        if (eventError) {
+          console.error("❌ [useEventPhotoAccess] Error fetching event:", eventError);
+        }
+
+        if (event?.user_id) {
+          // Verificar se o criador do evento tem role de admin
+          let isAdminRole = false;
+          try {
+            const { data: adminRole } = await supabase
+              .from("user_roles" as any)
+              .select("role")
+              .eq("user_id", event.user_id)
+              .eq("role", "admin")
+              .maybeSingle();
+            
+            isAdminRole = !!adminRole;
+            
+            if (isAdminRole) {
+              console.log("✅ [useEventPhotoAccess] Event creator has admin role - granting PREMIUM access");
+              return { canUpload: true, plan: "PREMIUM" as SubscriptionPlan };
+            }
+          } catch (error) {
+            console.error("❌ [useEventPhotoAccess] Error checking admin role:", error);
+          }
+        }
+
         // Se é acesso de convidado, pular verificação de usuário autenticado
         if (isGuestAccess) {
           console.log("👥 [useEventPhotoAccess] Guest access mode - checking event purchase only");
