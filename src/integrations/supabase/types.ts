@@ -373,6 +373,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_event_photo_access: { Args: { p_event_id: string }; Returns: Json }
       confirm_guest_presence: { Args: { p_guest_id: string }; Returns: Json }
       get_public_event_details: {
         Args: { p_event_id: string }
