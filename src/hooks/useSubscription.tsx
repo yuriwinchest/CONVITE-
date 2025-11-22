@@ -75,6 +75,33 @@ export const useSubscription = () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { allowed: false, message: "Usuário não autenticado" };
 
+    const email = user.email?.toLowerCase() ?? "";
+    const isDaniAdminEmail = email === "dani@danibaidaeventos.com.br";
+
+    // Verificar também se o usuário possui papel de admin
+    let isAdminRole = false;
+    try {
+      const { data: adminRole, error: adminError } = await supabase
+        .from("user_roles" as any)
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (adminError) {
+        console.error("Error checking admin role:", adminError);
+      }
+
+      isAdminRole = !!adminRole;
+    } catch (error) {
+      console.error("Unexpected error checking admin role:", error);
+    }
+
+    if (isDaniAdminEmail || isAdminRole) {
+      // Dani (email admin) ou usuários com papel admin: sem limite de criação de eventos
+      return { allowed: true };
+    }
+
     const limit = getEventLimit();
     if (limit === Infinity) return { allowed: true };
 
