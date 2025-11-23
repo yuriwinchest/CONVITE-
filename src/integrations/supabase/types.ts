@@ -386,6 +386,16 @@ export type Database = {
           table_map_url: string
         }[]
       }
+      guest_upload_photo: {
+        Args: {
+          p_event_id: string
+          p_file_name: string
+          p_file_size: number
+          p_guest_id: string
+          p_photo_url: string
+        }
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

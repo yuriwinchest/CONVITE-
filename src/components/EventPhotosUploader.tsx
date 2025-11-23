@@ -155,17 +155,19 @@ export const EventPhotosUploader = ({
           .from("event-photos")
           .getPublicUrl(fileName);
 
-        const { error: dbError } = await supabase
-          .from("event_photos")
-          .insert({
-            event_id: eventId,
-            guest_id: guestId || null,
-            photo_url: urlData.publicUrl,
-            file_name: photo.file.name,
-            file_size: photo.file.size,
+        const { data: photoId, error: dbError } = await supabase
+          .rpc("guest_upload_photo", {
+            p_event_id: eventId,
+            p_guest_id: guestId || null,
+            p_photo_url: urlData.publicUrl,
+            p_file_name: photo.file.name,
+            p_file_size: photo.file.size,
           });
 
-        if (dbError) throw dbError;
+        if (dbError) {
+          console.error("Error uploading photo to database:", dbError);
+          throw dbError;
+        }
 
         setUploadProgress(((index + 1) / photos.length) * 100);
       });
@@ -181,9 +183,18 @@ export const EventPhotosUploader = ({
       setExistingPhotosCount((prev) => prev + photos.length);
       onUploadComplete?.();
     } catch (error: any) {
+      console.error("Upload error details:", error);
+      
+      let errorMessage = "Não foi possível enviar as fotos.";
+      if (error.message?.includes("Guest has not checked in yet")) {
+        errorMessage = "Você precisa fazer check-in antes de enviar fotos.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Erro ao enviar fotos",
-        description: error.message || "Não foi possível enviar as fotos.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
