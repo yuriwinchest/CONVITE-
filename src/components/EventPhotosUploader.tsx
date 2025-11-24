@@ -137,10 +137,47 @@ export const EventPhotosUploader = ({
   const uploadPhotos = async () => {
     if (photos.length === 0) return;
 
-    setUploading(true);
-    setUploadProgress(0);
-
+    // Verificar check-in antes de iniciar qualquer upload
     try {
+      if (!guestId) {
+        toast({
+          title: "Check-in necessário",
+          description: "Você precisa fazer check-in no evento antes de enviar fotos.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { data: verifyData, error: verifyError } = await supabase.rpc(
+        "verify_guest_checkin",
+        {
+          p_guest_id: guestId,
+          p_event_id: eventId,
+        }
+      );
+
+      if (verifyError) {
+        toast({
+          title: "Erro ao verificar check-in",
+          description: "Não foi possível validar suas informações.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const verifyResult = verifyData as any;
+      if (!verifyResult?.success || !verifyResult?.guest?.has_checked_in) {
+        toast({
+          title: "Check-in necessário",
+          description: "Você precisa fazer check-in no evento antes de enviar fotos.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setUploading(true);
+      setUploadProgress(0);
+
       const uploadPromises = photos.map(async (photo, index) => {
         const fileExt = photo.file.name.split(".").pop();
         const fileName = `${eventId}/${crypto.randomUUID()}.${fileExt}`;
