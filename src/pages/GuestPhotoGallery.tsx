@@ -146,14 +146,27 @@ export default function GuestPhotoGallery() {
       if (!rpcError && Array.isArray(rpcData)) {
         guests = rpcData as any[];
       } else {
+        const nameInput = name.trim();
+        const normalizedInput = nameInput
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase();
+
         const { data: directData, error: directError } = await supabase
           .from("guests")
           .select("id, name, checked_in_at, email")
           .eq("event_id", eventId!)
-          .ilike("name", `%${name.trim()}%`);
+          .ilike("name", `%${nameInput}%`);
 
         if (directError) throw directError;
-        guests = directData || [];
+        const preGuests = directData || [];
+        guests = preGuests.filter((g) => {
+          const gn = (g.name || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+          return gn.includes(normalizedInput);
+        });
       }
 
       if (guests.length === 0) {
