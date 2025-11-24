@@ -302,6 +302,8 @@ export const EventPhotosUploader = ({
             multiple
             onChange={handleFileSelect}
             className="hidden"
+            aria-label="Selecionar fotos para upload"
+            title="Selecionar fotos para upload"
           />
           <p className="text-xs text-muted-foreground mt-4">
             Formatos aceitos: JPG, PNG, WEBP (máx. 10MB por foto)
