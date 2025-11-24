@@ -56,21 +56,23 @@ export default function GuestPhotoGallery() {
   );
 
   useEffect(() => {
-    if (guestIdParam && !guestId) {
+    if (guestIdParam) {
       setGuestId(guestIdParam);
     }
-  }, [guestIdParam, guestId]);
+  }, [guestIdParam]);
 
   // Validar check-in quando guestId vem da URL
+  const [verificationDone, setVerificationDone] = useState(false);
+
   useEffect(() => {
+    if (verificationDone) return;
     if (guestIdParam && guestId && eventId) {
       const verifyCheckIn = async () => {
         try {
-          const { data, error } = await supabase
-            .rpc("verify_guest_checkin", {
-              p_guest_id: guestId,
-              p_event_id: eventId
-            });
+          const { data, error } = await supabase.rpc("verify_guest_checkin", {
+            p_guest_id: guestId,
+            p_event_id: eventId,
+          });
 
           if (error) {
             console.error("Erro ao verificar check-in:", error);
@@ -79,33 +81,36 @@ export default function GuestPhotoGallery() {
               description: "Não foi possível validar suas informações.",
               variant: "destructive",
             });
+            setVerificationDone(true);
             setGuestId(null);
             return;
           }
 
-          // Parse resposta da RPC
           const result = data as any;
 
-          // Verificar resposta da RPC
           if (!result?.success) {
             toast({
               title: "Erro ao verificar check-in",
               description: "Convidado não encontrado.",
               variant: "destructive",
             });
+            setVerificationDone(true);
             setGuestId(null);
             return;
           }
 
-          // Verificar se fez check-in
           if (!result.guest?.has_checked_in) {
             toast({
               title: "Check-in necessário",
               description: "Você precisa fazer check-in no evento antes de enviar fotos.",
               variant: "destructive",
             });
+            setVerificationDone(true);
             setGuestId(null);
+            return;
           }
+
+          setVerificationDone(true);
         } catch (err) {
           console.error("Exceção ao verificar check-in:", err);
           toast({
@@ -113,13 +118,14 @@ export default function GuestPhotoGallery() {
             description: "Ocorreu um erro inesperado.",
             variant: "destructive",
           });
+          setVerificationDone(true);
           setGuestId(null);
         }
       };
 
       verifyCheckIn();
     }
-  }, [guestIdParam, guestId, eventId, toast]);
+  }, [guestIdParam, guestId, eventId, toast, verificationDone]);
 
   const handleAccessGallery = async (e: React.FormEvent) => {
     e.preventDefault();

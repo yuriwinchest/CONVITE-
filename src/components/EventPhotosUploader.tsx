@@ -177,7 +177,7 @@ export const EventPhotosUploader = ({
         return;
       }
 
-      const verifyResult = verifyData as VerifyCheckinResult;
+      const verifyResult = verifyData as unknown as VerifyCheckinResult;
       if (!verifyResult?.success || !verifyResult?.guest?.has_checked_in) {
         toast({
           title: "Check-in necessário",
