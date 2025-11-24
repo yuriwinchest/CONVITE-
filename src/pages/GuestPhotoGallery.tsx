@@ -133,16 +133,28 @@ export default function GuestPhotoGallery() {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .rpc("search_guests_by_name", {
+      let guests: any[] = [];
+      const { data: rpcData, error: rpcError } = await supabase.rpc(
+        "search_guests_by_name",
+        {
           p_event_id: eventId!,
           p_name: name.trim(),
           p_limit: 10,
-        });
+        }
+      );
 
-      if (error) throw error;
+      if (!rpcError && Array.isArray(rpcData)) {
+        guests = rpcData as any[];
+      } else {
+        const { data: directData, error: directError } = await supabase
+          .from("guests")
+          .select("id, name, checked_in_at, email")
+          .eq("event_id", eventId!)
+          .ilike("name", `%${name.trim()}%`);
 
-      const guests = (data as any[]) || [];
+        if (directError) throw directError;
+        guests = directData || [];
+      }
 
       if (guests.length === 0) {
         toast({
