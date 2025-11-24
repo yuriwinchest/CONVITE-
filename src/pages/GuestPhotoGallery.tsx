@@ -134,14 +134,15 @@ export default function GuestPhotoGallery() {
 
     try {
       const { data, error } = await supabase
-        .from("guests")
-        .select("id, name, checked_in_at, email")
-        .eq("event_id", eventId!)
-        .ilike("name", `%${name.trim()}%`);
+        .rpc("search_guests_by_name", {
+          p_event_id: eventId!,
+          p_name: name.trim(),
+          p_limit: 10,
+        });
 
       if (error) throw error;
 
-      const guests = data || [];
+      const guests = (data as any[]) || [];
 
       if (guests.length === 0) {
         toast({
