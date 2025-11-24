@@ -212,12 +212,12 @@ export function useGuestConfirmation(eventId: string) {
       };
     }
 
-    // Check if event has ended (3 hours after start)
-    const threeHoursInMs = 3 * 60 * 60 * 1000;
-    if (now > eventTime + threeHoursInMs) {
+    // Check if event has ended (8 hours after start)
+    const eightHoursInMs = 8 * 60 * 60 * 1000;
+    if (now > eventTime + eightHoursInMs) {
       return {
         allowed: false,
-        message: "O período de check-in para este evento já encerrou (limite de 3 horas após o início).",
+        message: "O período de check-in para este evento já encerrou (limite de 8 horas após o início).",
       };
     }
 
