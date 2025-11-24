@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useGuestConfirmation } from "@/hooks/useGuestConfirmation";
@@ -1177,14 +1178,24 @@ export default function ConfirmPresence() {
                             className="w-48 h-48 border-2 border-border rounded-lg p-2 bg-white"
                           />
                         </div>
-                        <Button
-                          variant="outline"
-                          className="w-full"
-                          onClick={() => navigate(`/event/${eventId}/guest-gallery?guestId=${guestData?.id}`)}
-                        >
-                          <Camera className="mr-2 h-4 w-4" />
-                          <span>Enviar Fotos</span>
-                        </Button>
+                        {guestData?.checked_in_at && (
+                          <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() => navigate(`/event/${eventId}/guest-gallery?guestId=${guestData?.id}`)}
+                          >
+                            <Camera className="mr-2 h-4 w-4" />
+                            <span>Enviar Fotos</span>
+                          </Button>
+                        )}
+
+                        {!guestData?.checked_in_at && (
+                          <Alert>
+                            <AlertDescription>
+                              Você poderá enviar fotos após fazer check-in no evento.
+                            </AlertDescription>
+                          </Alert>
+                        )}
                       </div>
                     </div>
                   )}
