@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, ChangeEvent, DragEvent } from "react";
 import { Upload, X, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +17,17 @@ interface PhotoPreview {
   id: string;
   file: File;
   preview: string;
+}
+
+interface VerifyCheckinResult {
+  success: boolean;
+  error?: string;
+  guest?: {
+    id: string;
+    name: string;
+    checked_in_at: string | null;
+    has_checked_in: boolean;
+  };
 }
 
 export const EventPhotosUploader = ({
@@ -165,7 +177,7 @@ export const EventPhotosUploader = ({
         return;
       }
 
-      const verifyResult = verifyData as any;
+      const verifyResult = verifyData as VerifyCheckinResult;
       if (!verifyResult?.success || !verifyResult?.guest?.has_checked_in) {
         toast({
           title: "Check-in necessário",
@@ -219,16 +231,18 @@ export const EventPhotosUploader = ({
       setPhotos([]);
       setExistingPhotosCount((prev) => prev + photos.length);
       onUploadComplete?.();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Upload error details:", error);
-      
+
       let errorMessage = "Não foi possível enviar as fotos.";
-      if (error.message?.includes("Guest has not checked in yet")) {
-        errorMessage = "Você precisa fazer check-in antes de enviar fotos.";
-      } else if (error.message) {
-        errorMessage = error.message;
+      if (error instanceof Error) {
+        if (error.message.includes("Guest has not checked in yet")) {
+          errorMessage = "Você precisa fazer check-in antes de enviar fotos.";
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
       }
-      
+
       toast({
         title: "Erro ao enviar fotos",
         description: errorMessage,
@@ -281,6 +295,7 @@ export const EventPhotosUploader = ({
             Selecionar Fotos
           </Button>
           <input
+            id="photo-file-input"
             ref={fileInputRef}
             type="file"
             accept="image/jpeg,image/png,image/webp"
@@ -344,6 +359,8 @@ export const EventPhotosUploader = ({
           </div>
         </>
       )}
+      {/* Acessibilidade: fornecer label para o input de arquivo */}
+      <Label htmlFor="photo-file-input" className="sr-only">Selecionar Fotos</Label>
     </div>
   );
 };
