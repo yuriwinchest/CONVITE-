@@ -61,6 +61,41 @@ export default function GuestPhotoGallery() {
     }
   }, [guestIdParam, guestId]);
 
+  // Validar check-in quando guestId vem da URL
+  useEffect(() => {
+    if (guestIdParam && guestId) {
+      const verifyCheckIn = async () => {
+        const { data: guest, error } = await supabase
+          .from("guests")
+          .select("id, name, checked_in_at")
+          .eq("id", guestId)
+          .eq("event_id", eventId!)
+          .maybeSingle();
+
+        if (error || !guest) {
+          toast({
+            title: "Erro ao verificar check-in",
+            description: "Não foi possível validar suas informações.",
+            variant: "destructive",
+          });
+          setGuestId(null);
+          return;
+        }
+
+        if (!guest.checked_in_at) {
+          toast({
+            title: "Check-in necessário",
+            description: "Você precisa fazer check-in no evento antes de enviar fotos.",
+            variant: "destructive",
+          });
+          setGuestId(null);
+        }
+      };
+
+      verifyCheckIn();
+    }
+  }, [guestIdParam, guestId, eventId]);
+
   const handleAccessGallery = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
