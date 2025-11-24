@@ -417,6 +417,10 @@ export type Database = {
         }[]
       }
       unaccent: { Args: { "": string }; Returns: string }
+      verify_guest_checkin: {
+        Args: { p_event_id: string; p_guest_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"
