@@ -10,16 +10,17 @@ import { EventPhotosUploader } from "@/components/EventPhotosUploader";
 import { EventPhotoGallery } from "@/components/EventPhotoGallery";
 import { useEventPhotoAccess } from "@/hooks/useEventPhotoAccess";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Camera, Lock, Mail } from "lucide-react";
+import { Loader2, Camera, Lock, User } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function GuestPhotoGallery() {
   const { eventId } = useParams<{ eventId: string }>();
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [guestId, setGuestId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [nameMatches, setNameMatches] = useState<any[]>([]);
 
   const { data: event, isLoading: loadingEvent } = useQuery({
     queryKey: ["event", eventId],
@@ -132,23 +133,35 @@ export default function GuestPhotoGallery() {
     setLoading(true);
 
     try {
-      const { data: guest, error } = await supabase
+      const { data, error } = await supabase
         .from("guests")
-        .select("id, name, checked_in_at")
+        .select("id, name, checked_in_at, email")
         .eq("event_id", eventId!)
-        .eq("email", email.trim().toLowerCase())
-        .maybeSingle();
+        .ilike("name", `%${name.trim()}%`);
 
       if (error) throw error;
 
-      if (!guest) {
+      const guests = data || [];
+
+      if (guests.length === 0) {
         toast({
           title: "Convidado não encontrado",
-          description: "Verifique se o email está correto.",
+          description: "Verifique se o nome está correto.",
           variant: "destructive",
         });
         return;
       }
+
+      if (guests.length > 1) {
+        setNameMatches(guests);
+        toast({
+          title: "Vários convidados encontrados",
+          description: "Selecione seu nome na lista abaixo.",
+        });
+        return;
+      }
+
+      const guest = guests[0];
 
       if (!guest.checked_in_at) {
         toast({
@@ -159,6 +172,7 @@ export default function GuestPhotoGallery() {
         return;
       }
 
+      setNameMatches([]);
       setGuestId(guest.id);
       toast({
         title: "Bem-vindo!",
@@ -264,21 +278,21 @@ export default function GuestPhotoGallery() {
           <CardContent>
             <form onSubmit={handleAccessGallery} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email cadastrado</Label>
+                <Label htmlFor="guest-name">Nome do convidado</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="seu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="guest-name"
+                    type="text"
+                    placeholder="Seu nome completo"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     className="pl-10"
                     required
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Digite o email que você usou para confirmar presença
+                  Digite o nome usado para confirmar presença
                 </p>
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
@@ -292,6 +306,33 @@ export default function GuestPhotoGallery() {
                 )}
               </Button>
             </form>
+            {nameMatches.length > 1 && (
+              <div className="mt-4 space-y-2">
+                {nameMatches.map((m) => (
+                  <Button
+                    key={m.id}
+                    variant="outline"
+                    className="w-full justify-between"
+                    onClick={() => {
+                      if (!m.checked_in_at) {
+                        toast({
+                          title: "Check-in necessário",
+                          description: "Você precisa fazer check-in no evento antes de enviar fotos.",
+                          variant: "destructive",
+                        });
+                        return;
+                      }
+                      setGuestId(m.id);
+                      setNameMatches([]);
+                      toast({ title: "Bem-vindo!", description: `Olá ${m.name}, acesse sua galeria.` });
+                    }}
+                  >
+                    <span className="text-sm">{m.name}</span>
+                    {m.email && <span className="text-xs text-muted-foreground">{m.email}</span>}
+                  </Button>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
