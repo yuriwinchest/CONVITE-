@@ -134,39 +134,29 @@ export default function GuestPhotoGallery() {
 
     try {
       let guests: any[] = [];
-      const { data: rpcData, error: rpcError } = await supabase.rpc(
-        "search_guest_by_name",
-        {
-          p_event_id: eventId!,
-          p_name: name.trim(),
-        }
-      );
+      const nameInput = name.trim();
+      const normalizedInput = nameInput
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
 
-      if (!rpcError && Array.isArray(rpcData)) {
-        guests = rpcData as any[];
-      } else {
-        const nameInput = name.trim();
-        const normalizedInput = nameInput
+      const { data: directData, error: directError } = await supabase
+        .from("guests")
+        .select("id, name, checked_in_at, email")
+        .eq("event_id", eventId!)
+        .ilike("name", `%${nameInput}%`)
+        .limit(10);
+
+      if (directError) throw directError;
+
+      const preGuests = directData || [];
+      guests = preGuests.filter((g) => {
+        const gn = (g.name || "")
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "")
           .toLowerCase();
-
-        const { data: directData, error: directError } = await supabase
-          .from("guests")
-          .select("id, name, checked_in_at, email")
-          .eq("event_id", eventId!)
-          .ilike("name", `%${nameInput}%`);
-
-        if (directError) throw directError;
-        const preGuests = directData || [];
-        guests = preGuests.filter((g) => {
-          const gn = (g.name || "")
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .toLowerCase();
-          return gn.includes(normalizedInput);
-        });
-      }
+        return gn.includes(normalizedInput);
+      });
 
       if (guests.length === 0) {
         toast({
