@@ -79,12 +79,28 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  html {
+    @apply scroll-smooth;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', Georgia, serif;
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Typography: Serif elegante para títulos, Sans Serif clean para textos */
+  h1,
+  h2,
+  h3 {
+    @apply font-serif;
+  }
+
+  h4,
+  h5,
+  h6,
+  p,
+  span,
+  div {
+    @apply font-sans;
   }
 }
