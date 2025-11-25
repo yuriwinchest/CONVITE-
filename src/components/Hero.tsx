@@ -39,9 +39,9 @@ const Hero = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-      {/* Hero Section */}
-      <section className="py-20 px-6">
+    <div className="min-h-screen">
+      {/* Hero Section - Baunilha (#E8E0D2) */}
+      <section className="py-20 px-6" style={{ backgroundColor: '#E8E0D2' }}>
         <motion.div
           className="container mx-auto max-w-4xl text-center"
           initial="initial"
@@ -49,7 +49,8 @@ const Hero = () => {
           variants={staggerContainer}
         >
           <motion.div
-            className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
+            style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)', color: '#35463D' }}
             variants={scaleIn}
           >
             <Sparkles className="w-4 h-4" />
@@ -57,14 +58,16 @@ const Hero = () => {
           </motion.div>
 
           <motion.h1
-            className="text-5xl md:text-6xl font-bold text-foreground mb-6 leading-tight"
+            className="text-5xl md:text-6xl font-bold mb-6 leading-tight"
+            style={{ color: '#35463D' }}
             variants={fadeInUp}
           >
             Organize assentos com sofisticação e tranquilidade
           </motion.h1>
 
           <motion.p
-            className="text-lg text-muted-foreground mb-10 max-w-3xl mx-auto leading-relaxed"
+            className="text-lg mb-10 max-w-3xl mx-auto leading-relaxed"
+            style={{ color: '#35463D', opacity: 0.8 }}
             variants={fadeInUp}
           >
             Para a tranquilidade de quem planeja e o conforto de quem chega, Encontre Meu Lugar
@@ -79,14 +82,16 @@ const Hero = () => {
             <Button
               size="lg"
               onClick={() => navigate("/auth")}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-6 text-base font-semibold"
+              style={{ backgroundColor: '#35463D', color: '#E8E0D2' }}
+              className="hover:opacity-90 px-8 py-6 text-base font-semibold"
             >
               Criar Meu Evento
             </Button>
             <Button
               size="lg"
               variant="outline"
-              className="border-2 border-primary/30 px-8 py-6 text-base font-semibold"
+              style={{ borderColor: '#35463D', color: '#35463D', borderWidth: '2px' }}
+              className="px-8 py-6 text-base font-semibold hover:opacity-80"
               onClick={() => navigate("/confirm")}
             >
               <Search className="w-5 h-5 mr-2" />
@@ -96,8 +101,8 @@ const Hero = () => {
         </motion.div>
       </section>
 
-      {/* Como Funciona */}
-      <section className="py-20 px-6 bg-muted/30">
+      {/* Como Funciona - Verde (#35463D) */}
+      <section className="py-20 px-6" style={{ backgroundColor: '#35463D' }}>
         <div className="container mx-auto max-w-6xl">
           <motion.div
             className="text-center mb-16"
@@ -106,8 +111,8 @@ const Hero = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl font-bold text-foreground mb-4">Como Funciona</h2>
-            <p className="text-xl text-muted-foreground">
+            <h2 className="text-4xl font-bold mb-4" style={{ color: '#E8E0D2' }}>Como Funciona</h2>
+            <p className="text-xl" style={{ color: '#E8E0D2', opacity: 0.85 }}>
               Sua organização perfeita em passos simples
             </p>
           </motion.div>
@@ -120,13 +125,13 @@ const Hero = () => {
             variants={staggerContainer}
           >
             <motion.div variants={fadeInUp}>
-              <Card className="border-primary/20 hover:shadow-xl transition-all duration-300 h-full">
+              <Card className="hover:shadow-xl transition-all duration-300 h-full" style={{ backgroundColor: '#E8E0D2', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
                 <CardHeader>
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Clock className="w-8 h-8 text-primary" />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
+                    <Clock className="w-8 h-8" style={{ color: '#35463D' }} />
                   </div>
-                  <CardTitle className="text-2xl">Crie em 2 Minutos</CardTitle>
-                  <CardDescription className="text-base">
+                  <CardTitle className="text-2xl" style={{ color: '#35463D' }}>Crie em 2 Minutos</CardTitle>
+                  <CardDescription className="text-base" style={{ color: '#35463D', opacity: 0.75 }}>
                     Crie seu evento e gerencie a lista de convidados em 2 minutos.
                     Não precisa de aplicativo nem senhas.
                   </CardDescription>
@@ -135,13 +140,13 @@ const Hero = () => {
             </motion.div>
 
             <motion.div variants={fadeInUp}>
-              <Card className="border-primary/20 hover:shadow-xl transition-all duration-300 h-full">
+              <Card className="hover:shadow-xl transition-all duration-300 h-full" style={{ backgroundColor: '#E8E0D2', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
                 <CardHeader>
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <QrCode className="w-8 h-8 text-primary" />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
+                    <QrCode className="w-8 h-8" style={{ color: '#35463D' }} />
                   </div>
-                  <CardTitle className="text-2xl">QR Code Exclusivo</CardTitle>
-                  <CardDescription className="text-base">
+                  <CardTitle className="text-2xl" style={{ color: '#35463D' }}>QR Code Exclusivo</CardTitle>
+                  <CardDescription className="text-base" style={{ color: '#35463D', opacity: 0.75 }}>
                     Seu QR Code exclusivo está pronto instantaneamente.
                     Compartilhe com facilidade e praticidade.
                   </CardDescription>
@@ -150,13 +155,13 @@ const Hero = () => {
             </motion.div>
 
             <motion.div variants={fadeInUp}>
-              <Card className="border-primary/20 hover:shadow-xl transition-all duration-300 h-full">
+              <Card className="hover:shadow-xl transition-all duration-300 h-full" style={{ backgroundColor: '#E8E0D2', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
                 <CardHeader>
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                    <Users className="w-8 h-8 text-primary" />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
+                    <Users className="w-8 h-8" style={{ color: '#35463D' }} />
                   </div>
-                  <CardTitle className="text-2xl">Experiência Acolhedora</CardTitle>
-                  <CardDescription className="text-base">
+                  <CardTitle className="text-2xl" style={{ color: '#35463D' }}>Experiência Acolhedora</CardTitle>
+                  <CardDescription className="text-base" style={{ color: '#35463D', opacity: 0.75 }}>
                     Convidados escaneiam e encontram o lugar certo, garantindo
                     uma experiência acolhedora e sem imprevistos.
                   </CardDescription>
@@ -167,8 +172,8 @@ const Hero = () => {
         </div>
       </section>
 
-      {/* Para Quem */}
-      <section className="py-20 px-6">
+      {/* Para Quem - Baunilha (#E8E0D2) */}
+      <section className="py-20 px-6" style={{ backgroundColor: '#E8E0D2' }}>
         <div className="container mx-auto max-w-5xl">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -176,15 +181,15 @@ const Hero = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.7 }}
           >
-            <Card className="border-primary/20 shadow-2xl">
+            <Card className="shadow-2xl" style={{ backgroundColor: '#fff', borderColor: 'rgba(53, 70, 61, 0.2)' }}>
               <CardContent className="p-12">
                 <div className="flex items-center gap-3 mb-6">
-                  <Heart className="w-10 h-10 text-primary" />
-                  <h2 className="text-3xl font-bold text-foreground">
+                  <Heart className="w-10 h-10" style={{ color: '#35463D' }} />
+                  <h2 className="text-3xl font-bold" style={{ color: '#35463D' }}>
                     Para Quem Deseja um Evento Verdadeiramente Memorável
                   </h2>
                 </div>
-                <p className="text-lg text-muted-foreground leading-relaxed">
+                <p className="text-lg leading-relaxed" style={{ color: '#35463D', opacity: 0.75 }}>
                   O Encontre Meu Lugar é a solução perfeita para qualquer pessoa que organiza um evento
                   e deseja demonstrar um carinho especial por cada convidado. Oferecemos a certeza de
                   que todos se sentirão parte do evento, com seus lugares cuidadosamente designados,
@@ -196,8 +201,8 @@ const Hero = () => {
         </div>
       </section>
 
-      {/* Portfólio / Casos de Uso */}
-      <section className="py-20 px-6 bg-muted/30">
+      {/* Portfólio / Casos de Uso - Verde (#35463D) */}
+      <section className="py-20 px-6" style={{ backgroundColor: '#35463D' }}>
         <div className="container mx-auto max-w-6xl">
           <motion.div
             className="text-center mb-16"
@@ -206,10 +211,10 @@ const Hero = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-4xl font-bold mb-4" style={{ color: '#E8E0D2' }}>
               Histórias de Sucesso: Onde a Organização Encontra a Emoção
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-xl max-w-3xl mx-auto" style={{ color: '#E8E0D2', opacity: 0.85 }}>
               Explore como o Encontre Meu Lugar tem transformado a experiência em diversos eventos.
               Cada imagem e cada história refletem nosso compromisso com a excelência e o acolhimento.
             </p>
@@ -224,24 +229,24 @@ const Hero = () => {
             variants={staggerContainer}
           >
             <motion.div variants={fadeInUp}>
-              <Card className="border-primary/20 h-full hover:shadow-xl transition-shadow duration-300">
+              <Card className="h-full hover:shadow-xl transition-shadow duration-300" style={{ backgroundColor: '#E8E0D2', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
                 <CardContent className="p-8">
                   <div className="flex gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 fill-primary text-primary" />
+                      <Star key={i} className="w-5 h-5" style={{ fill: '#35463D', color: '#35463D' }} />
                     ))}
                   </div>
-                  <p className="text-muted-foreground italic mb-4 leading-relaxed">
+                  <p className="italic mb-4 leading-relaxed" style={{ color: '#35463D', opacity: 0.75 }}>
                     "O Encontre Meu Lugar foi a solução que eu precisava. Meus convidados se sentiram
                     valorizados e a logística do evento fluiu perfeitamente. Indico de olhos fechados!"
                   </p>
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Users className="w-6 h-6 text-primary" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
+                      <Users className="w-6 h-6" style={{ color: '#35463D' }} />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground">Cliente Satisfeito</p>
-                      <p className="text-sm text-muted-foreground">Casamento</p>
+                      <p className="font-semibold" style={{ color: '#35463D' }}>Cliente Satisfeito</p>
+                      <p className="text-sm" style={{ color: '#35463D', opacity: 0.6 }}>Casamento</p>
                     </div>
                   </div>
                 </CardContent>
@@ -249,24 +254,24 @@ const Hero = () => {
             </motion.div>
 
             <motion.div variants={fadeInUp}>
-              <Card className="border-primary/20 h-full hover:shadow-xl transition-shadow duration-300">
+              <Card className="h-full hover:shadow-xl transition-shadow duration-300" style={{ backgroundColor: '#E8E0D2', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
                 <CardContent className="p-8">
                   <div className="flex gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 fill-primary text-primary" />
+                      <Star key={i} className="w-5 h-5" style={{ fill: '#35463D', color: '#35463D' }} />
                     ))}
                   </div>
-                  <p className="text-muted-foreground italic mb-4 leading-relaxed">
+                  <p className="italic mb-4 leading-relaxed" style={{ color: '#35463D', opacity: 0.75 }}>
                     "Organização impecável! Nossos convidados elogiaram muito a facilidade de encontrar
                     seus lugares. A plataforma é intuitiva e economizou muito tempo."
                   </p>
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Sparkles className="w-6 h-6 text-primary" />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
+                      <Sparkles className="w-6 h-6" style={{ color: '#35463D' }} />
                     </div>
                     <div>
-                      <p className="font-semibold text-foreground">Assessora de Eventos</p>
-                      <p className="text-sm text-muted-foreground">Evento Corporativo</p>
+                      <p className="font-semibold" style={{ color: '#35463D' }}>Assessora de Eventos</p>
+                      <p className="text-sm" style={{ color: '#35463D', opacity: 0.6 }}>Evento Corporativo</p>
                     </div>
                   </div>
                 </CardContent>
@@ -276,8 +281,8 @@ const Hero = () => {
         </div>
       </section>
 
-      {/* Planos e Preços */}
-      <section className="py-20 px-6">
+      {/* Planos e Preços - Baunilha (#E8E0D2) */}
+      <section className="py-20 px-6" style={{ backgroundColor: '#E8E0D2' }}>
         <div className="container mx-auto max-w-5xl">
           <motion.div
             className="text-center mb-16"
@@ -286,10 +291,10 @@ const Hero = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-4xl font-bold mb-4" style={{ color: '#35463D' }}>
               Escolha a Tranquilidade: Soluções Adaptadas ao Seu Evento
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-xl max-w-3xl mx-auto" style={{ color: '#35463D', opacity: 0.8 }}>
               Compreendemos que cada evento é único, e a sua necessidade também.
               Nossas soluções são projetadas para se moldar ao seu evento, garantindo
               que você receba exatamente o que precisa para uma organização impecável.
@@ -302,12 +307,12 @@ const Hero = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <Card className="border-primary/20 shadow-2xl">
+            <Card className="shadow-2xl" style={{ backgroundColor: '#fff', borderColor: 'rgba(53, 70, 61, 0.2)' }}>
               <CardContent className="p-12 text-center">
-                <h3 className="text-2xl font-bold text-foreground mb-4">
+                <h3 className="text-2xl font-bold mb-4" style={{ color: '#35463D' }}>
                   Converse Conosco
                 </h3>
-                <p className="text-lg text-muted-foreground mb-8">
+                <p className="text-lg mb-8" style={{ color: '#35463D', opacity: 0.75 }}>
                   Estamos prontos para ajudar a planejar seu evento com a organização
                   e sofisticação que você merece.
                 </p>
@@ -315,7 +320,8 @@ const Hero = () => {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button
                     size="lg"
-                    className="bg-green-600 hover:bg-green-700 text-white gap-2"
+                    className="gap-2"
+                    style={{ backgroundColor: '#25D366', color: '#fff' }}
                     onClick={() => window.open("https://wa.me/5511999999999", "_blank")}
                   >
                     <MessageCircle className="w-5 h-5" />
@@ -324,7 +330,8 @@ const Hero = () => {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="border-2 gap-2"
+                    className="gap-2"
+                    style={{ borderColor: '#35463D', color: '#35463D', borderWidth: '2px' }}
                     onClick={() => window.open("https://instagram.com/encontremeulugar", "_blank")}
                   >
                     <Instagram className="w-5 h-5" />
@@ -337,9 +344,10 @@ const Hero = () => {
         </div>
       </section>
 
-      {/* CTA Final */}
+      {/* CTA Final - Verde (#35463D) */}
       <motion.section
-        className="py-20 px-6 bg-primary text-primary-foreground"
+        className="py-20 px-6"
+        style={{ backgroundColor: '#35463D' }}
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
@@ -348,6 +356,7 @@ const Hero = () => {
         <div className="container mx-auto max-w-4xl text-center">
           <motion.h2
             className="text-4xl font-bold mb-6"
+            style={{ color: '#E8E0D2' }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -356,7 +365,8 @@ const Hero = () => {
             Pronto para Transformar Seu Evento?
           </motion.h2>
           <motion.p
-            className="text-xl mb-8 opacity-90"
+            className="text-xl mb-8"
+            style={{ color: '#E8E0D2', opacity: 0.9 }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -372,8 +382,8 @@ const Hero = () => {
           >
             <Button
               size="lg"
-              variant="secondary"
-              className="bg-background text-foreground hover:bg-background/90 px-8 py-6 text-base font-semibold"
+              className="px-8 py-6 text-base font-semibold"
+              style={{ backgroundColor: '#E8E0D2', color: '#35463D' }}
               onClick={() => navigate("/auth")}
             >
               Criar Meu Evento Gratuitamente
