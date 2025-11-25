@@ -14,6 +14,7 @@ import { Loader2, Camera, Lock, User } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import Header from "@/components/Header";
 
 export default function GuestPhotoGallery() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -206,23 +207,29 @@ export default function GuestPhotoGallery() {
 
   if (loadingEvent || loadingAccess) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
       </div>
     );
   }
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardHeader>
-            <CardTitle>Evento não encontrado</CardTitle>
-            <CardDescription>
-              O evento que você está procurando não existe ou foi removido.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full">
+            <CardHeader>
+              <CardTitle>Evento não encontrado</CardTitle>
+              <CardDescription>
+                O evento que você está procurando não existe ou foi removido.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -230,25 +237,28 @@ export default function GuestPhotoGallery() {
   // Se não é acesso de convidado (não tem guestId na URL) e não tem permissão, mostrar upgrade
   if (!hasGuestIdInUrl && !photoAccess?.canUpload) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-2xl w-full">
-          <CardHeader className="text-center">
-            <Lock className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-            <CardTitle className="text-2xl">{event.name}</CardTitle>
-            <CardDescription className="text-base">
-              {format(new Date(event.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <Alert>
-              <AlertDescription className="text-center">
-                O envio de fotos não está disponível para este evento.
-                <br />
-                <strong>Recurso disponível apenas no plano Premium.</strong>
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="max-w-2xl w-full">
+            <CardHeader className="text-center">
+              <Lock className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+              <CardTitle className="text-2xl">{event.name}</CardTitle>
+              <CardDescription className="text-base">
+                {format(new Date(event.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Alert>
+                <AlertDescription className="text-center">
+                  O envio de fotos não está disponível para este evento.
+                  <br />
+                  <strong>Recurso disponível apenas no plano Premium.</strong>
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -256,107 +266,114 @@ export default function GuestPhotoGallery() {
   // Se é acesso de convidado mas não tem plano premium, mostrar mensagem
   if (hasGuestIdInUrl && !photoAccess?.canUpload) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-2xl w-full">
-          <CardHeader className="text-center">
-            <Lock className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-            <CardTitle className="text-2xl">{event.name}</CardTitle>
-            <CardDescription className="text-base">
-              {format(new Date(event.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <Alert>
-              <AlertDescription className="text-center">
-                O envio de fotos não está disponível para este evento.
-                <br />
-                <strong>Recurso disponível apenas no plano Premium.</strong>
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="max-w-2xl w-full">
+            <CardHeader className="text-center">
+              <Lock className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+              <CardTitle className="text-2xl">{event.name}</CardTitle>
+              <CardDescription className="text-base">
+                {format(new Date(event.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Alert>
+                <AlertDescription className="text-center">
+                  O envio de fotos não está disponível para este evento.
+                  <br />
+                  <strong>Recurso disponível apenas no plano Premium.</strong>
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   if (!guestId) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full">
-          <CardHeader className="text-center">
-            <Camera className="mx-auto h-12 w-12 text-primary mb-4" />
-            <CardTitle className="text-2xl">{event.name}</CardTitle>
-            <CardDescription>
-              {format(new Date(event.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleAccessGallery} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="guest-name">Nome do convidado</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="guest-name"
-                    type="text"
-                    placeholder="Seu nome completo"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="pl-10"
-                    required
-                  />
+      <div className="min-h-screen bg-background flex flex-col">
+        <Header />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full">
+            <CardHeader className="text-center">
+              <Camera className="mx-auto h-12 w-12 text-primary mb-4" />
+              <CardTitle className="text-2xl">{event.name}</CardTitle>
+              <CardDescription>
+                {format(new Date(event.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleAccessGallery} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="guest-name">Nome do convidado</Label>
+                  <div className="relative">
+                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      id="guest-name"
+                      type="text"
+                      placeholder="Seu nome completo"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="pl-10"
+                      required
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Digite o nome usado para confirmar presença
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Digite o nome usado para confirmar presença
-                </p>
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verificando...
-                  </>
-                ) : (
-                  "Acessar Minha Galeria"
-                )}
-              </Button>
-            </form>
-            {nameMatches.length > 1 && (
-              <div className="mt-4 space-y-2">
-                {nameMatches.map((m) => (
-                  <Button
-                    key={m.id}
-                    variant="outline"
-                    className="w-full justify-between"
-                    onClick={() => {
-                      if (!m.checked_in_at) {
-                        toast({
-                          title: "Check-in necessário",
-                          description: "Você precisa fazer check-in no evento antes de enviar fotos.",
-                          variant: "destructive",
-                        });
-                        return;
-                      }
-                      setGuestId(m.id);
-                      setNameMatches([]);
-                      toast({ title: "Bem-vindo!", description: `Olá ${m.name}, acesse sua galeria.` });
-                    }}
-                  >
-                    <span className="text-sm">{m.name}</span>
-                    {m.email && <span className="text-xs text-muted-foreground">{m.email}</span>}
-                  </Button>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verificando...
+                    </>
+                  ) : (
+                    "Acessar Minha Galeria"
+                  )}
+                </Button>
+              </form>
+              {nameMatches.length > 1 && (
+                <div className="mt-4 space-y-2">
+                  {nameMatches.map((m) => (
+                    <Button
+                      key={m.id}
+                      variant="outline"
+                      className="w-full justify-between"
+                      onClick={() => {
+                        if (!m.checked_in_at) {
+                          toast({
+                            title: "Check-in necessário",
+                            description: "Você precisa fazer check-in no evento antes de enviar fotos.",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        setGuestId(m.id);
+                        setNameMatches([]);
+                        toast({ title: "Bem-vindo!", description: `Olá ${m.name}, acesse sua galeria.` });
+                      }}
+                    >
+                      <span className="text-sm">{m.name}</span>
+                      {m.email && <span className="text-xs text-muted-foreground">{m.email}</span>}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header />
+      <div className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8 text-center">
           <Camera className="mx-auto h-12 w-12 text-primary mb-4" />
           <h1 className="text-3xl font-bold mb-2">{event.name}</h1>
