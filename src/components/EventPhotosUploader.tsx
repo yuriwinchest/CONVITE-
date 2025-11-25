@@ -40,7 +40,6 @@ export const EventPhotosUploader = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [existingPhotosCount, setExistingPhotosCount] = useState(0);
-  const [verifyingCheckin, setVerifyingCheckin] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -143,25 +142,6 @@ export const EventPhotosUploader = ({
     setIsDragging(false);
   };
 
-  const verifyGuestCheckinWithTimeout = async (): Promise<boolean> => {
-    const timeoutMs = 8000;
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error("Timeout ao verificar check-in")), timeoutMs);
-    });
-
-    const rpcPromise = supabase.rpc("verify_guest_checkin", {
-      p_guest_id: guestId!,
-      p_event_id: eventId,
-    });
-
-    const { data, error } = await Promise.race([rpcPromise, timeoutPromise]);
-
-    if (error) throw error;
-
-    const result = data as unknown as VerifyCheckinResult;
-    return !!result?.success && !!result?.guest?.has_checked_in;
-  };
-
   const removePhoto = (id: string) => {
     setPhotos((prev) => prev.filter((p) => p.id !== id));
   };
@@ -169,21 +149,8 @@ export const EventPhotosUploader = ({
   const uploadPhotos = async () => {
     if (photos.length === 0) return;
 
-    // Verificar check-in antes de iniciar qualquer upload
     try {
       if (!guestId) {
-        toast({
-          title: "Check-in necessário",
-          description: "Você precisa fazer check-in no evento antes de enviar fotos.",
-          variant: "destructive",
-        });
-        return;
-      }
-      setVerifyingCheckin(true);
-      const hasCheckedIn = await verifyGuestCheckinWithTimeout();
-      setVerifyingCheckin(false);
-
-      if (!hasCheckedIn) {
         toast({
           title: "Check-in necessário",
           description: "Você precisa fazer check-in no evento antes de enviar fotos.",
@@ -240,14 +207,8 @@ export const EventPhotosUploader = ({
       console.error("Upload error details:", error);
 
       let errorMessage = "Não foi possível enviar as fotos.";
-      if (error instanceof Error) {
-        if (error.message.includes("Guest has not checked in yet")) {
-          errorMessage = "Você precisa fazer check-in antes de enviar fotos.";
-        } else if (error.message.includes("NetworkError") || error.message.includes("Timeout")) {
-          errorMessage = "Falha ao validar check-in (rede/timeout). Tente novamente.";
-        } else if (error.message) {
-          errorMessage = error.message;
-        }
+      if (error instanceof Error && error.message) {
+        errorMessage = error.message;
       }
 
       toast({
@@ -256,7 +217,6 @@ export const EventPhotosUploader = ({
         variant: "destructive",
       });
     } finally {
-      setVerifyingCheckin(false);
       setUploading(false);
       setUploadProgress(0);
     }
@@ -298,7 +258,7 @@ export const EventPhotosUploader = ({
             type="button"
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
-            disabled={verifyingCheckin || uploading || remainingSlots <= 0}
+            disabled={uploading || remainingSlots <= 0}
           >
             Selecionar Fotos
           </Button>
@@ -341,11 +301,11 @@ export const EventPhotosUploader = ({
             ))}
           </div>
 
-          {(verifyingCheckin || uploading) && (
+          {uploading && (
             <div className="space-y-2">
-              <Progress value={verifyingCheckin ? undefined : uploadProgress} />
+              <Progress value={uploadProgress} />
               <p className="text-sm text-center text-muted-foreground">
-                {verifyingCheckin ? "Verificando check-in..." : `Enviando fotos... ${Math.round(uploadProgress)}%`}
+                Enviando fotos... {Math.round(uploadProgress)}%
               </p>
             </div>
           )}
@@ -353,7 +313,7 @@ export const EventPhotosUploader = ({
           <div className="flex gap-2">
             <Button
               onClick={uploadPhotos}
-              disabled={verifyingCheckin || uploading}
+              disabled={uploading}
               className="flex-1"
             >
               <Upload className="mr-2 h-4 w-4" />
