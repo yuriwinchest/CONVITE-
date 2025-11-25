@@ -10,17 +10,24 @@ const Header = () => {
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
           <img src={logo} alt="Encontre Meu Lugar" className="h-12 w-auto" />
         </div>
-        
+
         <div className="flex items-center gap-3">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
+            className="text-primary-foreground hover:bg-primary-foreground/10"
+            onClick={() => navigate("/about")}
+          >
+            Sobre Nós
+          </Button>
+          <Button
+            variant="ghost"
             className="text-primary-foreground hover:bg-primary-foreground/10"
             onClick={() => navigate("/confirm")}
           >
             Sou Convidado
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
             onClick={() => navigate("/auth")}
           >
