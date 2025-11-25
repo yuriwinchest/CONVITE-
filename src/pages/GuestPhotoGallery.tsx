@@ -135,11 +135,10 @@ export default function GuestPhotoGallery() {
     try {
       let guests: any[] = [];
       const { data: rpcData, error: rpcError } = await supabase.rpc(
-        "search_guests_by_name",
+        "search_guest_by_name",
         {
           p_event_id: eventId!,
           p_name: name.trim(),
-          p_limit: 10,
         }
       );
 

@@ -158,7 +158,7 @@ export const EventPhotosUploader = ({
 
     if (error) throw error;
 
-    const result = data as VerifyCheckinResult;
+    const result = data as unknown as VerifyCheckinResult;
     return !!result?.success && !!result?.guest?.has_checked_in;
   };
 
