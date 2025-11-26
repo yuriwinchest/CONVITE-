@@ -210,7 +210,7 @@ export default function GuestPhotoGallery() {
 
   if (showLoading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div key="loading" className="min-h-screen bg-background flex flex-col">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -221,7 +221,7 @@ export default function GuestPhotoGallery() {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div key="no-event" className="min-h-screen bg-background flex flex-col">
         <Header />
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-md w-full">
@@ -240,7 +240,7 @@ export default function GuestPhotoGallery() {
   // Se não é acesso de convidado (não tem guestId na URL) e não tem permissão, mostrar upgrade
   if (!hasGuestIdInUrl && !photoAccess?.canUpload) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div key="no-access-public" className="min-h-screen bg-background flex flex-col">
         <Header />
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-2xl w-full">
@@ -269,7 +269,7 @@ export default function GuestPhotoGallery() {
   // Se é acesso de convidado mas não tem plano premium, mostrar mensagem
   if (hasGuestIdInUrl && !photoAccess?.canUpload) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div key="no-access-guest" className="min-h-screen bg-background flex flex-col">
         <Header />
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-2xl w-full">
@@ -297,7 +297,7 @@ export default function GuestPhotoGallery() {
 
   if (!guestId) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div key="guest-login" className="min-h-screen bg-background flex flex-col">
         <Header />
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-md w-full">
@@ -374,7 +374,7 @@ export default function GuestPhotoGallery() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div key="content" className="min-h-screen bg-background flex flex-col">
       <Header />
       <div className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8 text-center">

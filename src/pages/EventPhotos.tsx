@@ -57,7 +57,7 @@ export default function EventPhotos() {
 
   if (showLoading) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div key="loading" className="min-h-screen bg-background flex flex-col">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -68,7 +68,7 @@ export default function EventPhotos() {
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div key="no-event" className="min-h-screen bg-background flex flex-col">
         <Header />
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-md w-full">
@@ -86,7 +86,7 @@ export default function EventPhotos() {
 
   if (!photoAccess?.canUpload) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div key="no-access" className="min-h-screen bg-background flex flex-col">
         <Header />
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-2xl w-full">
@@ -122,7 +122,7 @@ export default function EventPhotos() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div key="content" className="min-h-screen bg-background flex flex-col">
       <Header />
       <div className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8 text-center">

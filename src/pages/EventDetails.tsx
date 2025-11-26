@@ -400,7 +400,7 @@ Nos vemos lá! 🎉`;
 
   if (!event) {
     return (
-      <div className="min-h-screen bg-background p-8">
+      <div key="no-event" className="min-h-screen bg-background p-8">
         <div className="max-w-7xl mx-auto">
           <Button variant="ghost" onClick={() => navigate("/dashboard")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -415,7 +415,7 @@ Nos vemos lá! 🎉`;
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div key="content" className="min-h-screen bg-background">
       <DashboardHeader />
       <div className="p-8">
         <div className="max-w-7xl mx-auto space-y-8">

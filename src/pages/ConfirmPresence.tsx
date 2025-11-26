@@ -632,7 +632,7 @@ export default function ConfirmPresence() {
 
   if (isLoadingEvent) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div key="loading" className="min-h-screen bg-background flex flex-col">
         <Header />
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-md w-full">
@@ -651,7 +651,7 @@ export default function ConfirmPresence() {
   // Quando não tem eventId ou eventId inválido, mostrar scanner
   if (!eventId || invalidEventId) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div key="no-event-id" className="min-h-screen bg-background flex flex-col">
         <Header />
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="w-full max-w-2xl space-y-6">
@@ -790,7 +790,7 @@ export default function ConfirmPresence() {
   // Quando tem eventId mas o evento não existe (após o loading terminar)
   if (!isLoadingEvent && eventId && !eventDetails) {
     return (
-      <div className="min-h-screen bg-background flex flex-col">
+      <div key="event-not-found" className="min-h-screen bg-background flex flex-col">
         <Header />
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-md w-full">
@@ -821,7 +821,7 @@ export default function ConfirmPresence() {
   }
 
   return (
-    <div className={`min-h-screen ${kioskMode ? 'bg-background' : 'bg-gradient-to-br from-background via-muted/20 to-background'} flex flex-col`}>
+    <div key="content" className={`min-h-screen ${kioskMode ? 'bg-background' : 'bg-gradient-to-br from-background via-muted/20 to-background'} flex flex-col`}>
       {!kioskMode && <Header />}
       <div className={`flex-1 flex items-center justify-center p-4`}>
         <Card className={`${kioskMode ? 'max-w-4xl h-[90vh]' : 'max-w-2xl'} w-full shadow-lg ${kioskMode ? 'flex flex-col' : ''}`}>
