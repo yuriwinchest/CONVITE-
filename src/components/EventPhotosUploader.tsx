@@ -168,6 +168,14 @@ export const EventPhotosUploader = ({
         formData.append('eventId', eventId);
         formData.append('guestId', guestId);
 
+        console.log('📤 Enviando foto:', {
+          eventId,
+          guestId,
+          fileName: photo.file.name,
+          fileSize: photo.file.size,
+          fileType: photo.file.type
+        });
+
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-event-photo`,
           {
@@ -178,10 +186,12 @@ export const EventPhotosUploader = ({
 
         if (!response.ok) {
           const error = await response.json();
+          console.error('❌ Erro no upload:', error);
           throw new Error(error.error || 'Upload failed');
         }
 
         const result = await response.json();
+        console.log('✅ Foto enviada com sucesso:', result);
         setUploadProgress(((index + 1) / photos.length) * 100);
         return result;
       });
