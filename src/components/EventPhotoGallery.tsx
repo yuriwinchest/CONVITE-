@@ -33,7 +33,7 @@ interface EventPhoto {
 
 export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: EventPhotoGalleryProps) => {
   const [downloadingZip, setDownloadingZip] = useState(false);
-  
+
   const { data: photos, isLoading, refetch } = useQuery({
     queryKey: ["event-photos", eventId, guestId],
     queryFn: async () => {
@@ -136,7 +136,7 @@ export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: Event
     if (!photos || photos.length === 0) return;
 
     setDownloadingZip(true);
-    
+
     try {
       toast({
         title: "Preparando ZIP",
@@ -151,7 +151,7 @@ export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: Event
         try {
           const response = await fetch(photo.photo_url);
           const blob = await response.blob();
-          
+
           // Usar um nome de arquivo sequencial se houver duplicatas
           const fileName = `foto_${index + 1}_${photo.file_name}`;
           folder?.file(fileName, blob);
@@ -209,7 +209,7 @@ export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: Event
         <ImageIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
         <p className="text-lg font-medium mb-2">Nenhuma foto ainda</p>
         <p className="text-sm text-muted-foreground">
-          {guestId && !isCreator 
+          {guestId && !isCreator
             ? "Você ainda não enviou nenhuma foto. Use o uploader acima para compartilhar suas fotos."
             : "As fotos enviadas pelos convidados aparecerão aqui"}
         </p>
@@ -233,9 +233,9 @@ export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: Event
         {photos.length > 0 && (
           <div className="flex gap-2">
             {isCreator && (
-              <Button 
-                variant="default" 
-                size="sm" 
+              <Button
+                variant="default"
+                size="sm"
                 onClick={handleDownloadZip}
                 disabled={downloadingZip}
               >
@@ -267,7 +267,7 @@ export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: Event
                 <Download className="h-4 w-4" />
               </Button>
               {(isCreator || (guestId && !isCreator)) && (
-                <AlertDialog>
+                <AlertDialog key={`delete-${photo.id}`}>
                   <AlertDialogTrigger asChild>
                     <Button size="icon" variant="destructive">
                       <Trash2 className="h-4 w-4" />

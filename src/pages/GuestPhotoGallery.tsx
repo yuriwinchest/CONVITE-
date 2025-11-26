@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import Header from "@/components/Header";
 
 export default function GuestPhotoGallery() {
   const { eventId } = useParams<{ eventId: string }>();
+  const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [guestId, setGuestId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -406,8 +407,8 @@ export default function GuestPhotoGallery() {
                 eventId={eventId!}
                 guestId={guestId}
                 onUploadComplete={() => {
-                  // Atualizar galeria
-                  window.location.reload();
+                  // Invalidar a query de fotos para recarregar a galeria
+                  queryClient.invalidateQueries({ queryKey: ["event-photos", eventId, guestId] });
                 }}
               />
             </CardContent>

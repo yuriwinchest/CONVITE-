@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEventPhotoAccess } from "@/hooks/useEventPhotoAccess";
 import { EventPhotosUploader } from "@/components/EventPhotosUploader";
@@ -14,6 +14,7 @@ import Header from "@/components/Header";
 
 export default function EventPhotos() {
   const { eventId } = useParams<{ eventId: string }>();
+  const queryClient = useQueryClient();
 
   const { data: event, isLoading: loadingEvent } = useQuery({
     queryKey: ["event", eventId],
@@ -46,6 +47,11 @@ export default function EventPhotos() {
   const isCreator = user && event?.user_id === user.id;
 
   const isLoading = loadingEvent || loadingAccess;
+
+  const handleUploadComplete = () => {
+    // Invalidar a query de fotos para recarregar a galeria
+    queryClient.invalidateQueries({ queryKey: ["event-photos", eventId] });
+  };
 
   if (isLoading) {
     return (
@@ -139,10 +145,7 @@ export default function EventPhotos() {
             <CardContent>
               <EventPhotosUploader
                 eventId={eventId!}
-                onUploadComplete={() => {
-                  // Refresh gallery
-                  window.location.reload();
-                }}
+                onUploadComplete={handleUploadComplete}
               />
             </CardContent>
           </Card>
