@@ -142,25 +142,20 @@ export default function GuestPhotoGallery() {
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase();
 
-      const { data: directData, error: directError } = await supabase
-        .from("guests")
-        .select("id, name, checked_in_at, email")
-        .eq("event_id", eventId!)
-        .ilike("name", `%${nameInput}%`)
-        .limit(10);
+      // Usar RPC para buscar convidados (bypassing RLS e com suporte a acentos)
+      const { data: rpcData, error: rpcError } = await supabase
+        .rpc("search_guests_by_name", {
+          p_event_id: eventId!,
+          p_name: nameInput,
+          p_limit: 10
+        });
 
-      if (directError) throw directError;
+      if (rpcError) throw rpcError;
 
-      const preGuests = directData || [];
-      guests = preGuests.filter((g) => {
-        const gn = (g.name || "")
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g, "")
-          .toLowerCase();
-        return gn.includes(normalizedInput);
-      });
+      // O RPC retorna um JSONB, precisamos garantir que é um array
+      const guestsFound = Array.isArray(rpcData) ? rpcData : [];
 
-      if (guests.length === 0) {
+      if (guestsFound.length === 0) {
         toast({
           title: "Convidado não encontrado",
           description: "Verifique se o nome está correto.",
@@ -169,8 +164,8 @@ export default function GuestPhotoGallery() {
         return;
       }
 
-      if (guests.length > 1) {
-        setNameMatches(guests);
+      if (guestsFound.length > 1) {
+        setNameMatches(guestsFound);
         toast({
           title: "Vários convidados encontrados",
           description: "Selecione seu nome na lista abaixo.",
@@ -178,7 +173,7 @@ export default function GuestPhotoGallery() {
         return;
       }
 
-      const guest = guests[0];
+      const guest = guestsFound[0];
 
       if (!guest.checked_in_at) {
         toast({
@@ -196,9 +191,10 @@ export default function GuestPhotoGallery() {
         description: `Olá ${guest.name}, acesse sua galeria de fotos.`,
       });
     } catch (error: any) {
+      console.error("Erro ao buscar convidado:", error);
       toast({
         title: "Erro ao acessar galeria",
-        description: error.message,
+        description: error.message || "Erro ao buscar convidado.",
         variant: "destructive",
       });
     } finally {
@@ -210,7 +206,7 @@ export default function GuestPhotoGallery() {
 
   if (showLoading) {
     return (
-      <div key="loading" className="min-h-screen bg-background flex flex-col">
+      <div key="loading" className="min-h-screen bg-background flex flex-col notranslate" translate="no">
         <Header />
         <div className="flex-1 flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -221,7 +217,7 @@ export default function GuestPhotoGallery() {
 
   if (!event) {
     return (
-      <div key="no-event" className="min-h-screen bg-background flex flex-col">
+      <div key="no-event" className="min-h-screen bg-background flex flex-col notranslate" translate="no">
         <Header />
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-md w-full">
@@ -240,7 +236,7 @@ export default function GuestPhotoGallery() {
   // Se não é acesso de convidado (não tem guestId na URL) e não tem permissão, mostrar upgrade
   if (!hasGuestIdInUrl && !photoAccess?.canUpload) {
     return (
-      <div key="no-access-public" className="min-h-screen bg-background flex flex-col">
+      <div key="no-access-public" className="min-h-screen bg-background flex flex-col notranslate" translate="no">
         <Header />
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-2xl w-full">
@@ -269,7 +265,7 @@ export default function GuestPhotoGallery() {
   // Se é acesso de convidado mas não tem plano premium, mostrar mensagem
   if (hasGuestIdInUrl && !photoAccess?.canUpload) {
     return (
-      <div key="no-access-guest" className="min-h-screen bg-background flex flex-col">
+      <div key="no-access-guest" className="min-h-screen bg-background flex flex-col notranslate" translate="no">
         <Header />
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-2xl w-full">
@@ -340,7 +336,7 @@ export default function GuestPhotoGallery() {
                 </Button>
               </form>
               {nameMatches.length > 1 && (
-                <div className="mt-4 space-y-2">
+                <div className="mt-4 space-y-2 notranslate" translate="no">
                   {nameMatches.map((m) => (
                     <Button
                       key={m.id}
