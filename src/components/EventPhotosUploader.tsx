@@ -84,7 +84,7 @@ export const EventPhotosUploader = ({
     if (!files) return;
 
     const remainingSlots = MAX_PHOTOS_PER_GUEST - existingPhotosCount - photos.length;
-    
+
     if (remainingSlots <= 0) {
       toast({
         title: "Limite atingido",
@@ -205,7 +205,11 @@ export const EventPhotosUploader = ({
 
       setPhotos([]);
       setExistingPhotosCount((prev) => prev + photos.length);
-      onUploadComplete?.();
+
+      // Pequeno delay para garantir que o estado local atualize antes de invalidar queries do pai
+      setTimeout(() => {
+        onUploadComplete?.();
+      }, 100);
     } catch (error: unknown) {
       console.error("Upload error details:", error);
 
@@ -240,11 +244,10 @@ export const EventPhotosUploader = ({
         </div>
       )}
       <Card
-        className={`border-2 border-dashed transition-colors ${
-          isDragging
+        className={`border-2 border-dashed transition-colors ${isDragging
             ? "border-primary bg-primary/5"
             : "border-border hover:border-primary/50"
-        }`}
+          }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}

@@ -206,7 +206,9 @@ export default function GuestPhotoGallery() {
     }
   };
 
-  if (loadingEvent || loadingAccess) {
+  const showLoading = (loadingEvent && !event) || (loadingAccess && !photoAccess);
+
+  if (showLoading) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Header />

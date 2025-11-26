@@ -53,7 +53,9 @@ export default function EventPhotos() {
     queryClient.invalidateQueries({ queryKey: ["event-photos", eventId] });
   };
 
-  if (isLoading) {
+  const showLoading = (loadingEvent && !event) || (loadingAccess && !photoAccess);
+
+  if (showLoading) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
         <Header />
