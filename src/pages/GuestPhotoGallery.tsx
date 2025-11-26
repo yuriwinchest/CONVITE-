@@ -142,17 +142,17 @@ export default function GuestPhotoGallery() {
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase();
 
-      // Usar RPC para buscar convidados (bypassing RLS e com suporte a acentos)
+      // Usar RPC singular que sabemos que existe (search_guest_by_name)
+      // Nota: Esta função aceita apenas p_event_id e p_name, SEM p_limit
       const { data: rpcData, error: rpcError } = await supabase
-        .rpc("search_guests_by_name", {
+        .rpc("search_guest_by_name", {
           p_event_id: eventId!,
           p_name: nameInput,
-          p_limit: 10
         });
 
       if (rpcError) throw rpcError;
 
-      // O RPC retorna um JSONB, precisamos garantir que é um array
+      // O RPC singular retorna uma lista (TABLE) mas com LIMIT 1 fixo no banco
       const guestsFound = Array.isArray(rpcData) ? rpcData : [];
 
       if (guestsFound.length === 0) {
@@ -164,18 +164,18 @@ export default function GuestPhotoGallery() {
         return;
       }
 
-      if (guestsFound.length > 1) {
-        setNameMatches(guestsFound);
-        toast({
-          title: "Vários convidados encontrados",
-          description: "Selecione seu nome na lista abaixo.",
-        });
-        return;
-      }
-
+      // Como a busca singular retorna apenas 1 resultado, pegamos o primeiro
       const guest = guestsFound[0];
 
-      if (!guest.checked_in_at) {
+      // Verificar se o convidado fez check-in (necessário para enviar fotos)
+      // A função search_guest_by_name não retorna checked_in_at, então usamos verify_guest_checkin
+      const { data: checkInData, error: checkInError } = await supabase
+        .rpc("verify_guest_checkin", {
+          p_guest_id: guest.id,
+          p_event_id: eventId!,
+        });
+
+      if (checkInError || !checkInData) {
         toast({
           title: "Check-in necessário",
           description: "Você precisa fazer check-in no evento antes de enviar fotos.",
