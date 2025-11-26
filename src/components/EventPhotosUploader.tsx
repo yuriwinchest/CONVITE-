@@ -163,34 +163,27 @@ export const EventPhotosUploader = ({
       setUploadProgress(0);
 
       const uploadPromises = photos.map(async (photo, index) => {
-        const fileExt = photo.file.name.split(".").pop();
-        const fileName = `${eventId}/${crypto.randomUUID()}.${fileExt}`;
+        const formData = new FormData();
+        formData.append('file', photo.file);
+        formData.append('eventId', eventId);
+        formData.append('guestId', guestId);
 
-        const { error: uploadError } = await supabase.storage
-          .from("event-photos")
-          .upload(fileName, photo.file);
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-event-photo`,
+          {
+            method: 'POST',
+            body: formData,
+          }
+        );
 
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabase.storage
-          .from("event-photos")
-          .getPublicUrl(fileName);
-
-        const { data: photoId, error: dbError } = await supabase
-          .rpc("guest_upload_photo", {
-            p_event_id: eventId,
-            p_guest_id: guestId || null,
-            p_photo_url: urlData.publicUrl,
-            p_file_name: photo.file.name,
-            p_file_size: photo.file.size,
-          });
-
-        if (dbError) {
-          console.error("Error uploading photo to database:", dbError);
-          throw dbError;
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Upload failed');
         }
 
+        const result = await response.json();
         setUploadProgress(((index + 1) / photos.length) * 100);
+        return result;
       });
 
       await Promise.all(uploadPromises);
