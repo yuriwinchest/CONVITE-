@@ -180,6 +180,9 @@ export const EventPhotosUploader = ({
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-event-photo`,
           {
             method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
             body: formData,
           }
         );
@@ -245,8 +248,8 @@ export const EventPhotosUploader = ({
       )}
       <Card
         className={`border-2 border-dashed transition-colors ${isDragging
-            ? "border-primary bg-primary/5"
-            : "border-border hover:border-primary/50"
+          ? "border-primary bg-primary/5"
+          : "border-border hover:border-primary/50"
           }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
