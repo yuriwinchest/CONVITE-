@@ -164,62 +164,43 @@ export const EventPhotosUploader = ({
 
       const uploadPromises = photos.map(async (photo, index) => {
         const formData = new FormData();
-        formData.append('file', photo.file);
-        formData.append('eventId', eventId);
-        formData.append('guestId', guestId);
+        formData.append("file", photo.file);
+        formData.append("eventId", eventId);
+        formData.append("guestId", guestId!);
 
-        console.log('📤 Enviando foto:', {
+        console.log("📤 Enviando foto via Edge Function:", {
           eventId,
           guestId,
           fileName: photo.file.name,
           fileSize: photo.file.size,
-          fileType: photo.file.type
+          fileType: photo.file.type,
         });
 
-        // Tentar upload direto para o Storage (bypass Edge Function auth issues)
-        const fileExt = photo.file.name.split('.').pop();
-        const fileName = `${crypto.randomUUID()}.${fileExt}`;
-        const filePath = `${eventId}/${guestId}/${fileName}`;
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-event-photo`,
+          {
+            method: "POST",
+            headers: {
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: formData,
+          }
+        );
 
-        // 1. Upload para o bucket 'event-photos'
-        const { error: uploadError } = await supabase.storage
-          .from('event-photos')
-          .upload(filePath, photo.file);
+        const data = (await response.json().catch(() => null)) as
+          | { success?: boolean; error?: string }
+          | null;
 
-        if (uploadError) {
-          console.error('❌ Erro no upload Storage:', uploadError);
-          throw new Error(`Erro no upload: ${uploadError.message}`);
+        if (!response.ok || !data?.success) {
+          console.error("❌ Erro ao enviar via Edge Function:", {
+            status: response.status,
+            data,
+          });
+          throw new Error(data?.error || "Erro ao enviar foto");
         }
 
-        // 2. Obter URL pública
-        const { data: { publicUrl } } = supabase.storage
-          .from('event-photos')
-          .getPublicUrl(filePath);
-
-        // 3. Inserir registro no banco
-        const { data: insertData, error: insertError } = await supabase
-          .from('event_photos')
-          .insert({
-            event_id: eventId,
-            guest_id: guestId,
-            photo_url: publicUrl,
-            file_name: photo.file.name,
-            file_size: photo.file.size
-          })
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error('❌ Erro ao salvar no banco:', insertError);
-          // Tentar limpar o arquivo se falhar no banco (opcional, mas boa prática)
-          await supabase.storage.from('event-photos').remove([filePath]);
-          throw new Error(`Erro ao salvar: ${insertError.message}`);
-        }
-
-        const result = insertData;
-        console.log('✅ Foto enviada com sucesso:', result);
         setUploadProgress(((index + 1) / photos.length) * 100);
-        return result;
+        return data;
       });
 
       await Promise.all(uploadPromises);
