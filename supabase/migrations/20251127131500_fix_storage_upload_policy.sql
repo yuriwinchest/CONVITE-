@@ -23,20 +23,12 @@ FOR SELECT
 TO public
 USING (bucket_id = 'event-photos');
 
--- Garantir que criadores de eventos podem deletar fotos
+-- Garantir que usuários autenticados podem deletar fotos
 DROP POLICY IF EXISTS "Event creators can delete photos" ON storage.objects;
+DROP POLICY IF EXISTS "Allow authenticated users to delete photos" ON storage.objects;
 
-CREATE POLICY "Allow event creators to delete photos"
+CREATE POLICY "Allow authenticated users to delete photos"
 ON storage.objects
 FOR DELETE
 TO authenticated
-USING (
-  bucket_id = 'event-photos'
-  AND EXISTS (
-    SELECT 1
-    FROM public.event_photos ep
-    JOIN public.events e ON e.id = ep.event_id
-    WHERE e.user_id = auth.uid()
-    AND (storage.foldername(name))[1] = e.id::text
-  )
-);
+USING (bucket_id = 'event-photos');
