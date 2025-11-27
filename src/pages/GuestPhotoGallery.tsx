@@ -233,6 +233,35 @@ export default function GuestPhotoGallery() {
     );
   }
 
+  // Se o evento expirou (30 dias), mostrar mensagem específica
+  if (!photoAccess?.canUpload && photoAccess?.isExpired) {
+    return (
+      <div key="expired" className="min-h-screen bg-background flex flex-col notranslate" translate="no">
+        <Header />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <Card className="max-w-2xl w-full">
+            <CardHeader className="text-center">
+              <Lock className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
+              <CardTitle className="text-2xl">{event.name}</CardTitle>
+              <CardDescription className="text-base">
+                {format(new Date(event.date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <Alert>
+                <AlertDescription className="text-center">
+                  O período de envio de fotos para este evento encerrou.
+                  <br />
+                  <strong>As fotos ficam disponíveis por 30 dias após a data do evento.</strong>
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   // Se não é acesso de convidado (não tem guestId na URL) e não tem permissão, mostrar upgrade
   if (!hasGuestIdInUrl && !photoAccess?.canUpload) {
     return (

@@ -27,12 +27,32 @@ export const useEventPhotoAccess = (
           return { canUpload: false, plan: "FREE" as SubscriptionPlan };
         }
 
+        // Verificar validade do evento (30 dias)
+        const { data: eventData } = await supabase
+          .from("events")
+          .select("date")
+          .eq("id", eventId)
+          .single();
+
+        let isExpired = false;
+        if (eventData) {
+          const eventDate = new Date(eventData.date);
+          const expirationDate = new Date(eventDate);
+          expirationDate.setDate(eventDate.getDate() + 30);
+
+          if (new Date() > expirationDate) {
+            console.log("⚠️ [useEventPhotoAccess] Event photos expired (30 days limit)");
+            isExpired = true;
+          }
+        }
+
         if (accessData) {
           console.log("✅ [useEventPhotoAccess] Access check result:", accessData);
           const result = accessData as { canUpload: boolean; plan: string };
           return {
-            canUpload: result.canUpload,
+            canUpload: result.canUpload && !isExpired,
             plan: result.plan as SubscriptionPlan,
+            isExpired,
           };
         }
 
@@ -59,17 +79,21 @@ export const useEventPhotoAccess = (
 
             if (subscription?.plan === "PREMIUM") {
               console.log("✅ [useEventPhotoAccess] User has PREMIUM subscription");
-              return { canUpload: true, plan: "PREMIUM" as SubscriptionPlan };
+              return {
+                canUpload: true && !isExpired,
+                plan: "PREMIUM" as SubscriptionPlan,
+                isExpired
+              };
             }
           }
         }
 
         console.log("📋 [useEventPhotoAccess] Defaulting to FREE plan");
-        return { canUpload: false, plan: "FREE" as SubscriptionPlan };
+        return { canUpload: false, plan: "FREE" as SubscriptionPlan, isExpired };
       } catch (error) {
         console.error("❌ [useEventPhotoAccess] Unexpected error:", error);
         // Em caso de erro, retornar FREE ao invés de travar
-        return { canUpload: false, plan: "FREE" as SubscriptionPlan };
+        return { canUpload: false, plan: "FREE" as SubscriptionPlan, isExpired: false };
       }
     },
     enabled: !!eventId,
