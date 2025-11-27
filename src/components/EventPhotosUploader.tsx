@@ -202,8 +202,9 @@ export const EventPhotosUploader = ({
           .insert({
             event_id: eventId,
             guest_id: guestId,
-            url: publicUrl,
-            storage_path: filePath
+            photo_url: publicUrl,
+            file_name: photo.file.name,
+            file_size: photo.file.size
           })
           .select()
           .single();
