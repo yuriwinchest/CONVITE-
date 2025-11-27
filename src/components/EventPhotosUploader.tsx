@@ -176,14 +176,46 @@ export const EventPhotosUploader = ({
           fileType: photo.file.type
         });
 
-        const { data: result, error } = await supabase.functions.invoke('upload-event-photo', {
-          body: formData,
-        });
+        // Tentar upload direto para o Storage (bypass Edge Function auth issues)
+        const fileExt = photo.file.name.split('.').pop();
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const filePath = `${eventId}/${guestId}/${fileName}`;
 
-        if (error) {
-          console.error('❌ Erro no upload:', error);
-          throw new Error(error.message || 'Upload failed');
+        // 1. Upload para o bucket 'event-photos'
+        const { error: uploadError } = await supabase.storage
+          .from('event-photos')
+          .upload(filePath, photo.file);
+
+        if (uploadError) {
+          console.error('❌ Erro no upload Storage:', uploadError);
+          throw new Error(`Erro no upload: ${uploadError.message}`);
         }
+
+        // 2. Obter URL pública
+        const { data: { publicUrl } } = supabase.storage
+          .from('event-photos')
+          .getPublicUrl(filePath);
+
+        // 3. Inserir registro no banco
+        const { data: insertData, error: insertError } = await supabase
+          .from('event_photos')
+          .insert({
+            event_id: eventId,
+            guest_id: guestId,
+            url: publicUrl,
+            storage_path: filePath
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('❌ Erro ao salvar no banco:', insertError);
+          // Tentar limpar o arquivo se falhar no banco (opcional, mas boa prática)
+          await supabase.storage.from('event-photos').remove([filePath]);
+          throw new Error(`Erro ao salvar: ${insertError.message}`);
+        }
+
+        const result = insertData;
         console.log('✅ Foto enviada com sucesso:', result);
         setUploadProgress(((index + 1) / photos.length) * 100);
         return result;
