@@ -318,21 +318,23 @@ export default function ConfirmPresence() {
 
       if (result) {
         // Se já estiver confirmado, vai direto para a tela de confirmado
+        // Se já estiver confirmado, redirecionar para a galeria
         if (result.confirmed) {
           setGuestData(result);
           setSearchState("confirmed");
 
           if (eventId && result.id) {
-            const photosUrl = `${window.location.origin}/event/${eventId}/guest-gallery?guestId=${result.id}`;
-            const qrImage = await generateQRCodeImage(photosUrl);
-            setPhotosQRCode(qrImage);
-          }
+            toast({
+              title: "Presença já confirmada",
+              description: "Redirecionando para sua galeria de fotos...",
+            });
 
-          toast({
-            title: "Presença já confirmada",
-            description: "Sua presença já foi confirmada anteriormente.",
-          });
-          return;
+            // Redirecionar automaticamente para a galeria
+            setTimeout(() => {
+              navigate(`/event/${eventId}/guest-gallery?guestId=${result.id}`);
+            }, 1500);
+            return;
+          }
         }
 
         // Se não estiver confirmado, tenta confirmar agora (Auto-Checkin)
