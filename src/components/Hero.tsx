@@ -181,15 +181,15 @@ const Hero = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.7 }}
           >
-            <Card className="shadow-2xl" style={{ backgroundColor: '#fff', borderColor: 'rgba(53, 70, 61, 0.2)' }}>
+            <Card className="shadow-2xl" style={{ backgroundColor: '#35463D', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
               <CardContent className="p-12">
                 <div className="flex items-center gap-3 mb-6">
-                  <Heart className="w-10 h-10" style={{ color: '#35463D' }} />
-                  <h2 className="text-3xl font-bold" style={{ color: '#35463D' }}>
+                  <Heart className="w-10 h-10" style={{ color: '#E8E0D2' }} />
+                  <h2 className="text-3xl font-bold" style={{ color: '#E8E0D2' }}>
                     Para Quem Deseja um Evento Verdadeiramente Memorável
                   </h2>
                 </div>
-                <p className="text-lg leading-relaxed" style={{ color: '#35463D', opacity: 0.75 }}>
+                <p className="text-lg leading-relaxed" style={{ color: '#E8E0D2', opacity: 0.9 }}>
                   O Encontre Meu Lugar é a solução perfeita para qualquer pessoa que organiza um evento
                   e deseja demonstrar um carinho especial por cada convidado. Oferecemos a certeza de
                   que todos se sentirão parte do evento, com seus lugares cuidadosamente designados,
@@ -307,12 +307,12 @@ const Hero = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <Card className="shadow-2xl" style={{ backgroundColor: '#fff', borderColor: 'rgba(53, 70, 61, 0.2)' }}>
+            <Card className="shadow-2xl" style={{ backgroundColor: '#35463D', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
               <CardContent className="p-12 text-center">
-                <h3 className="text-2xl font-bold mb-4" style={{ color: '#35463D' }}>
+                <h3 className="text-2xl font-bold mb-4" style={{ color: '#E8E0D2' }}>
                   Converse Conosco
                 </h3>
-                <p className="text-lg mb-8" style={{ color: '#35463D', opacity: 0.75 }}>
+                <p className="text-lg mb-8" style={{ color: '#E8E0D2', opacity: 0.9 }}>
                   Estamos prontos para ajudar a planejar seu evento com a organização
                   e sofisticação que você merece.
                 </p>

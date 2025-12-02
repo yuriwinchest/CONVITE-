@@ -29,7 +29,7 @@ BEGIN
       AND lower(unaccent(name)) LIKE lower(unaccent('%' || p_name || '%'))
     ORDER BY name ASC
     LIMIT p_limit
-  ) g;
+  ) AS g;
 
   RETURN v_results;
 END;

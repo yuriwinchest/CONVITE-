@@ -5,6 +5,7 @@
 DROP POLICY IF EXISTS "Anyone can upload event photos" ON storage.objects;
 DROP POLICY IF EXISTS "Event photos upload policy" ON storage.objects;
 DROP POLICY IF EXISTS "Public upload access" ON storage.objects;
+DROP POLICY IF EXISTS "Allow anonymous upload to event-photos" ON storage.objects;
 
 -- Criar política que permite upload para QUALQUER usuário (autenticado ou anônimo)
 CREATE POLICY "Allow anonymous upload to event-photos"
@@ -16,6 +17,7 @@ WITH CHECK (bucket_id = 'event-photos');
 -- Garantir que a política de leitura também existe
 DROP POLICY IF EXISTS "Photos are publicly accessible" ON storage.objects;
 DROP POLICY IF EXISTS "Public read access" ON storage.objects;
+DROP POLICY IF EXISTS "Allow public read from event-photos" ON storage.objects;
 
 CREATE POLICY "Allow public read from event-photos"
 ON storage.objects

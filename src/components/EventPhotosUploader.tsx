@@ -40,6 +40,7 @@ export const EventPhotosUploader = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [existingPhotosCount, setExistingPhotosCount] = useState(0);
+  const [verifyingCheckin, setVerifyingCheckin] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -84,7 +85,7 @@ export const EventPhotosUploader = ({
     if (!files) return;
 
     const remainingSlots = MAX_PHOTOS_PER_GUEST - existingPhotosCount - photos.length;
-
+    
     if (remainingSlots <= 0) {
       toast({
         title: "Limite atingido",
@@ -142,6 +143,25 @@ export const EventPhotosUploader = ({
     setIsDragging(false);
   };
 
+  const verifyGuestCheckinWithTimeout = async (): Promise<boolean> => {
+    const timeoutMs = 8000;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error("Timeout ao verificar check-in")), timeoutMs);
+    });
+
+    const rpcPromise = supabase.rpc("verify_guest_checkin", {
+      p_guest_id: guestId!,
+      p_event_id: eventId,
+    });
+
+    const { data, error } = await Promise.race([rpcPromise, timeoutPromise]);
+
+    if (error) throw error;
+
+    const result = data as unknown as VerifyCheckinResult;
+    return !!result?.success && !!result?.guest?.has_checked_in;
+  };
+
   const removePhoto = (id: string) => {
     setPhotos((prev) => prev.filter((p) => p.id !== id));
   };
@@ -149,8 +169,21 @@ export const EventPhotosUploader = ({
   const uploadPhotos = async () => {
     if (photos.length === 0) return;
 
+    // Verificar check-in antes de iniciar qualquer upload
     try {
       if (!guestId) {
+        toast({
+          title: "Check-in necessário",
+          description: "Você precisa fazer check-in no evento antes de enviar fotos.",
+          variant: "destructive",
+        });
+        return;
+      }
+      setVerifyingCheckin(true);
+      const hasCheckedIn = await verifyGuestCheckinWithTimeout();
+      setVerifyingCheckin(false);
+
+      if (!hasCheckedIn) {
         toast({
           title: "Check-in necessário",
           description: "Você precisa fazer check-in no evento antes de enviar fotos.",
@@ -167,14 +200,6 @@ export const EventPhotosUploader = ({
         formData.append('file', photo.file);
         formData.append('eventId', eventId);
         formData.append('guestId', guestId);
-
-        console.log('📤 Enviando foto via Edge Function:', {
-          eventId,
-          guestId,
-          fileName: photo.file.name,
-          fileSize: photo.file.size,
-          fileType: photo.file.type,
-        });
 
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/upload-event-photo`,
@@ -193,14 +218,9 @@ export const EventPhotosUploader = ({
           | null;
 
         if (!response.ok || !data?.success) {
-          console.error('❌ Erro ao enviar via Edge Function:', {
-            status: response.status,
-            data,
-          });
           throw new Error(data?.error || 'Erro ao enviar foto');
         }
 
-        console.log('✅ Foto enviada com sucesso via Edge Function');
         setUploadProgress(((index + 1) / photos.length) * 100);
         return data;
       });
@@ -214,17 +234,19 @@ export const EventPhotosUploader = ({
 
       setPhotos([]);
       setExistingPhotosCount((prev) => prev + photos.length);
-
-      // Pequeno delay para garantir que o estado local atualize antes de invalidar queries do pai
-      setTimeout(() => {
-        onUploadComplete?.();
-      }, 100);
+      onUploadComplete?.();
     } catch (error: unknown) {
       console.error("Upload error details:", error);
 
       let errorMessage = "Não foi possível enviar as fotos.";
-      if (error instanceof Error && error.message) {
-        errorMessage = error.message;
+      if (error instanceof Error) {
+        if (error.message.includes("Guest has not checked in yet")) {
+          errorMessage = "Você precisa fazer check-in antes de enviar fotos.";
+        } else if (error.message.includes("NetworkError") || error.message.includes("Timeout")) {
+          errorMessage = "Falha ao validar check-in (rede/timeout). Tente novamente.";
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
       }
 
       toast({
@@ -233,6 +255,7 @@ export const EventPhotosUploader = ({
         variant: "destructive",
       });
     } finally {
+      setVerifyingCheckin(false);
       setUploading(false);
       setUploadProgress(0);
     }
@@ -253,10 +276,11 @@ export const EventPhotosUploader = ({
         </div>
       )}
       <Card
-        className={`border-2 border-dashed transition-colors ${isDragging
-          ? "border-primary bg-primary/5"
-          : "border-border hover:border-primary/50"
-          }`}
+        className={`border-2 border-dashed transition-colors ${
+          isDragging
+            ? "border-primary bg-primary/5"
+            : "border-border hover:border-primary/50"
+        }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -273,7 +297,7 @@ export const EventPhotosUploader = ({
             type="button"
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
-            disabled={uploading || remainingSlots <= 0}
+            disabled={verifyingCheckin || uploading || remainingSlots <= 0}
           >
             Selecionar Fotos
           </Button>
@@ -316,11 +340,11 @@ export const EventPhotosUploader = ({
             ))}
           </div>
 
-          {uploading && (
+          {(verifyingCheckin || uploading) && (
             <div className="space-y-2">
-              <Progress value={uploadProgress} />
+              <Progress value={verifyingCheckin ? undefined : uploadProgress} />
               <p className="text-sm text-center text-muted-foreground">
-                Enviando fotos... {Math.round(uploadProgress)}%
+                {verifyingCheckin ? "Verificando check-in..." : `Enviando fotos... ${Math.round(uploadProgress)}%`}
               </p>
             </div>
           )}
@@ -328,7 +352,7 @@ export const EventPhotosUploader = ({
           <div className="flex gap-2">
             <Button
               onClick={uploadPhotos}
-              disabled={uploading}
+              disabled={verifyingCheckin || uploading}
               className="flex-1"
             >
               <Upload className="mr-2 h-4 w-4" />
