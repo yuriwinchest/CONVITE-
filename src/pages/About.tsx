@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
+import Pricing from "@/components/Pricing";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Sparkles, Users, Heart } from "lucide-react";
@@ -126,6 +127,9 @@ const About = () => {
                         Voltar para o Início
                     </Button>
                 </div>
+            </div>
+            <div className="container mx-auto px-4 py-12 max-w-5xl">
+                <Pricing />
             </div>
         </div>
     );

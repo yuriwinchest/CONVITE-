@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import Pricing from "@/components/Pricing";
 
 const Index = () => {
   const { user, isLoading } = useAuth();
@@ -22,6 +23,11 @@ const Index = () => {
     <div className="min-h-screen">
       <Header />
       <Hero />
+      <div className="px-6 py-16">
+        <div className="container mx-auto">
+          <Pricing />
+        </div>
+      </div>
     </div>
   );
 };
