@@ -41,7 +41,7 @@ const Hero = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section - Baunilha (#E8E0D2) */}
-      <section className="py-20 px-6" style={{ backgroundColor: '#E8E0D2' }}>
+      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: '#E8E0D2' }}>
         <motion.div
           className="container mx-auto max-w-4xl text-center"
           initial="initial"
@@ -49,16 +49,16 @@ const Hero = () => {
           variants={staggerContainer}
         >
           <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
+            className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full mb-4 sm:mb-6"
             style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)', color: '#35463D' }}
             variants={scaleIn}
           >
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">Organização Inteligente de Eventos</span>
+            <span className="text-xs sm:text-sm font-medium">Organização Inteligente de Eventos</span>
           </motion.div>
 
           <motion.h1
-            className="text-5xl md:text-6xl font-bold mb-6 leading-tight"
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight px-2"
             style={{ color: '#35463D' }}
             variants={fadeInUp}
           >
@@ -66,7 +66,7 @@ const Hero = () => {
           </motion.h1>
 
           <motion.p
-            className="text-lg mb-10 max-w-3xl mx-auto leading-relaxed"
+            className="text-base sm:text-lg mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed px-2"
             style={{ color: '#35463D', opacity: 0.8 }}
             variants={fadeInUp}
           >
@@ -76,14 +76,14 @@ const Hero = () => {
           </motion.p>
 
           <motion.div
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4"
             variants={fadeInUp}
           >
             <Button
               size="lg"
               onClick={() => navigate("/auth")}
               style={{ backgroundColor: '#35463D', color: '#E8E0D2' }}
-              className="hover:opacity-90 px-8 py-6 text-base font-semibold"
+              className="hover:opacity-90 px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold w-full sm:w-auto"
             >
               Criar Meu Evento
             </Button>
@@ -91,10 +91,10 @@ const Hero = () => {
               size="lg"
               variant="outline"
               style={{ borderColor: '#35463D', color: '#35463D', borderWidth: '2px' }}
-              className="px-8 py-6 text-base font-semibold hover:opacity-80"
+              className="px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold hover:opacity-80 w-full sm:w-auto"
               onClick={() => navigate("/confirm")}
             >
-              <Search className="w-5 h-5 mr-2" />
+              <Search className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
               Encontrar Meu Lugar
             </Button>
           </motion.div>
@@ -102,23 +102,23 @@ const Hero = () => {
       </section>
 
       {/* Como Funciona - Verde (#35463D) */}
-      <section className="py-20 px-6" style={{ backgroundColor: '#35463D' }}>
+      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: '#35463D' }}>
         <div className="container mx-auto max-w-6xl">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-10 md:mb-16"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl font-bold mb-4" style={{ color: '#E8E0D2' }}>Como Funciona</h2>
-            <p className="text-xl" style={{ color: '#E8E0D2', opacity: 0.85 }}>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4" style={{ color: '#E8E0D2' }}>Como Funciona</h2>
+            <p className="text-base sm:text-lg md:text-xl" style={{ color: '#E8E0D2', opacity: 0.85 }}>
               Sua organização perfeita em passos simples
             </p>
           </motion.div>
 
           <motion.div
-            className="grid md:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8"
             initial="initial"
             whileInView="animate"
             viewport={{ once: true, margin: "-100px" }}
@@ -173,7 +173,7 @@ const Hero = () => {
       </section>
 
       {/* Para Quem - Baunilha (#E8E0D2) */}
-      <section className="py-20 px-6" style={{ backgroundColor: '#E8E0D2' }}>
+      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: '#E8E0D2' }}>
         <div className="container mx-auto max-w-5xl">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -182,14 +182,14 @@ const Hero = () => {
             transition={{ duration: 0.7 }}
           >
             <Card className="shadow-2xl" style={{ backgroundColor: '#35463D', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
-              <CardContent className="p-12">
-                <div className="flex items-center gap-3 mb-6">
-                  <Heart className="w-10 h-10" style={{ color: '#E8E0D2' }} />
-                  <h2 className="text-3xl font-bold" style={{ color: '#E8E0D2' }}>
+              <CardContent className="p-6 sm:p-8 md:p-12">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4 sm:mb-6">
+                  <Heart className="w-8 sm:w-10 h-8 sm:h-10 flex-shrink-0" style={{ color: '#E8E0D2' }} />
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: '#E8E0D2' }}>
                     Para Quem Deseja um Evento Verdadeiramente Memorável
                   </h2>
                 </div>
-                <p className="text-lg leading-relaxed" style={{ color: '#E8E0D2', opacity: 0.9 }}>
+                <p className="text-base sm:text-lg leading-relaxed" style={{ color: '#E8E0D2', opacity: 0.9 }}>
                   O Encontre Meu Lugar é a solução perfeita para qualquer pessoa que organiza um evento
                   e deseja demonstrar um carinho especial por cada convidado. Oferecemos a certeza de
                   que todos se sentirão parte do evento, com seus lugares cuidadosamente designados,
@@ -202,19 +202,19 @@ const Hero = () => {
       </section>
 
       {/* Portfólio / Casos de Uso - Verde (#35463D) */}
-      <section className="py-20 px-6" style={{ backgroundColor: '#35463D' }}>
+      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: '#35463D' }}>
         <div className="container mx-auto max-w-6xl">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-10 md:mb-16"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl font-bold mb-4" style={{ color: '#E8E0D2' }}>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2" style={{ color: '#E8E0D2' }}>
               Histórias de Sucesso: Onde a Organização Encontra a Emoção
             </h2>
-            <p className="text-xl max-w-3xl mx-auto" style={{ color: '#E8E0D2', opacity: 0.85 }}>
+            <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: '#E8E0D2', opacity: 0.85 }}>
               Explore como o Encontre Meu Lugar tem transformado a experiência em diversos eventos.
               Cada imagem e cada história refletem nosso compromisso com a excelência e o acolhimento.
             </p>
@@ -222,7 +222,7 @@ const Hero = () => {
 
           {/* Testimonials */}
           <motion.div
-            className="grid md:grid-cols-2 gap-8 mb-12"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-8 md:mb-12"
             initial="initial"
             whileInView="animate"
             viewport={{ once: true, margin: "-100px" }}
@@ -282,19 +282,19 @@ const Hero = () => {
       </section>
 
       {/* Planos e Preços - Baunilha (#E8E0D2) */}
-      <section className="py-20 px-6" style={{ backgroundColor: '#E8E0D2' }}>
+      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: '#E8E0D2' }}>
         <div className="container mx-auto max-w-5xl">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-10 md:mb-16"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl font-bold mb-4" style={{ color: '#35463D' }}>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2" style={{ color: '#35463D' }}>
               Escolha a Tranquilidade: Soluções Adaptadas ao Seu Evento
             </h2>
-            <p className="text-xl max-w-3xl mx-auto" style={{ color: '#35463D', opacity: 0.8 }}>
+            <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: '#35463D', opacity: 0.8 }}>
               Compreendemos que cada evento é único, e a sua necessidade também.
               Nossas soluções são projetadas para se moldar ao seu evento, garantindo
               que você receba exatamente o que precisa para uma organização impecável.
@@ -308,16 +308,16 @@ const Hero = () => {
             transition={{ duration: 0.6 }}
           >
             <Card className="shadow-2xl" style={{ backgroundColor: '#35463D', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
-              <CardContent className="p-12 text-center">
-                <h3 className="text-2xl font-bold mb-4" style={{ color: '#E8E0D2' }}>
+              <CardContent className="p-6 sm:p-8 md:p-12 text-center">
+                <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4" style={{ color: '#E8E0D2' }}>
                   Converse Conosco
                 </h3>
-                <p className="text-lg mb-8" style={{ color: '#E8E0D2', opacity: 0.9 }}>
+                <p className="text-base sm:text-lg mb-6 sm:mb-8" style={{ color: '#E8E0D2', opacity: 0.9 }}>
                   Estamos prontos para ajudar a planejar seu evento com a organização
                   e sofisticação que você merece.
                 </p>
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                   <Button
                     size="lg"
                     className="gap-2"
@@ -346,7 +346,7 @@ const Hero = () => {
 
       {/* CTA Final - Verde (#35463D) */}
       <motion.section
-        className="py-20 px-6"
+        className="py-12 md:py-20 px-4 sm:px-6"
         style={{ backgroundColor: '#35463D' }}
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
@@ -355,7 +355,7 @@ const Hero = () => {
       >
         <div className="container mx-auto max-w-4xl text-center">
           <motion.h2
-            className="text-4xl font-bold mb-6"
+            className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 px-2"
             style={{ color: '#E8E0D2' }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -365,7 +365,7 @@ const Hero = () => {
             Pronto para Transformar Seu Evento?
           </motion.h2>
           <motion.p
-            className="text-xl mb-8"
+            className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 px-2"
             style={{ color: '#E8E0D2', opacity: 0.9 }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -382,7 +382,7 @@ const Hero = () => {
           >
             <Button
               size="lg"
-              className="px-8 py-6 text-base font-semibold"
+              className="px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold"
               style={{ backgroundColor: '#E8E0D2', color: '#35463D' }}
               onClick={() => navigate("/auth")}
             >

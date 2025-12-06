@@ -253,7 +253,7 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
   return (
     <>
       <section className="animate-fade-in">
-        <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto px-4 sm:px-0">
             {plans.map((plan, index) => {
               const isPremium = plan.name === "Premium";
               return (
@@ -262,7 +262,7 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
                   className={`
                     relative flex flex-col transition-all duration-300
                     ${isPremium 
-                      ? 'border-2 border-primary shadow-xl scale-105 bg-gradient-to-b from-primary/5 to-background' 
+                      ? 'border-2 border-primary shadow-xl md:scale-105 bg-gradient-to-b from-primary/5 to-background' 
                       : 'border border-border/40 hover:border-border hover:shadow-md bg-background'
                     }
                   `}
