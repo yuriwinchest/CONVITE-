@@ -1,30 +1,53 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@14.21.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@18.5.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
-const stripe = new Stripe(Deno.env.get("vento") as string, {
-  apiVersion: "2023-10-16",
-});
-
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL") ?? "",
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-);
+// Logging helper for debugging
+const logStep = (step: string, details?: Record<string, unknown>) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
+};
 
 serve(async (req) => {
-  const signature = req.headers.get("stripe-signature");
-const webhookSecret =
-  Deno.env.get("STRIPE_WEBHOOK_SECRET") || Deno.env.get("webhook");
+  logStep("Webhook request received");
 
-  if (!signature || !webhookSecret) {
-    return new Response("Missing signature or webhook secret", { status: 400 });
+  // Get Stripe secret key - check multiple possible names
+  const stripeSecretKey = Deno.env.get("STRIPE_SECRET_KEY") || Deno.env.get("vento");
+  if (!stripeSecretKey) {
+    logStep("ERROR: Missing Stripe secret key");
+    return new Response("Missing Stripe secret key", { status: 500 });
   }
+
+  const stripe = new Stripe(stripeSecretKey, {
+    apiVersion: "2025-08-27.basil",
+  });
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+
+  const signature = req.headers.get("stripe-signature");
+  // Check multiple possible secret names for webhook
+  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET") || Deno.env.get("webhook");
+
+  if (!signature) {
+    logStep("ERROR: Missing stripe-signature header");
+    return new Response("Missing stripe-signature header", { status: 400 });
+  }
+
+  if (!webhookSecret) {
+    logStep("ERROR: Missing webhook secret - configure STRIPE_WEBHOOK_SECRET or webhook in secrets");
+    return new Response("Missing webhook secret configuration", { status: 500 });
+  }
+
+  logStep("Secrets verified", { hasSignature: true, hasWebhookSecret: true });
 
   try {
     const body = await req.text();
     const event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
 
-    console.log("Webhook event received:", event.type);
+    logStep("Webhook event verified", { type: event.type, id: event.id });
 
     switch (event.type) {
       case "checkout.session.completed": {
