@@ -9,7 +9,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import logo from "@/assets/logo-encontre-meu-lugar.jpg";
+import Logo from "@/components/Logo";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -24,7 +24,7 @@ const Header = () => {
     <header className="bg-primary text-primary-foreground py-3 px-4 md:py-4 md:px-6">
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
-          <img src={logo} alt="Encontre Meu Lugar" className="h-10 md:h-12 w-auto" />
+          <Logo iconSize={28} />
         </div>
 
         {/* Desktop Navigation */}
