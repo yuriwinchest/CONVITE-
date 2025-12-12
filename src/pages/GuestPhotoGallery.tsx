@@ -10,7 +10,7 @@ import { EventPhotosUploader } from "@/components/EventPhotosUploader";
 import { EventPhotoGallery } from "@/components/EventPhotoGallery";
 import { useEventPhotoAccess } from "@/hooks/useEventPhotoAccess";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Camera, Lock, User } from "lucide-react";
+import { Loader2, Camera, Lock, User, ZoomIn, MapPin } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -433,6 +433,40 @@ export default function GuestPhotoGallery() {
             Trocar Convidado
           </Button>
         </div>
+
+        {/* Mapa das Mesas */}
+        {event.table_map_url && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Mapa das Mesas
+              </CardTitle>
+              <CardDescription>
+                Encontre sua mesa no evento
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="border rounded-lg overflow-hidden bg-muted/20">
+                <img
+                  src={event.table_map_url}
+                  alt="Mapa das mesas"
+                  className="w-full h-auto max-h-96 object-contain"
+                />
+              </div>
+              <div className="flex gap-3 mt-3">
+                <Button 
+                  variant="outline" 
+                  className="flex-1" 
+                  onClick={() => window.open(event.table_map_url!, "_blank")}
+                >
+                  <ZoomIn className="mr-2 h-4 w-4" />
+                  Ver em Tela Cheia
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <div className="space-y-8">
           <Card>
