@@ -1,5 +1,6 @@
-import logoLight from "@/assets/logo-transparent.png";
+import logoHeader from "@/assets/logo-encontre-meu-lugar-full.jpg";
 import logoDark from "@/assets/logo-dark.png";
+import logoLight from "@/assets/logo-no-bg.png";
 
 interface LogoProps {
   className?: string;
@@ -14,26 +15,17 @@ const Logo = ({ className = "", size = "md", variant = "light" }: LogoProps) => 
     lg: "h-16",
   };
 
-  // Para o header, usamos o logo claro com fundo da cor primary
-  if (variant === "header") {
-    return (
-      <div className={`bg-primary rounded-md p-1 ${className}`}>
-        <img 
-          src={logoLight} 
-          alt="Encontre Meu Lugar" 
-          className={`${sizeClasses[size]} w-auto object-contain`}
-        />
-      </div>
-    );
-  }
-
-  const logoSrc = variant === "dark" ? logoDark : logoLight;
+  const logoSrc = variant === "header" 
+    ? logoHeader 
+    : variant === "dark" 
+      ? logoDark 
+      : logoLight;
 
   return (
     <img 
       src={logoSrc} 
       alt="Encontre Meu Lugar" 
-      className={`${sizeClasses[size]} w-auto object-contain ${className}`}
+      className={`${sizeClasses[size]} w-auto object-contain rounded ${className}`}
     />
   );
 };
