@@ -1,5 +1,6 @@
 import logoDark from "@/assets/logo-dark.png";
 import logoLight from "@/assets/logo-no-bg.png";
+import logoWithBg from "@/assets/logo-with-bg.png";
 
 interface LogoProps {
   className?: string;
@@ -14,16 +15,14 @@ const Logo = ({ className = "", size = "md", variant = "light" }: LogoProps) => 
     lg: "h-16",
   };
 
-  // Para o header, usar logo transparente com fundo da cor primary via CSS
+  // Para o header, usar logo que já tem fundo verde
   if (variant === "header") {
     return (
-      <div className={`bg-primary rounded-md p-1.5 ${className}`}>
-        <img 
-          src={logoLight} 
-          alt="Encontre Meu Lugar" 
-          className={`${sizeClasses[size]} w-auto object-contain`}
-        />
-      </div>
+      <img 
+        src={logoWithBg} 
+        alt="Encontre Meu Lugar" 
+        className={`${sizeClasses[size]} w-auto object-contain rounded ${className}`}
+      />
     );
   }
 
