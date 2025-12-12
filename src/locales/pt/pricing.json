@@ -1,0 +1,61 @@
+{
+  "plans": {
+    "free": {
+      "name": "Plano Gratuito",
+      "price": "R$ 0",
+      "period": "",
+      "features": [
+        "Até 50 convidados",
+        "Funções básicas de setorização",
+        "Mapa do evento"
+      ],
+      "cta": "Começar"
+    },
+    "essential": {
+      "name": "Essencial",
+      "price": "R$ 79,00",
+      "period": "/ por evento",
+      "highlight": "💳 Pagamento único por evento",
+      "features": [
+        "Até 200 convidados",
+        "Mapa de assentos",
+        "Upload em CSV",
+        "Mapa de mesa",
+        "Check-in"
+      ],
+      "cta": "Escolher"
+    },
+    "premium": {
+      "name": "Premium",
+      "price": "R$ 149,00",
+      "period": "/ mês",
+      "highlight": "🎉 Até 5 eventos por mês",
+      "badge": "Mais Popular",
+      "features": [
+        "Até 5 eventos por mês",
+        "Convidados ilimitados",
+        "Inclusão de menus e fotos",
+        "Mapa de assentos interativo",
+        "Relatórios e exportação em PDF",
+        "Envio de fotos pelos convidados",
+        "Upload em CSV",
+        "Mapa de mesa",
+        "Check-in"
+      ],
+      "cta": "Assinar"
+    }
+  },
+  "messages": {
+    "loginRequired": "Faça login para continuar",
+    "eventRequired": "ID do evento não fornecido",
+    "createEventFirst": "Você precisa criar um evento primeiro",
+    "openingPayment": "Abrindo página de pagamento...",
+    "openingCheckout": "Abrindo checkout...",
+    "paymentError": "Erro ao processar pagamento",
+    "subscriptionError": "Erro ao processar assinatura",
+    "freePlanActive": "Plano FREE já está ativo"
+  },
+  "dialog": {
+    "selectEvent": "Selecione o evento para o plano"
+  }
+}

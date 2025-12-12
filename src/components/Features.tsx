@@ -1,32 +1,35 @@
 import { QrCode, Users, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 
-const features = [
-  {
-    icon: QrCode,
-    title: "QR Code Elegante",
-    description: "Cada evento recebe um QR code exclusivo. Seus convidados encontram seus lugares com facilidade e elegância.",
-  },
-  {
-    icon: Users,
-    title: "Gestão Intuitiva",
-    description: "Importe listas CSV ou adicione convidados manualmente. Reorganize mesas em tempo real sem complicação.",
-  },
-  {
-    icon: RefreshCw,
-    title: "Atualizações em Tempo Real",
-    description: "Mudanças de última hora? Sem problemas. Atualize os lugares e o QR code permanece o mesmo.",
-  },
-];
-
 const Features = () => {
+  const { t } = useTranslation('home');
+
+  const features = [
+    {
+      icon: QrCode,
+      title: t('features.qrCode.title'),
+      description: t('features.qrCode.description'),
+    },
+    {
+      icon: Users,
+      title: t('features.management.title'),
+      description: t('features.management.description'),
+    },
+    {
+      icon: RefreshCw,
+      title: t('features.realtime.title'),
+      description: t('features.realtime.description'),
+    },
+  ];
+
   return (
     <section className="bg-primary text-primary-foreground py-20 px-6">
       <div className="container mx-auto">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Cuidado em Cada Detalhe</h2>
+          <h2 className="text-4xl font-bold mb-4">{t('features.title')}</h2>
           <p className="text-lg text-primary-foreground/80 max-w-2xl mx-auto">
-            Uma plataforma criada para transformar organização em momentos memoráveis.
+            {t('features.subtitle')}
           </p>
         </div>
         

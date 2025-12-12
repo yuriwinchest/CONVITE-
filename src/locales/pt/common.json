@@ -1,0 +1,33 @@
+{
+  "header": {
+    "aboutUs": "Sobre Nós",
+    "iAmGuest": "Sou Convidado",
+    "login": "Entrar",
+    "menu": "Menu",
+    "subscription": "Assinatura",
+    "admin": "Admin",
+    "logout": "Sair"
+  },
+  "footer": {
+    "brand": "Encontre Meu Lugar",
+    "copyright": "© 2025 Encontre Meu Lugar. Criando momentos de acolhimento e sofisticação."
+  },
+  "buttons": {
+    "createEvent": "Criar Meu Evento",
+    "findMyPlace": "Encontrar Meu Lugar",
+    "start": "Começar",
+    "choose": "Escolher",
+    "subscribe": "Assinar",
+    "processing": "Processando...",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "back": "Voltar"
+  },
+  "languages": {
+    "portuguese": "Português",
+    "spanish": "Español"
+  }
+}

@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -16,6 +17,7 @@ import {
 
 const Hero = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation(['home', 'common']);
 
   // Animation variants
   const fadeInUp = {
@@ -54,7 +56,7 @@ const Hero = () => {
             variants={scaleIn}
           >
             <Sparkles className="w-4 h-4" />
-            <span className="text-xs sm:text-sm font-medium">Organização Inteligente de Eventos</span>
+            <span className="text-xs sm:text-sm font-medium">{t('home:hero.badge')}</span>
           </motion.div>
 
           <motion.h1
@@ -62,7 +64,7 @@ const Hero = () => {
             style={{ color: '#35463D' }}
             variants={fadeInUp}
           >
-            Organize assentos com sofisticação e tranquilidade
+            {t('home:hero.title')}
           </motion.h1>
 
           <motion.p
@@ -70,9 +72,7 @@ const Hero = () => {
             style={{ color: '#35463D', opacity: 0.8 }}
             variants={fadeInUp}
           >
-            Para a tranquilidade de quem planeja e o conforto de quem chega, Encontre Meu Lugar
-            transforma a organização de assentos em uma experiência fluida e sofisticada. Nossa
-            plataforma assegura que cada detalhe seja cuidado, do planejamento ao conforto dos seus convidados.
+            {t('home:hero.description')}
           </motion.p>
 
           <motion.div
@@ -85,7 +85,7 @@ const Hero = () => {
               style={{ backgroundColor: '#35463D', color: '#E8E0D2' }}
               className="hover:opacity-90 px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold w-full sm:w-auto"
             >
-              Criar Meu Evento
+              {t('common:buttons.createEvent')}
             </Button>
             <Button
               size="lg"
@@ -95,7 +95,7 @@ const Hero = () => {
               onClick={() => navigate("/confirm")}
             >
               <Search className="w-4 sm:w-5 h-4 sm:h-5 mr-2" />
-              Encontrar Meu Lugar
+              {t('common:buttons.findMyPlace')}
             </Button>
           </motion.div>
         </motion.div>
@@ -111,9 +111,11 @@ const Hero = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4" style={{ color: '#E8E0D2' }}>Como Funciona</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4" style={{ color: '#E8E0D2' }}>
+              {t('home:howItWorks.title')}
+            </h2>
             <p className="text-base sm:text-lg md:text-xl" style={{ color: '#E8E0D2', opacity: 0.85 }}>
-              Sua organização perfeita em passos simples
+              {t('home:howItWorks.subtitle')}
             </p>
           </motion.div>
 
@@ -130,10 +132,9 @@ const Hero = () => {
                   <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
                     <Clock className="w-8 h-8" style={{ color: '#35463D' }} />
                   </div>
-                  <CardTitle className="text-2xl" style={{ color: '#35463D' }}>Crie em 2 Minutos</CardTitle>
+                  <CardTitle className="text-2xl" style={{ color: '#35463D' }}>{t('home:howItWorks.step1.title')}</CardTitle>
                   <CardDescription className="text-base" style={{ color: '#35463D', opacity: 0.75 }}>
-                    Crie seu evento e gerencie a lista de convidados em 2 minutos.
-                    Não precisa de aplicativo nem senhas.
+                    {t('home:howItWorks.step1.description')}
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -145,10 +146,9 @@ const Hero = () => {
                   <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
                     <QrCode className="w-8 h-8" style={{ color: '#35463D' }} />
                   </div>
-                  <CardTitle className="text-2xl" style={{ color: '#35463D' }}>QR Code Exclusivo</CardTitle>
+                  <CardTitle className="text-2xl" style={{ color: '#35463D' }}>{t('home:howItWorks.step2.title')}</CardTitle>
                   <CardDescription className="text-base" style={{ color: '#35463D', opacity: 0.75 }}>
-                    Seu QR Code exclusivo está pronto instantaneamente.
-                    Compartilhe com facilidade e praticidade.
+                    {t('home:howItWorks.step2.description')}
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -160,10 +160,9 @@ const Hero = () => {
                   <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
                     <Users className="w-8 h-8" style={{ color: '#35463D' }} />
                   </div>
-                  <CardTitle className="text-2xl" style={{ color: '#35463D' }}>Experiência Acolhedora</CardTitle>
+                  <CardTitle className="text-2xl" style={{ color: '#35463D' }}>{t('home:howItWorks.step3.title')}</CardTitle>
                   <CardDescription className="text-base" style={{ color: '#35463D', opacity: 0.75 }}>
-                    Convidados escaneiam e encontram o lugar certo, garantindo
-                    uma experiência acolhedora e sem imprevistos.
+                    {t('home:howItWorks.step3.description')}
                   </CardDescription>
                 </CardHeader>
               </Card>
@@ -186,14 +185,11 @@ const Hero = () => {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4 sm:mb-6">
                   <Heart className="w-8 sm:w-10 h-8 sm:h-10 flex-shrink-0" style={{ color: '#E8E0D2' }} />
                   <h2 className="text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: '#E8E0D2' }}>
-                    Para Quem Deseja um Evento Verdadeiramente Memorável
+                    {t('home:forWhom.title')}
                   </h2>
                 </div>
                 <p className="text-base sm:text-lg leading-relaxed" style={{ color: '#E8E0D2', opacity: 0.9 }}>
-                  O Encontre Meu Lugar é a solução perfeita para qualquer pessoa que organiza um evento
-                  e deseja demonstrar um carinho especial por cada convidado. Oferecemos a certeza de
-                  que todos se sentirão parte do evento, com seus lugares cuidadosamente designados,
-                  desde pequenas celebrações no salão do seu edifício a grandes galas empresariais.
+                  {t('home:forWhom.description')}
                 </p>
               </CardContent>
             </Card>
@@ -212,11 +208,10 @@ const Hero = () => {
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2" style={{ color: '#E8E0D2' }}>
-              Histórias de Sucesso: Onde a Organização Encontra a Emoção
+              {t('home:portfolio.title')}
             </h2>
             <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: '#E8E0D2', opacity: 0.85 }}>
-              Explore como o Encontre Meu Lugar tem transformado a experiência em diversos eventos.
-              Cada imagem e cada história refletem nosso compromisso com a excelência e o acolhimento.
+              {t('home:portfolio.subtitle')}
             </p>
           </motion.div>
 
@@ -237,16 +232,15 @@ const Hero = () => {
                     ))}
                   </div>
                   <p className="italic mb-4 leading-relaxed" style={{ color: '#35463D', opacity: 0.75 }}>
-                    "O Encontre Meu Lugar foi a solução que eu precisava. Meus convidados se sentiram
-                    valorizados e a logística do evento fluiu perfeitamente. Indico de olhos fechados!"
+                    "{t('home:portfolio.testimonial1.text')}"
                   </p>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
                       <Users className="w-6 h-6" style={{ color: '#35463D' }} />
                     </div>
                     <div>
-                      <p className="font-semibold" style={{ color: '#35463D' }}>Cliente Satisfeito</p>
-                      <p className="text-sm" style={{ color: '#35463D', opacity: 0.6 }}>Casamento</p>
+                      <p className="font-semibold" style={{ color: '#35463D' }}>{t('home:portfolio.testimonial1.author')}</p>
+                      <p className="text-sm" style={{ color: '#35463D', opacity: 0.6 }}>{t('home:portfolio.testimonial1.event')}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -262,16 +256,15 @@ const Hero = () => {
                     ))}
                   </div>
                   <p className="italic mb-4 leading-relaxed" style={{ color: '#35463D', opacity: 0.75 }}>
-                    "Organização impecável! Nossos convidados elogiaram muito a facilidade de encontrar
-                    seus lugares. A plataforma é intuitiva e economizou muito tempo."
+                    "{t('home:portfolio.testimonial2.text')}"
                   </p>
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
                       <Sparkles className="w-6 h-6" style={{ color: '#35463D' }} />
                     </div>
                     <div>
-                      <p className="font-semibold" style={{ color: '#35463D' }}>Assessora de Eventos</p>
-                      <p className="text-sm" style={{ color: '#35463D', opacity: 0.6 }}>Evento Corporativo</p>
+                      <p className="font-semibold" style={{ color: '#35463D' }}>{t('home:portfolio.testimonial2.author')}</p>
+                      <p className="text-sm" style={{ color: '#35463D', opacity: 0.6 }}>{t('home:portfolio.testimonial2.event')}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -292,12 +285,10 @@ const Hero = () => {
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2" style={{ color: '#35463D' }}>
-              Escolha a Tranquilidade: Soluções Adaptadas ao Seu Evento
+              {t('home:pricing.title')}
             </h2>
             <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: '#35463D', opacity: 0.8 }}>
-              Compreendemos que cada evento é único, e a sua necessidade também.
-              Nossas soluções são projetadas para se moldar ao seu evento, garantindo
-              que você receba exatamente o que precisa para uma organização impecável.
+              {t('home:pricing.subtitle')}
             </p>
           </motion.div>
 
@@ -310,11 +301,10 @@ const Hero = () => {
             <Card className="shadow-2xl" style={{ backgroundColor: '#35463D', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
               <CardContent className="p-6 sm:p-8 md:p-12 text-center">
                 <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4" style={{ color: '#E8E0D2' }}>
-                  Converse Conosco
+                  {t('home:pricing.contact.title')}
                 </h3>
                 <p className="text-base sm:text-lg mb-6 sm:mb-8" style={{ color: '#E8E0D2', opacity: 0.9 }}>
-                  Estamos prontos para ajudar a planejar seu evento com a organização
-                  e sofisticação que você merece.
+                  {t('home:pricing.contact.description')}
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
@@ -362,7 +352,7 @@ const Hero = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            Pronto para Transformar Seu Evento?
+            {t('home:cta.title')}
           </motion.h2>
           <motion.p
             className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 px-2"
@@ -372,7 +362,7 @@ const Hero = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            Comece agora e proporcione uma experiência inesquecível para seus convidados
+            {t('home:cta.description')}
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -382,11 +372,11 @@ const Hero = () => {
           >
             <Button
               size="lg"
-              className="px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold"
               style={{ backgroundColor: '#E8E0D2', color: '#35463D' }}
+              className="hover:opacity-90 px-8 py-6 text-base font-semibold"
               onClick={() => navigate("/auth")}
             >
-              Criar Meu Evento Gratuitamente
+              {t('common:buttons.createEvent')}
             </Button>
           </motion.div>
         </div>

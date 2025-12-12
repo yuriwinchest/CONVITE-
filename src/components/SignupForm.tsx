@@ -3,23 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-
-const signupSchema = z.object({
-  fullName: z.string().min(2, { message: "Nome deve ter no mínimo 2 caracteres" }),
-  email: z.string().email({ message: "Email inválido" }),
-  password: z.string().min(6, { message: "A senha deve ter no mínimo 6 caracteres" }),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "As senhas não coincidem",
-  path: ["confirmPassword"],
-});
-
-type SignupFormData = z.infer<typeof signupSchema>;
 
 interface SignupFormProps {
   onToggleForm: () => void;
@@ -29,6 +18,19 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { t } = useTranslation('auth');
+
+  const signupSchema = z.object({
+    fullName: z.string().min(2, { message: t('validation.nameRequired') }),
+    email: z.string().email({ message: t('validation.emailInvalid') }),
+    password: z.string().min(6, { message: t('validation.passwordMin') }),
+    confirmPassword: z.string(),
+  }).refine((data) => data.password === data.confirmPassword, {
+    message: t('validation.passwordMismatch'),
+    path: ["confirmPassword"],
+  });
+
+  type SignupFormData = z.infer<typeof signupSchema>;
 
   const {
     register,
@@ -55,32 +57,24 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
       });
 
       if (error) {
-        if (error.message.includes("User already registered")) {
-          toast({
-            title: "Erro ao cadastrar",
-            description: "Este email já está cadastrado. Faça login.",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "Erro ao cadastrar",
-            description: error.message,
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: t('signup.title'),
+          description: t('messages.signupError'),
+          variant: "destructive",
+        });
         return;
       }
 
       toast({
-        title: "Cadastro realizado com sucesso!",
-        description: "Redirecionando...",
+        title: t('messages.signupSuccess'),
+        description: "",
       });
       
       navigate("/dashboard");
     } catch (error) {
       toast({
-        title: "Erro inesperado",
-        description: "Tente novamente mais tarde",
+        title: t('signup.title'),
+        description: t('messages.signupError'),
         variant: "destructive",
       });
     } finally {
@@ -91,11 +85,11 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="fullName">Nome Completo</Label>
+        <Label htmlFor="fullName">{t('signup.name')}</Label>
         <Input
           id="fullName"
           type="text"
-          placeholder="Seu nome completo"
+          placeholder={t('signup.namePlaceholder')}
           {...register("fullName")}
           disabled={isLoading}
         />
@@ -105,11 +99,11 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
+        <Label htmlFor="email">{t('signup.email')}</Label>
         <Input
           id="email"
           type="email"
-          placeholder="seu@email.com"
+          placeholder={t('signup.emailPlaceholder')}
           {...register("email")}
           disabled={isLoading}
         />
@@ -119,11 +113,11 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">Senha</Label>
+        <Label htmlFor="password">{t('signup.password')}</Label>
         <Input
           id="password"
           type="password"
-          placeholder="••••••"
+          placeholder={t('signup.passwordPlaceholder')}
           {...register("password")}
           disabled={isLoading}
         />
@@ -133,11 +127,11 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+        <Label htmlFor="confirmPassword">{t('signup.confirmPassword')}</Label>
         <Input
           id="confirmPassword"
           type="password"
-          placeholder="••••••"
+          placeholder={t('signup.confirmPasswordPlaceholder')}
           {...register("confirmPassword")}
           disabled={isLoading}
         />
@@ -151,18 +145,18 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
         className="w-full bg-primary hover:bg-accent text-primary-foreground"
         disabled={isLoading}
       >
-        {isLoading ? "Cadastrando..." : "Cadastrar"}
+        {isLoading ? t('signup.loading') : t('signup.submit')}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        Já tem conta?{" "}
+        {t('signup.hasAccount')}{" "}
         <button
           type="button"
           onClick={onToggleForm}
           className="text-primary hover:underline font-semibold"
           disabled={isLoading}
         >
-          Faça login
+          {t('signup.login')}
         </button>
       </p>
     </form>
