@@ -1001,6 +1001,34 @@ export default function ConfirmPresence() {
                     </Button>
                   )}
                 </div>
+
+                {/* Mapa das Mesas - mostrar antes da confirmação também */}
+                {eventDetails.table_map_url && (
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-lg">📍 Localização da sua mesa</h4>
+                    <div className="border rounded-lg overflow-hidden bg-muted/20">
+                      <img
+                        src={eventDetails.table_map_url}
+                        alt="Mapa das mesas"
+                        className="w-full h-auto"
+                        onError={(e) => {
+                          console.error("Erro ao carregar mapa:", eventDetails.table_map_url);
+                          (e.target as HTMLImageElement).style.display = 'none';
+                        }}
+                      />
+                    </div>
+                    <div className="flex gap-3">
+                      <Button
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => window.open(eventDetails.table_map_url!, "_blank")}
+                      >
+                        <ZoomIn className="mr-2 h-4 w-4" />
+                        <span>Ver em Tela Cheia</span>
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1057,9 +1085,8 @@ export default function ConfirmPresence() {
                   <span>Voltar para o início</span>
                 </Button>
 
-                {/* Show table map and photos only in non-kiosk mode */}
-                {!kioskMode && (
-                  <div className="space-y-6">
+                {/* Show table map - now visible in both kiosk and normal mode */}
+                <div className="space-y-6">
                     {/* Mapa das Mesas */}
                     {eventDetails.table_map_url ? (
                       <div className="space-y-3">
@@ -1223,7 +1250,6 @@ export default function ConfirmPresence() {
                       <span>Voltar para o início</span>
                     </Button>
                   </div>
-                )}
 
               </div>
             )}
