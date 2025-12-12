@@ -1,4 +1,4 @@
-import logoImage from "@/assets/logo-encontre-meu-lugar-full.jpg";
+import logoImage from "@/assets/logo-transparent.png";
 
 interface LogoProps {
   className?: string;
