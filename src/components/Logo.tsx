@@ -1,23 +1,23 @@
-import { MapPin } from "lucide-react";
+import logoImage from "@/assets/logo-encontre-meu-lugar-full.jpg";
 
 interface LogoProps {
   className?: string;
-  iconSize?: number;
+  size?: "sm" | "md" | "lg";
 }
 
-const Logo = ({ className = "", iconSize = 24 }: LogoProps) => {
+const Logo = ({ className = "", size = "md" }: LogoProps) => {
+  const sizeClasses = {
+    sm: "h-8",
+    md: "h-10",
+    lg: "h-16",
+  };
+
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <MapPin className="text-logo-text" style={{ width: iconSize, height: iconSize }} />
-      <div className="flex flex-col leading-tight">
-        <span className="font-serif text-xs md:text-sm font-medium tracking-widest text-logo-text uppercase italic">
-          ENCONTRE
-        </span>
-        <span className="font-serif text-xs md:text-sm font-medium tracking-widest text-logo-text uppercase italic">
-          MEU LUGAR
-        </span>
-      </div>
-    </div>
+    <img 
+      src={logoImage} 
+      alt="Encontre Meu Lugar" 
+      className={`${sizeClasses[size]} w-auto object-contain ${className}`}
+    />
   );
 };
 
