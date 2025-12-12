@@ -6,6 +6,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import CreateEventDialog from "@/components/CreateEventDialog";
 import EditEventDialog from "@/components/EditEventDialog";
 import PlanUpgradeModal from "@/components/PlanUpgradeModal";
@@ -24,6 +25,7 @@ const EventsList = () => {
   const [upgradeMessage, setUpgradeMessage] = useState("");
   const navigate = useNavigate();
   const { canCreateEvent } = useSubscription();
+  const { t, i18n } = useTranslation('events');
 
   // Verifica se o evento já passou
   const isEventPast = (eventDate: string) => {
@@ -65,13 +67,16 @@ const EventsList = () => {
     const { allowed, message } = await canCreateEvent();
     
     if (!allowed) {
-      setUpgradeMessage(message || "Você atingiu o limite de eventos do seu plano.");
+      setUpgradeMessage(message || t('planLimitReached'));
       setShowUpgradeModal(true);
       return;
     }
     
     setIsCreateDialogOpen(true);
   };
+
+  // Get the correct locale for date formatting
+  const dateLocale = i18n.language === 'es' ? 'es-ES' : 'pt-BR';
 
   if (isLoading) {
     return (
@@ -91,9 +96,9 @@ const EventsList = () => {
     <div className="animate-fade-in">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-foreground mb-2">Seus Eventos</h2>
+          <h2 className="text-3xl font-bold text-foreground mb-2">{t('title')}</h2>
           <p className="text-muted-foreground">
-            Gerencie e acompanhe todos os seus eventos
+            {t('subtitle')}
           </p>
         </div>
         {hasEvents && (
@@ -102,7 +107,7 @@ const EventsList = () => {
             onClick={handleCreateEvent}
           >
             <Plus className="w-4 h-4 mr-2" />
-            Criar Novo Evento
+            {t('createNew')}
           </Button>
         )}
       </div>
@@ -114,17 +119,17 @@ const EventsList = () => {
               <Calendar className="w-10 h-10 text-muted-foreground" />
             </div>
             <h3 className="text-xl font-semibold text-foreground mb-2">
-              Nenhum evento ainda
+              {t('noEvents')}
             </h3>
             <p className="text-muted-foreground text-center mb-8 max-w-md">
-              Crie seu primeiro evento e comece a organizar com sofisticação
+              {t('noEventsDescription')}
             </p>
             <Button 
               className="bg-primary hover:bg-primary/90 text-primary-foreground"
               onClick={handleCreateEvent}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Criar Primeiro Evento
+              {t('createFirst')}
             </Button>
           </CardContent>
         </Card>
@@ -157,7 +162,7 @@ const EventsList = () => {
                 case "PREMIUM":
                   return "Premium";
                 case "ESSENTIAL":
-                  return "Essencial";
+                  return i18n.language === 'es' ? "Esencial" : "Essencial";
                 default:
                   return "Free";
               }
@@ -174,7 +179,7 @@ const EventsList = () => {
                 <div className="absolute top-2 right-2 z-10 flex gap-2">
                   {isPast && (
                     <Badge variant="secondary" className="opacity-70">
-                      ✓ Realizado
+                      ✓ {t('completed')}
                     </Badge>
                   )}
                   <div className="flex items-center gap-2">
@@ -185,7 +190,7 @@ const EventsList = () => {
                     </Badge>
                     {!isPast && hasPremiumSub && !eventPurchase && (
                       <span className="text-xs text-muted-foreground">
-                        ✨ Via assinatura
+                        ✨ {t('viaSubscription')}
                       </span>
                     )}
                   </div>
@@ -195,14 +200,14 @@ const EventsList = () => {
                     {event.name}
                   </h3>
                   <p className="text-sm text-muted-foreground mb-1">
-                    Data: {new Date(event.date).toLocaleDateString("pt-BR", {
+                    {t('date')}: {new Date(event.date).toLocaleDateString(dateLocale, {
                       day: "numeric",
                       month: "long",
                       year: "numeric",
                     })}
                   </p>
                   {event.location && (
-                    <p className="text-sm text-muted-foreground">Local: {event.location}</p>
+                    <p className="text-sm text-muted-foreground">{t('location')}: {event.location}</p>
                   )}
                 </CardContent>
                 {!isPast && (
@@ -210,7 +215,7 @@ const EventsList = () => {
                     variant="ghost"
                     size="icon"
                     className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity z-20"
-                    aria-label="Editar evento"
+                    aria-label={t('editEvent')}
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedEvent(event);

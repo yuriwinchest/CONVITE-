@@ -1,0 +1,40 @@
+{
+  "searchPlaceholder": "Buscar por nome ou email...",
+  "all": "Todos",
+  "confirmed": "Confirmados",
+  "pending": "Pendentes",
+  "noGuests": "Nenhum convidado adicionado ainda",
+  "noGuestsFiltered": "Nenhum convidado encontrado com os filtros aplicados",
+  "selected": "selecionado",
+  "selectedPlural": "selecionados",
+  "guest": "convidado",
+  "guestPlural": "convidados",
+  "cancel": "Cancelar",
+  "sendInvites": "Enviar Convites",
+  "emailReminders": "Lembretes (Email)",
+  "whatsappReminders": "Lembretes (WhatsApp)",
+  "delete": "Deletar",
+  "deleteAll": "Deletar Todos",
+  "table": {
+    "name": "Nome",
+    "email": "Email",
+    "whatsapp": "WhatsApp",
+    "tableNumber": "Mesa",
+    "status": "Status",
+    "actions": "Ações"
+  },
+  "noEmail": "sem email",
+  "noWhatsapp": "sem WhatsApp",
+  "statusConfirmed": "Confirmado",
+  "statusPending": "Pendente",
+  "viewQRCode": "Ver QR Code do convidado",
+  "sendEmailReminder": "Enviar lembrete por email",
+  "sendWhatsappReminder": "Enviar lembrete pelo WhatsApp",
+  "dialogs": {
+    "confirmDelete": "Confirmar exclusão",
+    "confirmDeleteDescription": "Tem certeza que deseja remover {{name}}? Esta ação não pode ser desfeita.",
+    "bulkDeleteTitle": "Deletar múltiplos convidados",
+    "bulkDeleteDescription": "Tem certeza que deseja remover {{count}} convidado(s)? Esta ação não pode ser desfeita.",
+    "editGuest": "Editar Convidado"
+  }
+}

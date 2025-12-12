@@ -9,6 +9,8 @@ import ptPricing from './locales/pt/pricing.json';
 import ptAbout from './locales/pt/about.json';
 import ptDashboard from './locales/pt/dashboard.json';
 import ptConfirm from './locales/pt/confirm.json';
+import ptEvents from './locales/pt/events.json';
+import ptGuests from './locales/pt/guests.json';
 
 // Spanish translations
 import esCommon from './locales/es/common.json';
@@ -18,6 +20,8 @@ import esPricing from './locales/es/pricing.json';
 import esAbout from './locales/es/about.json';
 import esDashboard from './locales/es/dashboard.json';
 import esConfirm from './locales/es/confirm.json';
+import esEvents from './locales/es/events.json';
+import esGuests from './locales/es/guests.json';
 
 const resources = {
   pt: {
@@ -28,6 +32,8 @@ const resources = {
     about: ptAbout,
     dashboard: ptDashboard,
     confirm: ptConfirm,
+    events: ptEvents,
+    guests: ptGuests,
   },
   es: {
     common: esCommon,
@@ -37,6 +43,8 @@ const resources = {
     about: esAbout,
     dashboard: esDashboard,
     confirm: esConfirm,
+    events: esEvents,
+    guests: esGuests,
   },
 };
 

@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -11,55 +12,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
-
-const plans = [
-  {
-    name: "Plano Gratuito",
-    price: "R$ 0",
-    period: "",
-    features: [
-      "Até 50 convidados",
-      "Funções básicas de setorização",
-      "Mapa do evento",
-    ],
-    cta: "Começar",
-    variant: "outline" as const,
-  },
-  {
-    name: "Essencial",
-    price: "R$ 79,00",
-    period: "/ por evento",
-    highlight: "💳 Pagamento único por evento",
-    features: [
-      "Até 200 convidados",
-      "Mapa de assentos",
-      "Upload em CSV",
-      "Mapa de mesa",
-      "Check-in",
-    ],
-    cta: "Escolher",
-    variant: "outline" as const,
-  },
-  {
-    name: "Premium",
-    price: "R$ 149,00",
-    period: "/ mês",
-    highlight: "🎉 Até 5 eventos por mês",
-    features: [
-      "Até 5 eventos por mês",
-      "Convidados ilimitados",
-      "Inclusão de menus e fotos",
-      "Mapa de assentos interativo",
-      "Relatórios e exportação em PDF",
-      "Envio de fotos pelos convidados",
-      "Upload em CSV",
-      "Mapa de mesa",
-      "Check-in",
-    ],
-    cta: "Assinar",
-    variant: "default" as const,
-  },
-];
 
 interface PricingProps {
   eventId?: string;
@@ -70,6 +22,40 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
   const [loading, setLoading] = useState<string | null>(null);
   const [showEventSelector, setShowEventSelector] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
+  const { t, i18n } = useTranslation('pricing');
+
+  const plans = [
+    {
+      name: t('plans.free.name'),
+      price: t('plans.free.price'),
+      period: t('plans.free.period'),
+      features: t('plans.free.features', { returnObjects: true }) as string[],
+      cta: t('plans.free.cta'),
+      variant: "outline" as const,
+      key: "FREE",
+    },
+    {
+      name: t('plans.essential.name'),
+      price: t('plans.essential.price'),
+      period: t('plans.essential.period'),
+      highlight: t('plans.essential.highlight'),
+      features: t('plans.essential.features', { returnObjects: true }) as string[],
+      cta: t('plans.essential.cta'),
+      variant: "outline" as const,
+      key: "ESSENTIAL",
+    },
+    {
+      name: t('plans.premium.name'),
+      price: t('plans.premium.price'),
+      period: t('plans.premium.period'),
+      highlight: t('plans.premium.highlight'),
+      badge: t('plans.premium.badge'),
+      features: t('plans.premium.features', { returnObjects: true }) as string[],
+      cta: t('plans.premium.cta'),
+      variant: "default" as const,
+      key: "PREMIUM",
+    },
+  ];
 
   const { data: events } = useQuery({
     queryKey: ["events-for-purchase"],
@@ -88,17 +74,19 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
     },
   });
 
+  const dateLocale = i18n.language === 'es' ? 'es-ES' : 'pt-BR';
+
   const handlePurchaseEssential = async () => {
     try {
       setLoading("ESSENTIAL");
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("Faça login para continuar");
+        toast.error(t('messages.loginRequired'));
         return;
       }
 
       if (!eventId) {
-        toast.error("ID do evento não fornecido");
+        toast.error(t('messages.eventRequired'));
         return;
       }
 
@@ -112,13 +100,13 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
       if (error) throw error;
       
       if (data?.url) {
-        toast.success("Abrindo página de pagamento...");
+        toast.success(t('messages.openingPayment'));
         window.open(data.url, "_blank");
       } else {
         throw new Error("URL de checkout não recebida");
       }
     } catch (error) {
-      toast.error("Erro ao processar pagamento");
+      toast.error(t('messages.paymentError'));
       console.error(error);
     } finally {
       setLoading(null);
@@ -130,12 +118,12 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
       setLoading("PREMIUM");
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("Faça login para continuar");
+        toast.error(t('messages.loginRequired'));
         return;
       }
 
       if (!eventId) {
-        toast.error("ID do evento não fornecido");
+        toast.error(t('messages.eventRequired'));
         return;
       }
 
@@ -149,13 +137,13 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
       if (error) throw error;
       
       if (data?.url) {
-        toast.success("Abrindo página de pagamento...");
+        toast.success(t('messages.openingPayment'));
         window.open(data.url, "_blank");
       } else {
         throw new Error("URL de checkout não recebida");
       }
     } catch (error) {
-      toast.error("Erro ao processar pagamento");
+      toast.error(t('messages.paymentError'));
       console.error(error);
     } finally {
       setLoading(null);
@@ -167,7 +155,7 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
       setLoading("PREMIUM");
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("Faça login para continuar");
+        toast.error(t('messages.loginRequired'));
         return;
       }
 
@@ -179,12 +167,12 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
 
       if (error) throw error;
       
-      toast.success("Abrindo checkout...");
+      toast.success(t('messages.openingCheckout'));
       if (data?.url) {
         window.open(data.url, "_blank");
       }
     } catch (error) {
-      toast.error("Erro ao processar assinatura");
+      toast.error(t('messages.subscriptionError'));
       console.error(error);
     } finally {
       setLoading(null);
@@ -194,7 +182,7 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
   const handleEventSelection = (selectedEventId: string) => {
     setShowEventSelector(false);
     
-    if (selectedPlan === "Essencial") {
+    if (selectedPlan === "Essencial" || selectedPlan === "Esencial") {
       handlePurchaseEssentialWithEvent(selectedEventId);
     }
   };
@@ -204,7 +192,7 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
       setLoading("ESSENTIAL");
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("Faça login para continuar");
+        toast.error(t('messages.loginRequired'));
         return;
       }
 
@@ -218,35 +206,35 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
       if (error) throw error;
       
       if (data?.url) {
-        toast.success("Abrindo página de pagamento...");
+        toast.success(t('messages.openingPayment'));
         window.open(data.url, "_blank");
       } else {
         throw new Error("URL de checkout não recebida");
       }
     } catch (error) {
-      toast.error("Erro ao processar pagamento");
+      toast.error(t('messages.paymentError'));
       console.error(error);
     } finally {
       setLoading(null);
     }
   };
 
-  const handlePlanSelection = (planName: string) => {
-    if (planName === "Essencial") {
+  const handlePlanSelection = (planName: string, planKey: string) => {
+    if (planKey === "ESSENTIAL") {
       if (!eventId) {
         if (!events || events.length === 0) {
-          toast.error("Você precisa criar um evento primeiro");
+          toast.error(t('messages.createEventFirst'));
           return;
         }
-        setSelectedPlan("Essencial");
+        setSelectedPlan(planName);
         setShowEventSelector(true);
         return;
       }
       handlePurchaseEssential();
-    } else if (planName === "Premium") {
+    } else if (planKey === "PREMIUM") {
       handleSubscribePremium();
     } else {
-      toast.info("Plano FREE já está ativo");
+      toast.info(t('messages.freePlanActive'));
     }
   };
 
@@ -255,7 +243,7 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
       <section className="animate-fade-in">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto px-4 sm:px-0">
             {plans.map((plan, index) => {
-              const isPremium = plan.name === "Premium";
+              const isPremium = plan.key === "PREMIUM";
               return (
                 <Card 
                   key={index} 
@@ -268,9 +256,9 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
                   `}
                 >
                   {/* Badge para Premium */}
-                  {isPremium && (
+                  {isPremium && plan.badge && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-primary-foreground text-xs font-semibold rounded-full shadow-lg">
-                      Mais Popular
+                      {plan.badge}
                     </div>
                   )}
 
@@ -323,10 +311,10 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
                           : 'hover:bg-muted'
                         }
                       `}
-                      onClick={() => handlePlanSelection(plan.name)}
+                      onClick={() => handlePlanSelection(plan.name, plan.key)}
                       disabled={loading !== null}
                     >
-                      {loading === plan.name.toUpperCase() ? "Processando..." : plan.cta}
+                      {loading === plan.key ? t('messages.processing', { defaultValue: "Processando..." }) : plan.cta}
                     </Button>
                   </CardContent>
                 </Card>
@@ -338,7 +326,7 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
       <Dialog open={showEventSelector} onOpenChange={setShowEventSelector}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Selecione o evento para o plano {selectedPlan}</DialogTitle>
+            <DialogTitle>{t('dialog.selectEvent')} {selectedPlan}</DialogTitle>
           </DialogHeader>
           <div className="space-y-2 max-h-[400px] overflow-y-auto">
             {events?.map((event) => (
@@ -351,7 +339,7 @@ const Pricing = ({ eventId, embedded = false }: PricingProps = {}) => {
                 <div className="text-left">
                   <div className="font-semibold">{event.name}</div>
                   <div className="text-sm text-muted-foreground">
-                    {new Date(event.date).toLocaleDateString("pt-BR")}
+                    {new Date(event.date).toLocaleDateString(dateLocale)}
                   </div>
                 </div>
               </Button>
