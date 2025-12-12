@@ -112,27 +112,50 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
   };
 
   const handleAddToCart = async (data: EventFormData) => {
-    const [hours, minutes] = data.time.split(':');
-    const eventDateTime = new Date(data.date);
-    eventDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    setIsLoading(true);
+    try {
+      const [hours, minutes] = data.time.split(':');
+      const eventDateTime = new Date(data.date);
+      eventDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
-    const cartItem: CartItem = {
-      event_name: data.name,
-      plan: "ESSENTIAL",
-      amount: 79,
-      event_data: {
-        name: data.name,
-        date: eventDateTime.toISOString(),
-        location: data.location,
-        reminder_days_before: data.reminder_days_before,
-      },
-    };
+      // Upload do mapa antes de adicionar ao carrinho
+      let tableMapUrl: string | null = null;
+      if (selectedImage) {
+        const tempId = crypto.randomUUID();
+        const fileName = `pending-${tempId}-${Date.now()}-${selectedImage.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from("event-maps")
+          .upload(fileName, selectedImage);
+        
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage
+            .from("event-maps")
+            .getPublicUrl(fileName);
+          tableMapUrl = publicUrl;
+        }
+      }
 
-    await addToCart.mutateAsync(cartItem);
-    reset();
-    setSelectedImage(null);
-    setImagePreview(null);
-    onOpenChange(false);
+      const cartItem: CartItem = {
+        event_name: data.name,
+        plan: "ESSENTIAL",
+        amount: 79,
+        event_data: {
+          name: data.name,
+          date: eventDateTime.toISOString(),
+          location: data.location,
+          reminder_days_before: data.reminder_days_before,
+          table_map_url: tableMapUrl,
+        },
+      };
+
+      await addToCart.mutateAsync(cartItem);
+      reset();
+      setSelectedImage(null);
+      setImagePreview(null);
+      onOpenChange(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const onSubmit = async (data: EventFormData) => {

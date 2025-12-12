@@ -11,6 +11,7 @@ export interface CartItem {
     date: string;
     location: string;
     reminder_days_before?: number;
+    table_map_url?: string | null;
   };
 }
 
