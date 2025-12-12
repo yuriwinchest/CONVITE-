@@ -54,15 +54,83 @@ serve(async (req) => {
         const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.metadata?.userId;
         const plan = session.metadata?.plan;
+        const cartItemsRaw = session.metadata?.cart_items;
 
         console.log("Processing checkout.session.completed", { 
           userId, 
           plan, 
           sessionId: session.id,
           customer: session.customer,
-          subscription: session.subscription 
+          subscription: session.subscription,
+          hasCartItems: !!cartItemsRaw
         });
 
+        // Handle cart checkout - create events from cart
+        if (cartItemsRaw) {
+          try {
+            const cartItems = JSON.parse(cartItemsRaw);
+            const cartUserId = session.metadata?.user_id;
+            
+            console.log("Processing cart items:", { itemCount: cartItems.length, userId: cartUserId });
+            
+            for (const item of cartItems) {
+              if (item.event_data) {
+                // Create the event
+                const { data: eventData, error: eventError } = await supabase
+                  .from("events")
+                  .insert({
+                    user_id: cartUserId,
+                    name: item.event_data.name,
+                    date: item.event_data.date,
+                    location: item.event_data.location,
+                    reminder_days_before: item.event_data.reminder_days_before || 1,
+                    table_map_url: item.event_data.table_map_url || null,
+                  })
+                  .select()
+                  .single();
+                
+                if (eventError) {
+                  console.error("Error creating event from cart:", eventError);
+                  continue;
+                }
+                
+                console.log("Event created from cart:", eventData.id, eventData.name);
+                
+                // Create event purchase record
+                const { error: purchaseError } = await supabase
+                  .from("event_purchases")
+                  .insert({
+                    event_id: eventData.id,
+                    user_id: cartUserId,
+                    plan: item.plan || "ESSENTIAL",
+                    amount: item.amount,
+                    payment_status: "paid",
+                    stripe_payment_intent_id: session.payment_intent as string,
+                  });
+                
+                if (purchaseError) {
+                  console.error("Error creating purchase record:", purchaseError);
+                }
+              }
+            }
+            
+            // Clear the cart after successful processing
+            const { error: clearCartError } = await supabase
+              .from("shopping_cart")
+              .delete()
+              .eq("user_id", cartUserId);
+            
+            if (clearCartError) {
+              console.error("Error clearing cart:", clearCartError);
+            } else {
+              console.log("Cart cleared successfully for user:", cartUserId);
+            }
+          } catch (parseError) {
+            console.error("Error parsing cart items:", parseError);
+          }
+        }
+
+        // Handle Premium subscription checkout
         if (userId && plan === "PREMIUM") {
           const { data, error } = await supabase
             .from("user_subscriptions")
@@ -83,7 +151,7 @@ serve(async (req) => {
           }
 
           console.log("Premium subscription activated for user:", userId, { data });
-        } else {
+        } else if (!cartItemsRaw) {
           console.log("Skipping subscription update - missing userId or not PREMIUM plan:", { userId, plan });
         }
         break;
