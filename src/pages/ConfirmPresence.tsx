@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,7 +12,7 @@ import { QRCodeScanner } from "@/components/QRCodeScanner";
 import { generateQRCodeImage, parseQRCodeData } from "@/lib/qrCodeGenerator";
 import { Loader2, CheckCircle2, XCircle, MapPin, Calendar, Users, Download, ZoomIn, ArrowLeft, Camera } from "lucide-react";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { ptBR, es } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import Header from "@/components/Header";
 
@@ -53,6 +54,10 @@ export default function ConfirmPresence() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  const { t, i18n } = useTranslation('confirm');
+  
+  // Get the correct date-fns locale based on current language
+  const dateLocale = i18n.language === 'es' ? es : ptBR;
 
   const {
     searchGuest,
@@ -108,12 +113,12 @@ export default function ConfirmPresence() {
       console.error("Invalid event ID from route:", eventId);
       setInvalidEventId(true);
       toast({
-        title: "Link/QR inválido",
-        description: "O link ou QR Code não contém um ID de evento válido.",
+        title: t('messages.invalidLink'),
+        description: t('messages.invalidLinkDescription'),
         variant: "destructive",
       });
     }
-  }, [eventId, toast]);
+  }, [eventId, toast, t]);
 
   useEffect(() => {
     if (!prefillNameParam || !eventId || searchState !== "idle") {
@@ -152,8 +157,8 @@ export default function ConfirmPresence() {
             }
 
             toast({
-              title: "Presença já confirmada",
-              description: "Sua presença já foi confirmada anteriormente.",
+              title: t('status.alreadyConfirmed'),
+              description: t('messages.redirectingToGallery'),
             });
           } else {
             setGuestData(result);
@@ -162,8 +167,8 @@ export default function ConfirmPresence() {
         } else {
           setSearchState("not-found");
           toast({
-            title: "Convidado não encontrado",
-            description: "Não encontramos nenhum convidado com esse nome. Verifique a ortografia.",
+            title: t('messages.guestNotFound'),
+            description: t('messages.guestNotFoundDescription'),
             variant: "destructive",
           });
         }
@@ -171,8 +176,8 @@ export default function ConfirmPresence() {
         if (!cancelled) {
           setSearchState("idle");
           toast({
-            title: "Erro ao buscar",
-            description: "Ocorreu um erro ao buscar seu nome. Tente novamente.",
+            title: t('messages.searchError'),
+            description: t('messages.searchErrorDescription'),
             variant: "destructive",
           });
         }
@@ -209,8 +214,8 @@ export default function ConfirmPresence() {
         console.log("✅ [QR Scan] QR novo (Base64 JSON) detectado!", { guestId: parsed.guestId, eventId: parsed.eventId });
         navigate(`/confirm/${parsed.eventId}?guest=${parsed.guestId}&via=qr`);
         toast({
-          title: "QR Code escaneado!",
-          description: "Carregando suas informações...",
+          title: t('messages.qrScanned'),
+          description: t('messages.loadingInfo'),
         });
         return;
       }
@@ -224,8 +229,8 @@ export default function ConfirmPresence() {
           console.log("📱 [QR Scan] Usando eventId do contexto:", eventId);
           navigate(`/confirm/${eventId}?guest=${parsed.guestId}&via=qr`);
           toast({
-            title: "QR Code escaneado!",
-            description: "Carregando suas informações...",
+            title: t('messages.qrScanned'),
+            description: t('messages.loadingInfo'),
           });
           return;
         }
@@ -245,16 +250,16 @@ export default function ConfirmPresence() {
             console.log("✅ [QR Scan] Evento encontrado no banco:", guest.event_id);
             navigate(`/confirm/${guest.event_id}?guest=${parsed.guestId}&via=qr`);
             toast({
-              title: "QR Code escaneado!",
-              description: "Carregando suas informações...",
+              title: t('messages.qrScanned'),
+              description: t('messages.loadingInfo'),
             });
             return;
           }
         } catch (error) {
           console.error("❌ [QR Scan] Erro ao buscar convidado no banco:", error);
           toast({
-            title: "Convidado não encontrado",
-            description: "Não foi possível encontrar o convidado com este QR Code.",
+            title: t('messages.guestNotFound'),
+            description: t('messages.guestNotFoundDescription'),
             variant: "destructive",
           });
           return;
@@ -269,8 +274,8 @@ export default function ConfirmPresence() {
       if (!extractedEventId) {
         console.error("❌ [QR Scan] Nenhum eventId válido encontrado");
         toast({
-          title: "QR Code inválido",
-          description: "O QR Code escaneado não contém um evento válido.",
+          title: t('messages.invalidQR'),
+          description: t('messages.invalidQRDescription'),
           variant: "destructive",
         });
         return;
@@ -279,8 +284,8 @@ export default function ConfirmPresence() {
       console.log("✅ [QR Scan] QR de evento detectado, navegando para:", extractedEventId);
       navigate(`/confirm/${extractedEventId}`);
       toast({
-        title: "QR Code escaneado!",
-        description: "Carregando informações do evento...",
+        title: t('messages.qrScanned'),
+        description: t('messages.loadingEvent'),
       });
     } catch (error) {
       console.error("❌ [QR Scan] Erro ao processar QR Code:", error);
@@ -300,8 +305,8 @@ export default function ConfirmPresence() {
 
     if (!normalized || !eventId) {
       toast({
-        title: "Nome obrigatório",
-        description: "Por favor, digite seu nome para buscar.",
+        title: t('messages.nameRequired'),
+        description: t('messages.nameRequiredDescription'),
         variant: "destructive",
       });
       return;
@@ -325,8 +330,8 @@ export default function ConfirmPresence() {
 
           if (eventId && result.id) {
             toast({
-              title: "Presença já confirmada",
-              description: "Redirecionando para sua galeria de fotos...",
+              title: t('status.alreadyConfirmed'),
+              description: t('messages.redirectingToGallery'),
             });
 
             // Redirecionar automaticamente para a galeria
@@ -344,7 +349,7 @@ export default function ConfirmPresence() {
           setGuestData(result);
           setSearchState("found");
           toast({
-            title: "Check-in não disponível",
+            title: t('messages.checkInNotAvailable'),
             description: checkInStatus.message,
             variant: "destructive",
           });
@@ -364,23 +369,23 @@ export default function ConfirmPresence() {
         }
 
         toast({
-          title: "✅ Presença confirmada!",
-          description: "Obrigado por confirmar. Aguardamos você no evento!",
+          title: t('messages.confirmSuccess'),
+          description: t('messages.confirmSuccessDescription'),
         });
 
       } else {
         setSearchState("not-found");
         toast({
-          title: "Convidado não encontrado",
-          description: "Não encontramos nenhum convidado com esse nome. Verifique a ortografia.",
+          title: t('messages.guestNotFound'),
+          description: t('messages.guestNotFoundDescription'),
           variant: "destructive",
         });
       }
     } catch (error) {
       setSearchState("idle");
       toast({
-        title: "Erro ao buscar",
-        description: "Ocorreu um erro ao buscar seu nome. Tente novamente.",
+        title: t('messages.searchError'),
+        description: t('messages.searchErrorDescription'),
         variant: "destructive",
       });
     }
@@ -393,7 +398,7 @@ export default function ConfirmPresence() {
     const checkInStatus = isCheckInAllowed();
     if (!checkInStatus.allowed) {
       toast({
-        title: "Check-in não disponível",
+        title: t('messages.checkInNotAvailable'),
         description: checkInStatus.message,
         variant: "destructive",
       });
@@ -412,13 +417,13 @@ export default function ConfirmPresence() {
       }
 
       toast({
-        title: "✅ Presença confirmada!",
-        description: "Obrigado por confirmar. Aguardamos você no evento!",
+        title: t('messages.confirmSuccess'),
+        description: t('messages.confirmSuccessDescription'),
       });
     } catch (error) {
       toast({
-        title: "Erro ao confirmar",
-        description: "Ocorreu um erro ao confirmar sua presença. Tente novamente.",
+        title: t('messages.confirmError'),
+        description: t('messages.confirmErrorDescription'),
         variant: "destructive",
       });
     }

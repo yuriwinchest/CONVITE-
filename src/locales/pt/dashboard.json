@@ -1,0 +1,9 @@
+{
+  "title": "Painel de Controle",
+  "subtitle": "Gerencie seus eventos com elegância e praticidade",
+  "pendingUpgrade": {
+    "title": "Upgrade Pendente",
+    "description": "Você tem {{count}} upgrade(s) aguardando confirmação de pagamento. Assim que o pagamento for processado, seus recursos Premium serão ativados automaticamente."
+  },
+  "loading": "Carregando..."
+}

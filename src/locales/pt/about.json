@@ -1,0 +1,29 @@
+{
+  "badge": "Sobre Nós",
+  "title": "Encontre Meu Lugar",
+  "subtitle": "Transformando eventos em experiências inesquecíveis através da organização perfeita",
+  "mission": {
+    "title": "Nossa Missão",
+    "description": "Nosso desejo de transformar e facilitar a organização de eventos, cuidando da logística de assentos com a mais pura sofisticação, assegurando que cada convidado seja recebido com a devida consideração."
+  },
+  "differential": {
+    "title": "Nosso Diferencial",
+    "description": "Nosso diferencial é a preocupação genuína com o bem-estar de todos: a tranquilidade para o organizador e o conforto inestimável para os convidados, culminando em uma eficiência logística sem precedentes que eleva qualquer celebração."
+  },
+  "features": {
+    "sophistication": {
+      "title": "Sofisticação",
+      "description": "Organização com elegância e atenção aos detalhes"
+    },
+    "care": {
+      "title": "Cuidado",
+      "description": "Cada convidado recebe a atenção que merece"
+    },
+    "efficiency": {
+      "title": "Eficiência",
+      "description": "Logística impecável para eventos perfeitos"
+    }
+  },
+  "cta": "Comece Agora",
+  "backToHome": "Voltar para o Início"
+}
