@@ -374,7 +374,24 @@ export type Database = {
     }
     Functions: {
       check_event_photo_access: { Args: { p_event_id: string }; Returns: Json }
+      check_event_photos_access: {
+        Args: { p_event_id: string; p_guest_id?: string }
+        Returns: boolean
+      }
       confirm_guest_presence: { Args: { p_guest_id: string }; Returns: Json }
+      get_event_photos: {
+        Args: { p_event_id: string; p_guest_id?: string }
+        Returns: {
+          created_at: string
+          event_id: string
+          file_name: string
+          file_size: number
+          guest_id: string
+          id: string
+          photo_url: string
+          uploaded_at: string
+        }[]
+      }
       get_public_event_details: {
         Args: { p_event_id: string }
         Returns: {

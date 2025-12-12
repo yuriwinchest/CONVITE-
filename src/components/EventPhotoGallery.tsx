@@ -26,9 +26,13 @@ interface EventPhotoGalleryProps {
 
 interface EventPhoto {
   id: string;
+  event_id: string;
+  guest_id: string | null;
   photo_url: string;
   file_name: string;
+  file_size: number | null;
   uploaded_at: string;
+  created_at: string;
 }
 
 export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: EventPhotoGalleryProps) => {
@@ -37,20 +41,25 @@ export const EventPhotoGallery = ({ eventId, guestId, isCreator = false }: Event
   const { data: photos, isLoading, refetch } = useQuery({
     queryKey: ["event-photos", eventId, guestId],
     queryFn: async () => {
-      let query = supabase
-        .from("event_photos")
-        .select("*")
-        .eq("event_id", eventId);
+      // Usar a função RPC segura para buscar fotos
+      const { data, error } = await supabase.rpc("get_event_photos", {
+        p_event_id: eventId,
+        p_guest_id: guestId || null,
+      });
 
-      // Se for convidado específico, filtrar apenas suas fotos
-      if (guestId && !isCreator) {
-        query = query.eq("guest_id", guestId);
+      if (error) {
+        console.error("Erro ao buscar fotos:", error);
+        throw error;
       }
 
-      const { data, error } = await query.order("uploaded_at", { ascending: false });
+      let photos = (data || []) as unknown as EventPhoto[];
 
-      if (error) throw error;
-      return (data || []) as unknown as EventPhoto[];
+      // Se for convidado específico (não criador), filtrar apenas suas fotos
+      if (guestId && !isCreator) {
+        photos = photos.filter((photo) => photo.guest_id === guestId);
+      }
+
+      return photos;
     },
   });
 
