@@ -175,7 +175,20 @@ export default function GuestPhotoGallery() {
           p_event_id: eventId!,
         });
 
-      if (checkInError || !checkInData) {
+      if (checkInError) {
+        console.error("Erro ao verificar check-in:", checkInError);
+        toast({
+          title: "Erro ao verificar check-in",
+          description: "Não foi possível validar suas informações.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const checkInResult = checkInData as any;
+      
+      // Verificar se o guest existe E fez check-in
+      if (!checkInResult?.success || !checkInResult?.guest?.has_checked_in) {
         toast({
           title: "Check-in necessário",
           description: "Você precisa fazer check-in no evento antes de enviar fotos.",
