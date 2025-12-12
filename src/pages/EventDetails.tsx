@@ -30,6 +30,7 @@ import { GuestForm } from "@/components/GuestForm";
 import { GuestsList } from "@/components/GuestsList";
 import { CSVUploader } from "@/components/CSVUploader";
 import { TableManager } from "@/components/TableManager";
+import { TableMapUploader } from "@/components/TableMapUploader";
 import { CheckInManager } from "@/components/CheckInManager";
 import { EventQRCode } from "@/components/EventQRCode";
 import { EventPhotoGallery } from "@/components/EventPhotoGallery";
@@ -625,7 +626,14 @@ Nos vemos lá! 🎉`;
             </TabsContent>
 
             <TabsContent value="tables">
-              <TableManager eventId={eventId!} />
+              <div className="space-y-6">
+                <TableMapUploader 
+                  eventId={eventId!} 
+                  currentMapUrl={event.table_map_url} 
+                  disabled={isEventPast}
+                />
+                <TableManager eventId={eventId!} />
+              </div>
             </TabsContent>
 
             <TabsContent value="qrcode">
