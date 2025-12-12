@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
 import { Link, useNavigate } from "react-router-dom";
 import { Shield, Menu } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   Sheet,
   SheetContent,
@@ -13,12 +14,14 @@ import {
 } from "@/components/ui/sheet";
 import logo from "@/assets/logo-encontre-meu-lugar.jpg";
 import { CartButton } from "./CartButton";
+import LanguageSelector from "./LanguageSelector";
 
 const DashboardHeader = () => {
   const { logout } = useAuth();
   const { isAdmin } = useAdmin();
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation('common');
 
   const handleNavigate = (path: string) => {
     navigate(path);
@@ -39,13 +42,14 @@ const DashboardHeader = () => {
         
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-3">
+          <LanguageSelector />
           <CartButton />
           <Link to="/subscription">
             <Button 
               variant="ghost"
               className="text-primary-foreground hover:bg-primary-foreground/10"
             >
-              Minha Assinatura
+              {t('header.subscription')}
             </Button>
           </Link>
           {isAdmin && (
@@ -55,7 +59,7 @@ const DashboardHeader = () => {
                 className="bg-accent text-accent-foreground border-accent hover:bg-accent/90"
               >
                 <Shield className="h-4 w-4 mr-2" />
-                Admin
+                {t('header.admin')}
               </Button>
             </Link>
           )}
@@ -64,12 +68,13 @@ const DashboardHeader = () => {
             onClick={logout}
             className="bg-accent text-accent-foreground border-accent hover:bg-accent/90"
           >
-            Sair
+            {t('header.logout')}
           </Button>
         </div>
 
         {/* Mobile Navigation */}
         <div className="flex md:hidden items-center gap-2">
+          <LanguageSelector />
           <CartButton />
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
@@ -79,7 +84,7 @@ const DashboardHeader = () => {
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] bg-primary border-primary-foreground/20">
               <SheetHeader>
-                <SheetTitle className="text-primary-foreground text-left">Menu</SheetTitle>
+                <SheetTitle className="text-primary-foreground text-left">{t('header.menu')}</SheetTitle>
               </SheetHeader>
               <div className="flex flex-col gap-4 mt-8">
                 <Button
@@ -87,7 +92,7 @@ const DashboardHeader = () => {
                   className="justify-start text-primary-foreground hover:bg-primary-foreground/10"
                   onClick={() => handleNavigate("/subscription")}
                 >
-                  Minha Assinatura
+                  {t('header.subscription')}
                 </Button>
                 {isAdmin && (
                   <Button
@@ -96,7 +101,7 @@ const DashboardHeader = () => {
                     onClick={() => handleNavigate("/admin")}
                   >
                     <Shield className="h-4 w-4 mr-2" />
-                    Admin
+                    {t('header.admin')}
                   </Button>
                 )}
                 <Button
@@ -104,7 +109,7 @@ const DashboardHeader = () => {
                   className="bg-accent text-accent-foreground border-accent hover:bg-accent/90"
                   onClick={handleLogout}
                 >
-                  Sair
+                  {t('header.logout')}
                 </Button>
               </div>
             </SheetContent>

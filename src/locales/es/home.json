@@ -1,0 +1,69 @@
+{
+  "hero": {
+    "badge": "Organización Inteligente de Eventos",
+    "title": "Organiza asientos con sofisticación y tranquilidad",
+    "description": "Para la tranquilidad de quien planifica y el confort de quien llega, Encontre Meu Lugar transforma la organización de asientos en una experiencia fluida y sofisticada. Nuestra plataforma asegura que cada detalle sea cuidado, desde la planificación hasta el confort de tus invitados."
+  },
+  "howItWorks": {
+    "title": "Cómo Funciona",
+    "subtitle": "Tu organización perfecta en pasos simples",
+    "step1": {
+      "title": "Crea en 2 Minutos",
+      "description": "Crea tu evento y gestiona la lista de invitados en 2 minutos. No necesitas app ni contraseñas."
+    },
+    "step2": {
+      "title": "Código QR Exclusivo",
+      "description": "Tu código QR exclusivo está listo al instante. Compártelo con facilidad y practicidad."
+    },
+    "step3": {
+      "title": "Experiencia Acogedora",
+      "description": "Los invitados escanean y encuentran su lugar, garantizando una experiencia acogedora y sin imprevistos."
+    }
+  },
+  "forWhom": {
+    "title": "Para Quien Desea un Evento Verdaderamente Memorable",
+    "description": "Encontre Meu Lugar es la solución perfecta para cualquier persona que organiza un evento y desea demostrar un cariño especial por cada invitado. Ofrecemos la certeza de que todos se sentirán parte del evento, con sus lugares cuidadosamente designados, desde pequeñas celebraciones hasta grandes galas empresariales."
+  },
+  "portfolio": {
+    "title": "Historias de Éxito: Donde la Organización Encuentra la Emoción",
+    "subtitle": "Explora cómo Encontre Meu Lugar ha transformado la experiencia en diversos eventos. Cada imagen y cada historia reflejan nuestro compromiso con la excelencia y la acogida.",
+    "testimonial1": {
+      "text": "Encontre Meu Lugar fue la solución que necesitaba. Mis invitados se sintieron valorados y la logística del evento fluyó perfectamente. ¡Lo recomiendo totalmente!",
+      "author": "Cliente Satisfecho",
+      "event": "Boda"
+    },
+    "testimonial2": {
+      "text": "¡Organización impecable! Nuestros invitados elogiaron mucho la facilidad de encontrar sus lugares. La plataforma es intuitiva y ahorró mucho tiempo.",
+      "author": "Asesora de Eventos",
+      "event": "Evento Corporativo"
+    }
+  },
+  "pricing": {
+    "title": "Elige la Tranquilidad: Soluciones Adaptadas a Tu Evento",
+    "subtitle": "Comprendemos que cada evento es único, y tu necesidad también. Nuestras soluciones están diseñadas para adaptarse a tu evento, garantizando que recibas exactamente lo que necesitas para una organización impecable.",
+    "contact": {
+      "title": "Habla con Nosotros",
+      "description": "Estamos listos para ayudar a planificar tu evento con la organización y sofisticación que mereces."
+    }
+  },
+  "cta": {
+    "title": "¿Listo para Transformar Tu Evento?",
+    "description": "Comienza ahora y proporciona una experiencia inolvidable para tus invitados"
+  },
+  "features": {
+    "title": "Cuidado en Cada Detalle",
+    "subtitle": "Una plataforma creada para transformar organización en momentos memorables.",
+    "qrCode": {
+      "title": "Código QR Elegante",
+      "description": "Cada evento recibe un código QR exclusivo. Tus invitados encuentran sus lugares con facilidad y elegancia."
+    },
+    "management": {
+      "title": "Gestión Intuitiva",
+      "description": "Importa listas CSV o añade invitados manualmente. Reorganiza mesas en tiempo real sin complicaciones."
+    },
+    "realtime": {
+      "title": "Actualizaciones en Tiempo Real",
+      "description": "¿Cambios de última hora? Sin problemas. Actualiza los lugares y el código QR permanece el mismo."
+    }
+  }
+}
