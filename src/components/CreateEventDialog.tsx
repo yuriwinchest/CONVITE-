@@ -186,12 +186,27 @@ const CreateEventDialog = ({ open, onOpenChange }: CreateEventDialogProps) => {
       if (error) throw error;
 
       if (selectedImage && eventData) {
-        const fileName = `${eventData.id}-${Date.now()}-${selectedImage.name}`;
-        const { error: uploadError } = await supabase.storage.from("event-maps").upload(fileName, selectedImage);
+        console.log("[CreateEventDialog] Uploading table map...", { eventId: eventData.id, fileName: selectedImage.name });
+        const fileName = `${user.id}/${eventData.id}-${Date.now()}-${selectedImage.name}`;
+        const { error: uploadError, data: uploadData } = await supabase.storage.from("event-maps").upload(fileName, selectedImage);
         
-        if (!uploadError) {
+        if (uploadError) {
+          console.error("[CreateEventDialog] Upload error:", uploadError);
+          toast({
+            title: "Aviso",
+            description: "Evento criado, mas houve erro ao enviar o mapa. Você pode adicionar depois na página do evento.",
+            variant: "destructive",
+          });
+        } else {
+          console.log("[CreateEventDialog] Upload success:", uploadData);
           const { data: { publicUrl } } = supabase.storage.from("event-maps").getPublicUrl(fileName);
-          await supabase.from("events").update({ table_map_url: publicUrl }).eq("id", eventData.id);
+          console.log("[CreateEventDialog] Public URL:", publicUrl);
+          const { error: updateError } = await supabase.from("events").update({ table_map_url: publicUrl }).eq("id", eventData.id);
+          if (updateError) {
+            console.error("[CreateEventDialog] Update error:", updateError);
+          } else {
+            console.log("[CreateEventDialog] Map URL saved successfully");
+          }
         }
       }
 
