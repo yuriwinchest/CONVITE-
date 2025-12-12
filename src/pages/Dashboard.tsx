@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +22,7 @@ const Dashboard = () => {
   const { user, isLoading } = useAuth();
   const navigate = useNavigate();
   const { plan } = useSubscription();
+  const { t } = useTranslation('dashboard');
 
   // Ativar atualizações em tempo real
   useRealtimeUpdates();
@@ -116,10 +118,10 @@ const Dashboard = () => {
         {/* Header Section */}
         <DashboardSection className="mb-2">
           <h1 className="text-4xl font-bold text-foreground mb-3 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Painel de Controle
+            {t('title')}
           </h1>
           <p className="text-muted-foreground text-lg">
-            Gerencie seus eventos com elegância e praticidade
+            {t('subtitle')}
           </p>
         </DashboardSection>
 
@@ -129,11 +131,10 @@ const Dashboard = () => {
             <Alert className="border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 shadow-sm">
               <AlertCircle className="h-4 w-4 text-yellow-600" />
               <AlertTitle className="text-yellow-800 dark:text-yellow-400">
-                Upgrade Pendente
+                {t('pendingUpgrade.title')}
               </AlertTitle>
               <AlertDescription className="text-yellow-700 dark:text-yellow-300">
-                Você tem {pendingUpgrades.length} upgrade(s) aguardando confirmação de pagamento. 
-                Assim que o pagamento for processado, seus recursos Premium serão ativados automaticamente.
+                {t('pendingUpgrade.description', { count: pendingUpgrades.length })}
               </AlertDescription>
             </Alert>
           </DashboardSection>

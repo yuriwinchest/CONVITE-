@@ -1,0 +1,68 @@
+{
+  "title": "Confirmação de Presença",
+  "searchPlaceholder": "Digite seu nome completo",
+  "searchButton": "Buscar",
+  "searching": "Buscando...",
+  "scanQR": "Escanear QR Code",
+  "scanEventQR": "Escanear QR do Evento",
+  "scanGuestQR": "Escanear QR do Convidado",
+  "orEnterName": "ou digite seu nome abaixo",
+  "confirmPresence": "Confirmar Presença",
+  "confirming": "Confirmando...",
+  "tryAgain": "Tentar novamente",
+  "newSearch": "Nova busca",
+  "viewPhotos": "Ver Fotos do Evento",
+  "uploadPhotos": "Enviar Fotos",
+  "downloadQR": "Baixar QR Code",
+  "yourTable": "Sua Mesa",
+  "table": "Mesa",
+  "eventMap": "Mapa do Evento",
+  "noTable": "Sem mesa atribuída",
+  "kioskMode": "Modo Totem",
+  "exitKiosk": "Sair do Modo Totem",
+  "status": {
+    "confirmed": "Presença Confirmada!",
+    "found": "Convidado Encontrado",
+    "notFound": "Convidado Não Encontrado",
+    "alreadyConfirmed": "Presença já confirmada"
+  },
+  "messages": {
+    "invalidQR": "QR Code inválido",
+    "invalidQRDescription": "O QR Code escaneado não contém um evento válido.",
+    "invalidLink": "Link/QR inválido",
+    "invalidLinkDescription": "O link ou QR Code não contém um ID de evento válido.",
+    "guestNotFound": "Convidado não encontrado",
+    "guestNotFoundDescription": "Não encontramos nenhum convidado com esse nome. Verifique a ortografia.",
+    "nameRequired": "Nome obrigatório",
+    "nameRequiredDescription": "Por favor, digite seu nome para buscar.",
+    "searchError": "Erro ao buscar",
+    "searchErrorDescription": "Ocorreu um erro ao buscar seu nome. Tente novamente.",
+    "confirmError": "Erro ao confirmar",
+    "confirmErrorDescription": "Ocorreu um erro ao confirmar sua presença. Tente novamente.",
+    "confirmSuccess": "Presença confirmada!",
+    "confirmSuccessDescription": "Obrigado por confirmar. Aguardamos você no evento!",
+    "qrScanned": "QR Code escaneado!",
+    "loadingInfo": "Carregando suas informações...",
+    "loadingEvent": "Carregando informações do evento...",
+    "checkInNotAvailable": "Check-in não disponível",
+    "redirectingToGallery": "Redirecionando para sua galeria de fotos..."
+  },
+  "event": {
+    "date": "Data",
+    "location": "Local",
+    "guests": "Convidados"
+  },
+  "noEvent": {
+    "title": "Escanear QR do Evento",
+    "description": "Escaneie o QR Code do evento ou insira o código manualmente",
+    "manualInput": "Ou insira o código do evento:",
+    "manualInputPlaceholder": "Cole o link ou ID do evento",
+    "loadEvent": "Carregar Evento",
+    "loading": "Carregando..."
+  },
+  "photosSection": {
+    "title": "📸 Galeria de Fotos",
+    "description": "Escaneie o QR Code abaixo para acessar e enviar fotos do evento",
+    "accessGallery": "Acessar Galeria de Fotos"
+  }
+}

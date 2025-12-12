@@ -6,12 +6,18 @@ import ptCommon from './locales/pt/common.json';
 import ptHome from './locales/pt/home.json';
 import ptAuth from './locales/pt/auth.json';
 import ptPricing from './locales/pt/pricing.json';
+import ptAbout from './locales/pt/about.json';
+import ptDashboard from './locales/pt/dashboard.json';
+import ptConfirm from './locales/pt/confirm.json';
 
 // Spanish translations
 import esCommon from './locales/es/common.json';
 import esHome from './locales/es/home.json';
 import esAuth from './locales/es/auth.json';
 import esPricing from './locales/es/pricing.json';
+import esAbout from './locales/es/about.json';
+import esDashboard from './locales/es/dashboard.json';
+import esConfirm from './locales/es/confirm.json';
 
 const resources = {
   pt: {
@@ -19,12 +25,18 @@ const resources = {
     home: ptHome,
     auth: ptAuth,
     pricing: ptPricing,
+    about: ptAbout,
+    dashboard: ptDashboard,
+    confirm: ptConfirm,
   },
   es: {
     common: esCommon,
     home: esHome,
     auth: esAuth,
     pricing: esPricing,
+    about: esAbout,
+    dashboard: esDashboard,
+    confirm: esConfirm,
   },
 };
 
