@@ -27,7 +27,7 @@ const Header = () => {
     <header className="bg-primary text-primary-foreground py-3 px-4 md:py-4 md:px-6">
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
-          <Logo size="md" variant="with-bg" />
+          <Logo size="md" variant="header" />
         </div>
 
         {/* Desktop Navigation */}
