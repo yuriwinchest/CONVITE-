@@ -1,0 +1,14 @@
+{
+  "title": "Seus Eventos",
+  "subtitle": "Gerencie e acompanhe todos os seus eventos",
+  "createNew": "Criar Novo Evento",
+  "createFirst": "Criar Primeiro Evento",
+  "noEvents": "Nenhum evento ainda",
+  "noEventsDescription": "Crie seu primeiro evento e comece a organizar com sofisticação",
+  "date": "Data",
+  "location": "Local",
+  "completed": "Realizado",
+  "viaSubscription": "Via assinatura",
+  "editEvent": "Editar evento",
+  "planLimitReached": "Você atingiu o limite de eventos do seu plano."
+}

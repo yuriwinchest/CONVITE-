@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Pencil, Trash2, Mail, Send, QrCode, Search, MessageCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -58,6 +59,7 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "confirmed" | "pending">("all");
+  const { t } = useTranslation('guests');
 
   const handleDeleteClick = (guest: Guest) => {
     setSelectedGuest(guest);
@@ -154,7 +156,7 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
   if (guests.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        Nenhum convidado adicionado ainda
+        {t('noGuests')}
       </div>
     );
   }
@@ -168,7 +170,7 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nome ou email..."
+            placeholder={t('searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
@@ -181,21 +183,21 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
             size="sm"
             onClick={() => setStatusFilter("all")}
           >
-            Todos ({guests.length})
+            {t('all')} ({guests.length})
           </Button>
           <Button
             variant={statusFilter === "confirmed" ? "default" : "outline"}
             size="sm"
             onClick={() => setStatusFilter("confirmed")}
           >
-            Confirmados ({confirmedCount})
+            {t('confirmed')} ({confirmedCount})
           </Button>
           <Button
             variant={statusFilter === "pending" ? "default" : "outline"}
             size="sm"
             onClick={() => setStatusFilter("pending")}
           >
-            Pendentes ({pendingCount})
+            {t('pending')} ({pendingCount})
           </Button>
         </div>
       </div>
@@ -204,28 +206,28 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
         <div className="mb-4 p-4 rounded-lg border bg-muted/50">
           <div className="flex items-center justify-between mb-3">
             <span className="font-medium">
-              {selectedIds.length} convidado{selectedIds.length > 1 ? 's' : ''} selecionado{selectedIds.length > 1 ? 's' : ''}
+              {selectedIds.length} {selectedIds.length > 1 ? t('guestPlural') : t('guest')} {selectedIds.length > 1 ? t('selectedPlural') : t('selected')}
             </span>
             <Button variant="outline" size="sm" onClick={handleCancelSelection}>
-              Cancelar
+              {t('cancel')}
             </Button>
           </div>
           <div className="flex gap-2 flex-wrap">
             <Button variant="default" onClick={handleSendInvites}>
               <Send className="mr-2 h-4 w-4" />
-              Enviar Convites
+              {t('sendInvites')}
             </Button>
             <Button variant="secondary" onClick={handleSendReminders}>
               <Mail className="mr-2 h-4 w-4" />
-              Lembretes (Email)
+              {t('emailReminders')}
             </Button>
             <Button variant="secondary" onClick={handleSendWhatsAppReminders}>
               <MessageCircle className="mr-2 h-4 w-4" />
-              Lembretes (WhatsApp)
+              {t('whatsappReminders')}
             </Button>
             <Button variant="destructive" onClick={handleBulkDelete}>
               <Trash2 className="mr-2 h-4 w-4" />
-              Deletar
+              {t('delete')}
             </Button>
           </div>
         </div>
@@ -239,16 +241,16 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
                 <Checkbox
                   checked={allSelected}
                   onCheckedChange={handleSelectAll}
-                  aria-label="Selecionar todos"
+                  aria-label={t('all')}
                   className={someSelected ? "data-[state=checked]:bg-primary/50" : ""}
                 />
               </TableHead>
-              <TableHead>Nome</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>WhatsApp</TableHead>
-              <TableHead>Mesa</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+              <TableHead>{t('table.name')}</TableHead>
+              <TableHead>{t('table.email')}</TableHead>
+              <TableHead>{t('table.whatsapp')}</TableHead>
+              <TableHead>{t('table.tableNumber')}</TableHead>
+              <TableHead>{t('table.status')}</TableHead>
+              <TableHead className="text-right">{t('table.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -256,8 +258,8 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   {searchTerm || statusFilter !== "all" 
-                    ? "Nenhum convidado encontrado com os filtros aplicados"
-                    : "Nenhum convidado adicionado ainda"}
+                    ? t('noGuestsFiltered')
+                    : t('noGuests')}
                 </TableCell>
               </TableRow>
             ) : (
@@ -267,7 +269,7 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
                   <Checkbox
                     checked={selectedIds.includes(guest.id)}
                     onCheckedChange={(checked) => handleSelectGuest(guest.id, checked as boolean)}
-                    aria-label={`Selecionar ${guest.name}`}
+                    aria-label={`${t('all')} ${guest.name}`}
                   />
                 </TableCell>
                 <TableCell className="font-medium">{guest.name}</TableCell>
@@ -275,7 +277,7 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
                   <div className="flex items-center gap-1">
                     <span className="text-sm">{guest.email || "-"}</span>
                     {!guest.email && (
-                      <span className="text-xs text-muted-foreground">(sem email)</span>
+                      <span className="text-xs text-muted-foreground">({t('noEmail')})</span>
                     )}
                   </div>
                 </TableCell>
@@ -283,16 +285,16 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
                   <div className="flex items-center gap-1">
                     <span className="text-sm">{guest.whatsapp || "-"}</span>
                     {!guest.whatsapp && (
-                      <span className="text-xs text-muted-foreground">(sem WhatsApp)</span>
+                      <span className="text-xs text-muted-foreground">({t('noWhatsapp')})</span>
                     )}
                   </div>
                 </TableCell>
-                <TableCell>{guest.table_number ? `Mesa ${guest.table_number}` : "-"}</TableCell>
+                <TableCell>{guest.table_number ? `${t('table.tableNumber')} ${guest.table_number}` : "-"}</TableCell>
                 <TableCell>
                   {guest.confirmed ? (
-                    <Badge variant="default">Confirmado</Badge>
+                    <Badge variant="default">{t('statusConfirmed')}</Badge>
                   ) : (
-                    <Badge variant="secondary">Pendente</Badge>
+                    <Badge variant="secondary">{t('statusPending')}</Badge>
                   )}
                 </TableCell>
                 <TableCell className="text-right space-x-2">
@@ -300,7 +302,7 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
                     variant="ghost"
                     size="icon"
                     onClick={() => handleQRCodeClick(guest)}
-                    title="Ver QR Code do convidado"
+                    title={t('viewQRCode')}
                   >
                     <QrCode className="h-4 w-4" />
                   </Button>
@@ -309,7 +311,7 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
                       variant="ghost"
                       size="icon"
                       onClick={() => onSendReminder(guest.id)}
-                      title="Enviar lembrete por email"
+                      title={t('sendEmailReminder')}
                     >
                       <Mail className="h-4 w-4" />
                     </Button>
@@ -319,7 +321,7 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
                       variant="ghost"
                       size="icon"
                       onClick={() => onSendWhatsAppReminder(guest.id)}
-                      title="Enviar lembrete pelo WhatsApp"
+                      title={t('sendWhatsappReminder')}
                     >
                       <MessageCircle className="h-4 w-4" />
                     </Button>
@@ -349,15 +351,15 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja remover {selectedGuest?.name}? Esta ação não pode ser desfeita.
+              {t('dialogs.confirmDeleteDescription', { name: selectedGuest?.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm}>
-              Excluir
+              {t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -366,10 +368,9 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
       <AlertDialog open={bulkDeleteDialogOpen} onOpenChange={setBulkDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Deletar múltiplos convidados</AlertDialogTitle>
+            <AlertDialogTitle>{t('dialogs.bulkDeleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja remover {selectedIds.length} convidado{selectedIds.length > 1 ? 's' : ''}? 
-              Esta ação não pode ser desfeita.
+              {t('dialogs.bulkDeleteDescription', { count: selectedIds.length })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           {selectedIds.length > 0 && (
@@ -384,9 +385,9 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
             </div>
           )}
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Deletar Todos
+              {t('deleteAll')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -395,7 +396,7 @@ export function GuestsList({ guests, eventId, eventName, eventDate, eventLocatio
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar Convidado</DialogTitle>
+            <DialogTitle>{t('dialogs.editGuest')}</DialogTitle>
           </DialogHeader>
           {selectedGuest && (
             <GuestForm
