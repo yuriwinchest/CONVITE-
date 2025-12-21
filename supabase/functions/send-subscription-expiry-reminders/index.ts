@@ -95,7 +95,7 @@ serve(async (req) => {
             Authorization: `Bearer ${resendApiKey}`,
           },
           body: JSON.stringify({
-            from: "Encontre Meu Lugar <noreply@encontremelugar.com>",
+            from: "Encontre Meu Lugar <noreply@encontremeulugar.com.br>",
             to: [userEmail],
             subject: "⏰ Sua assinatura vence em 5 dias!",
             html: `

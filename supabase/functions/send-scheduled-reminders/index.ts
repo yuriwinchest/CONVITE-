@@ -119,7 +119,7 @@ const handler = async (req: Request): Promise<Response> => {
         const emailPromises = guests.map(async (guest) => {
           try {
             await resend.emails.send({
-              from: "Encontre Meu Lugar <onboarding@resend.dev>",
+              from: "Encontre Meu Lugar <lembretes@encontremeulugar.com.br>",
               to: [guest.email!],
               subject: `⏰ Lembrete: ${event.name} - ${event.reminder_days_before} ${event.reminder_days_before === 1 ? 'dia' : 'dias'} para o evento!`,
               html: `
