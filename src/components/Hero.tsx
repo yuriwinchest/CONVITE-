@@ -22,9 +22,9 @@ const Hero = () => {
   const { t } = useTranslation(['home', 'common']);
   const [contactOpen, setContactOpen] = useState(false);
 
-  // Brand colors
-  const brandGreen = '#2E5E3F';
-  const brandCream = '#E8E0D2';
+  // Brand colors using design system tokens
+  const brandGreen = 'hsl(143 38% 8%)';
+  const brandCream = 'hsl(38 32% 87%)';
 
   // Animation variants
   const fadeInUp = {
