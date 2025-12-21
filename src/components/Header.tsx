@@ -34,22 +34,19 @@ const Header = () => {
         <div className="hidden md:flex items-center gap-3">
           <LanguageSelector />
           <Button
-            variant="ghost"
-            className="text-primary-foreground hover:bg-primary-foreground/10"
+            variant="headerGhost"
             onClick={() => navigate("/about")}
           >
             {t('header.aboutUs')}
           </Button>
           <Button
-            variant="ghost"
-            className="text-primary-foreground hover:bg-primary-foreground/10"
+            variant="headerOutline"
             onClick={() => navigate("/confirm")}
           >
             {t('header.iAmGuest')}
           </Button>
           <Button
-            variant="outline"
-            className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+            variant="headerOutline"
             onClick={() => navigate("/auth")}
           >
             {t('header.login')}
@@ -61,7 +58,7 @@ const Header = () => {
           <LanguageSelector />
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-primary-foreground hover:bg-primary-foreground/10">
+              <Button variant="headerGhost" size="icon">
                 <Menu className="h-6 w-6" />
               </Button>
             </SheetTrigger>
@@ -71,22 +68,21 @@ const Header = () => {
               </SheetHeader>
               <div className="flex flex-col gap-4 mt-8">
                 <Button
-                  variant="ghost"
-                  className="justify-start text-primary-foreground hover:bg-primary-foreground/10"
+                  variant="headerGhost"
+                  className="justify-start"
                   onClick={() => handleNavigate("/about")}
                 >
                   {t('header.aboutUs')}
                 </Button>
                 <Button
-                  variant="ghost"
-                  className="justify-start text-primary-foreground hover:bg-primary-foreground/10"
+                  variant="headerGhost"
+                  className="justify-start"
                   onClick={() => handleNavigate("/confirm")}
                 >
                   {t('header.iAmGuest')}
                 </Button>
                 <Button
-                  variant="outline"
-                  className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary"
+                  variant="headerOutline"
                   onClick={() => handleNavigate("/auth")}
                 >
                   {t('header.login')}
