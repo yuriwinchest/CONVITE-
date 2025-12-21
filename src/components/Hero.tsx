@@ -19,6 +19,10 @@ const Hero = () => {
   const navigate = useNavigate();
   const { t } = useTranslation(['home', 'common']);
 
+  // Brand colors
+  const brandGreen = '#2E5E3F';
+  const brandCream = '#E8E0D2';
+
   // Animation variants
   const fadeInUp = {
     initial: { opacity: 0, y: 60 },
@@ -42,8 +46,8 @@ const Hero = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section - Baunilha (#E8E0D2) */}
-      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: '#E8E0D2' }}>
+      {/* Hero Section - Baunilha */}
+      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: brandCream }}>
         <motion.div
           className="container mx-auto max-w-4xl text-center"
           initial="initial"
@@ -52,7 +56,7 @@ const Hero = () => {
         >
           <motion.div
             className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full mb-4 sm:mb-6"
-            style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)', color: '#35463D' }}
+            style={{ backgroundColor: 'rgba(46, 94, 63, 0.1)', color: brandGreen }}
             variants={scaleIn}
           >
             <Sparkles className="w-4 h-4" />
@@ -61,7 +65,7 @@ const Hero = () => {
 
           <motion.h1
             className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight px-2"
-            style={{ color: '#35463D' }}
+            style={{ color: brandGreen }}
             variants={fadeInUp}
           >
             {t('home:hero.title')}
@@ -69,7 +73,7 @@ const Hero = () => {
 
           <motion.p
             className="text-base sm:text-lg mb-8 sm:mb-10 max-w-3xl mx-auto leading-relaxed px-2"
-            style={{ color: '#35463D', opacity: 0.8 }}
+            style={{ color: brandGreen, opacity: 0.8 }}
             variants={fadeInUp}
           >
             {t('home:hero.description')}
@@ -82,7 +86,7 @@ const Hero = () => {
             <Button
               size="lg"
               onClick={() => navigate("/auth")}
-              style={{ backgroundColor: '#35463D', color: '#E8E0D2' }}
+              style={{ backgroundColor: brandGreen, color: brandCream }}
               className="hover:opacity-90 px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold w-full sm:w-auto"
             >
               {t('common:buttons.createEvent')}
@@ -90,7 +94,7 @@ const Hero = () => {
             <Button
               size="lg"
               variant="outline"
-              style={{ borderColor: '#35463D', color: '#35463D', borderWidth: '2px' }}
+              style={{ borderColor: brandGreen, color: brandGreen, borderWidth: '2px' }}
               className="px-6 sm:px-8 py-5 sm:py-6 text-sm sm:text-base font-semibold hover:opacity-80 w-full sm:w-auto"
               onClick={() => navigate("/confirm")}
             >
@@ -101,8 +105,8 @@ const Hero = () => {
         </motion.div>
       </section>
 
-      {/* Como Funciona - Verde (#35463D) */}
-      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: '#35463D' }}>
+      {/* Como Funciona - Verde */}
+      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: brandGreen }}>
         <div className="container mx-auto max-w-6xl">
           <motion.div
             className="text-center mb-10 md:mb-16"
@@ -111,10 +115,10 @@ const Hero = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4" style={{ color: '#E8E0D2' }}>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4" style={{ color: brandCream }}>
               {t('home:howItWorks.title')}
             </h2>
-            <p className="text-base sm:text-lg md:text-xl" style={{ color: '#E8E0D2', opacity: 0.85 }}>
+            <p className="text-base sm:text-lg md:text-xl" style={{ color: brandCream, opacity: 0.85 }}>
               {t('home:howItWorks.subtitle')}
             </p>
           </motion.div>
@@ -127,13 +131,13 @@ const Hero = () => {
             variants={staggerContainer}
           >
             <motion.div variants={fadeInUp}>
-              <Card className="hover:shadow-xl transition-all duration-300 h-full" style={{ backgroundColor: '#E8E0D2', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
+              <Card className="hover:shadow-xl transition-all duration-300 h-full" style={{ backgroundColor: brandCream, borderColor: 'rgba(232, 224, 210, 0.2)' }}>
                 <CardHeader>
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
-                    <Clock className="w-8 h-8" style={{ color: '#35463D' }} />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(46, 94, 63, 0.1)' }}>
+                    <Clock className="w-8 h-8" style={{ color: brandGreen }} />
                   </div>
-                  <CardTitle className="text-2xl" style={{ color: '#35463D' }}>{t('home:howItWorks.step1.title')}</CardTitle>
-                  <CardDescription className="text-base" style={{ color: '#35463D', opacity: 0.75 }}>
+                  <CardTitle className="text-2xl" style={{ color: brandGreen }}>{t('home:howItWorks.step1.title')}</CardTitle>
+                  <CardDescription className="text-base" style={{ color: brandGreen, opacity: 0.75 }}>
                     {t('home:howItWorks.step1.description')}
                   </CardDescription>
                 </CardHeader>
@@ -141,13 +145,13 @@ const Hero = () => {
             </motion.div>
 
             <motion.div variants={fadeInUp}>
-              <Card className="hover:shadow-xl transition-all duration-300 h-full" style={{ backgroundColor: '#E8E0D2', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
+              <Card className="hover:shadow-xl transition-all duration-300 h-full" style={{ backgroundColor: brandCream, borderColor: 'rgba(232, 224, 210, 0.2)' }}>
                 <CardHeader>
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
-                    <QrCode className="w-8 h-8" style={{ color: '#35463D' }} />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(46, 94, 63, 0.1)' }}>
+                    <QrCode className="w-8 h-8" style={{ color: brandGreen }} />
                   </div>
-                  <CardTitle className="text-2xl" style={{ color: '#35463D' }}>{t('home:howItWorks.step2.title')}</CardTitle>
-                  <CardDescription className="text-base" style={{ color: '#35463D', opacity: 0.75 }}>
+                  <CardTitle className="text-2xl" style={{ color: brandGreen }}>{t('home:howItWorks.step2.title')}</CardTitle>
+                  <CardDescription className="text-base" style={{ color: brandGreen, opacity: 0.75 }}>
                     {t('home:howItWorks.step2.description')}
                   </CardDescription>
                 </CardHeader>
@@ -155,13 +159,13 @@ const Hero = () => {
             </motion.div>
 
             <motion.div variants={fadeInUp}>
-              <Card className="hover:shadow-xl transition-all duration-300 h-full" style={{ backgroundColor: '#E8E0D2', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
+              <Card className="hover:shadow-xl transition-all duration-300 h-full" style={{ backgroundColor: brandCream, borderColor: 'rgba(232, 224, 210, 0.2)' }}>
                 <CardHeader>
-                  <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
-                    <Users className="w-8 h-8" style={{ color: '#35463D' }} />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'rgba(46, 94, 63, 0.1)' }}>
+                    <Users className="w-8 h-8" style={{ color: brandGreen }} />
                   </div>
-                  <CardTitle className="text-2xl" style={{ color: '#35463D' }}>{t('home:howItWorks.step3.title')}</CardTitle>
-                  <CardDescription className="text-base" style={{ color: '#35463D', opacity: 0.75 }}>
+                  <CardTitle className="text-2xl" style={{ color: brandGreen }}>{t('home:howItWorks.step3.title')}</CardTitle>
+                  <CardDescription className="text-base" style={{ color: brandGreen, opacity: 0.75 }}>
                     {t('home:howItWorks.step3.description')}
                   </CardDescription>
                 </CardHeader>
@@ -171,8 +175,8 @@ const Hero = () => {
         </div>
       </section>
 
-      {/* Para Quem - Baunilha (#E8E0D2) */}
-      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: '#E8E0D2' }}>
+      {/* Para Quem - Baunilha */}
+      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: brandCream }}>
         <div className="container mx-auto max-w-5xl">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -180,15 +184,15 @@ const Hero = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.7 }}
           >
-            <Card className="shadow-2xl" style={{ backgroundColor: '#35463D', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
+            <Card className="shadow-2xl" style={{ backgroundColor: brandGreen, borderColor: 'rgba(232, 224, 210, 0.2)' }}>
               <CardContent className="p-6 sm:p-8 md:p-12">
                 <div className="flex items-center gap-3 mb-4 sm:mb-6">
-                  <Heart className="w-8 sm:w-10 h-8 sm:h-10 flex-shrink-0" style={{ color: '#E8E0D2' }} />
-                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: '#E8E0D2' }}>
+                  <Heart className="w-8 sm:w-10 h-8 sm:h-10 flex-shrink-0" style={{ color: brandCream }} />
+                  <h2 className="text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: brandCream }}>
                     {t('home:forWhom.title')}
                   </h2>
                 </div>
-                <p className="text-base sm:text-lg leading-relaxed pl-11 sm:pl-[52px]" style={{ color: '#E8E0D2', opacity: 0.9 }}>
+                <p className="text-base sm:text-lg leading-relaxed pl-11 sm:pl-[52px]" style={{ color: brandCream, opacity: 0.9 }}>
                   {t('home:forWhom.description')}
                 </p>
               </CardContent>
@@ -197,8 +201,8 @@ const Hero = () => {
         </div>
       </section>
 
-      {/* Portfólio / Casos de Uso - Verde (#35463D) */}
-      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: '#35463D' }}>
+      {/* Portfólio / Casos de Uso - Verde */}
+      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: brandGreen }}>
         <div className="container mx-auto max-w-6xl">
           <motion.div
             className="text-center mb-10 md:mb-16"
@@ -207,10 +211,10 @@ const Hero = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2" style={{ color: '#E8E0D2' }}>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2" style={{ color: brandCream }}>
               {t('home:portfolio.title')}
             </h2>
-            <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: '#E8E0D2', opacity: 0.85 }}>
+            <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: brandCream, opacity: 0.85 }}>
               {t('home:portfolio.subtitle')}
             </p>
           </motion.div>
@@ -224,23 +228,23 @@ const Hero = () => {
             variants={staggerContainer}
           >
             <motion.div variants={fadeInUp}>
-              <Card className="h-full hover:shadow-xl transition-shadow duration-300" style={{ backgroundColor: '#E8E0D2', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
+              <Card className="h-full hover:shadow-xl transition-shadow duration-300" style={{ backgroundColor: brandCream, borderColor: 'rgba(232, 224, 210, 0.2)' }}>
                 <CardContent className="p-8">
                   <div className="flex gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5" style={{ fill: '#35463D', color: '#35463D' }} />
+                      <Star key={i} className="w-5 h-5" style={{ fill: brandGreen, color: brandGreen }} />
                     ))}
                   </div>
-                  <p className="italic mb-4 leading-relaxed" style={{ color: '#35463D', opacity: 0.75 }}>
+                  <p className="italic mb-4 leading-relaxed" style={{ color: brandGreen, opacity: 0.75 }}>
                     "{t('home:portfolio.testimonial1.text')}"
                   </p>
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
-                      <Users className="w-6 h-6" style={{ color: '#35463D' }} />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(46, 94, 63, 0.1)' }}>
+                      <Users className="w-6 h-6" style={{ color: brandGreen }} />
                     </div>
                     <div>
-                      <p className="font-semibold" style={{ color: '#35463D' }}>{t('home:portfolio.testimonial1.author')}</p>
-                      <p className="text-sm" style={{ color: '#35463D', opacity: 0.6 }}>{t('home:portfolio.testimonial1.event')}</p>
+                      <p className="font-semibold" style={{ color: brandGreen }}>{t('home:portfolio.testimonial1.author')}</p>
+                      <p className="text-sm" style={{ color: brandGreen, opacity: 0.6 }}>{t('home:portfolio.testimonial1.event')}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -248,23 +252,23 @@ const Hero = () => {
             </motion.div>
 
             <motion.div variants={fadeInUp}>
-              <Card className="h-full hover:shadow-xl transition-shadow duration-300" style={{ backgroundColor: '#E8E0D2', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
+              <Card className="h-full hover:shadow-xl transition-shadow duration-300" style={{ backgroundColor: brandCream, borderColor: 'rgba(232, 224, 210, 0.2)' }}>
                 <CardContent className="p-8">
                   <div className="flex gap-1 mb-4">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5" style={{ fill: '#35463D', color: '#35463D' }} />
+                      <Star key={i} className="w-5 h-5" style={{ fill: brandGreen, color: brandGreen }} />
                     ))}
                   </div>
-                  <p className="italic mb-4 leading-relaxed" style={{ color: '#35463D', opacity: 0.75 }}>
+                  <p className="italic mb-4 leading-relaxed" style={{ color: brandGreen, opacity: 0.75 }}>
                     "{t('home:portfolio.testimonial2.text')}"
                   </p>
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(53, 70, 61, 0.1)' }}>
-                      <Sparkles className="w-6 h-6" style={{ color: '#35463D' }} />
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(46, 94, 63, 0.1)' }}>
+                      <Sparkles className="w-6 h-6" style={{ color: brandGreen }} />
                     </div>
                     <div>
-                      <p className="font-semibold" style={{ color: '#35463D' }}>{t('home:portfolio.testimonial2.author')}</p>
-                      <p className="text-sm" style={{ color: '#35463D', opacity: 0.6 }}>{t('home:portfolio.testimonial2.event')}</p>
+                      <p className="font-semibold" style={{ color: brandGreen }}>{t('home:portfolio.testimonial2.author')}</p>
+                      <p className="text-sm" style={{ color: brandGreen, opacity: 0.6 }}>{t('home:portfolio.testimonial2.event')}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -274,8 +278,8 @@ const Hero = () => {
         </div>
       </section>
 
-      {/* Planos e Preços - Baunilha (#E8E0D2) */}
-      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: '#E8E0D2' }}>
+      {/* Planos e Preços - Baunilha */}
+      <section className="py-12 md:py-20 px-4 sm:px-6" style={{ backgroundColor: brandCream }}>
         <div className="container mx-auto max-w-5xl">
           <motion.div
             className="text-center mb-10 md:mb-16"
@@ -284,10 +288,10 @@ const Hero = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2" style={{ color: '#35463D' }}>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 px-2" style={{ color: brandGreen }}>
               {t('home:pricing.title')}
             </h2>
-            <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: '#35463D', opacity: 0.8 }}>
+            <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto px-2" style={{ color: brandGreen, opacity: 0.8 }}>
               {t('home:pricing.subtitle')}
             </p>
           </motion.div>
@@ -298,12 +302,12 @@ const Hero = () => {
             viewport={{ once: true, margin: "-100px" }}
             transition={{ duration: 0.6 }}
           >
-            <Card className="shadow-2xl" style={{ backgroundColor: '#35463D', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
+            <Card className="shadow-2xl" style={{ backgroundColor: brandGreen, borderColor: 'rgba(232, 224, 210, 0.2)' }}>
               <CardContent className="p-6 sm:p-8 md:p-12 text-center">
-                <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4" style={{ color: '#E8E0D2' }}>
+                <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4" style={{ color: brandCream }}>
                   {t('home:pricing.contact.title')}
                 </h3>
-                <p className="text-base sm:text-lg mb-6 sm:mb-8" style={{ color: '#E8E0D2', opacity: 0.9 }}>
+                <p className="text-base sm:text-lg mb-6 sm:mb-8" style={{ color: brandCream, opacity: 0.9 }}>
                   {t('home:pricing.contact.description')}
                 </p>
 
@@ -311,7 +315,7 @@ const Hero = () => {
                   <Button
                     size="lg"
                     className="gap-2"
-                    style={{ backgroundColor: '#E8E0D2', color: '#35463D' }}
+                    style={{ backgroundColor: brandCream, color: brandGreen }}
                     onClick={() => window.location.href = "mailto:suporte@encontremeulugar.com.br"}
                   >
                     <Mail className="w-5 h-5" />
@@ -321,7 +325,7 @@ const Hero = () => {
                     size="lg"
                     variant="outline"
                     className="gap-2"
-                    style={{ borderColor: '#E8E0D2', color: '#E8E0D2', borderWidth: '2px' }}
+                    style={{ borderColor: brandCream, color: brandCream, borderWidth: '2px' }}
                     onClick={() => window.open("https://instagram.com/encontremeulugar", "_blank")}
                   >
                     <Instagram className="w-5 h-5" />
@@ -334,10 +338,10 @@ const Hero = () => {
         </div>
       </section>
 
-      {/* CTA Final - Verde (#35463D) */}
+      {/* CTA Final - Verde */}
       <motion.section
         className="py-12 md:py-20 px-4 sm:px-6"
-        style={{ backgroundColor: '#35463D' }}
+        style={{ backgroundColor: brandGreen }}
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
@@ -346,7 +350,7 @@ const Hero = () => {
         <div className="container mx-auto max-w-4xl text-center">
           <motion.h2
             className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6 px-2"
-            style={{ color: '#E8E0D2' }}
+            style={{ color: brandCream }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -356,7 +360,7 @@ const Hero = () => {
           </motion.h2>
           <motion.p
             className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 px-2"
-            style={{ color: '#E8E0D2', opacity: 0.9 }}
+            style={{ color: brandCream, opacity: 0.9 }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -372,7 +376,7 @@ const Hero = () => {
           >
             <Button
               size="lg"
-              style={{ backgroundColor: '#E8E0D2', color: '#35463D' }}
+              style={{ backgroundColor: brandCream, color: brandGreen }}
               className="hover:opacity-90 px-8 py-6 text-base font-semibold"
               onClick={() => navigate("/auth")}
             >
