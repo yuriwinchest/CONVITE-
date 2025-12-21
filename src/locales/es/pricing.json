@@ -17,11 +17,11 @@
       "period": "/ por evento",
       "highlight": "💳 Pago único por evento",
       "features": [
-        "Hasta 200 invitados",
-        "Mapa de asientos",
+        "01 evento con hasta 200 invitados",
+        "Inclusión del mapa de mesas",
         "Carga CSV",
-        "Mapa de mesas",
-        "Check-in"
+        "Informes y exportación en PDF",
+        "Horario de check-in de los invitados"
       ],
       "cta": "Elegir"
     },
@@ -29,18 +29,16 @@
       "name": "Premium",
       "price": "R$ 149,00",
       "period": "/ mes",
-      "highlight": "🎉 Hasta 5 eventos por mes",
+      "highlight": "🎉 02 eventos con invitados ilimitados",
       "badge": "Más Popular",
       "features": [
-        "Hasta 5 eventos por mes",
-        "Invitados ilimitados",
-        "Inclusión de menús y fotos",
-        "Mapa de asientos interactivo",
-        "Informes y exportación en PDF",
-        "Envío de fotos por los invitados",
+        "02 eventos con invitados ilimitados",
+        "Inclusión del mapa de mesas",
+        "Inclusión de menú del evento",
+        "Envío de 30 fotos por invitados",
         "Carga CSV",
-        "Mapa de mesas",
-        "Check-in"
+        "Informes y exportación en PDF",
+        "Horario de check-in de los invitados"
       ],
       "cta": "Suscribirse"
     }
