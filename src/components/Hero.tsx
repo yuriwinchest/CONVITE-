@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import ContactForm from "@/components/ContactForm";
 import {
   Search,
   QrCode,
@@ -18,6 +20,7 @@ import {
 const Hero = () => {
   const navigate = useNavigate();
   const { t } = useTranslation(['home', 'common']);
+  const [contactOpen, setContactOpen] = useState(false);
 
   // Brand colors
   const brandGreen = '#2E5E3F';
@@ -314,18 +317,17 @@ const Hero = () => {
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
                   <Button
                     size="lg"
-                    className="gap-2"
+                    className="gap-2 hover:opacity-90"
                     style={{ backgroundColor: brandCream, color: brandGreen }}
-                    onClick={() => window.location.href = "mailto:suporte@encontremeulugar.com.br"}
+                    onClick={() => setContactOpen(true)}
                   >
                     <Mail className="w-5 h-5" />
                     suporte@encontremeulugar.com.br
                   </Button>
                   <Button
                     size="lg"
-                    variant="outline"
-                    className="gap-2"
-                    style={{ borderColor: brandCream, color: brandCream, borderWidth: '2px' }}
+                    className="gap-2 hover:opacity-90"
+                    style={{ backgroundColor: brandCream, color: brandGreen }}
                     onClick={() => window.open("https://instagram.com/encontremeulugar", "_blank")}
                   >
                     <Instagram className="w-5 h-5" />
@@ -337,6 +339,8 @@ const Hero = () => {
           </motion.div>
         </div>
       </section>
+
+      <ContactForm open={contactOpen} onOpenChange={setContactOpen} />
 
       {/* CTA Final - Verde */}
       <motion.section
