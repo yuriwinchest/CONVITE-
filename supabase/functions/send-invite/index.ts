@@ -161,6 +161,12 @@ const handler = async (req: Request): Promise<Response> => {
                   font-size: 14px;
                   margin-top: 30px;
                 }
+                .company-footer {
+                  margin-top: 30px;
+                  padding-top: 20px;
+                  border-top: 1px solid #e5e7eb;
+                  text-align: center;
+                }
               </style>
             </head>
             <body>
@@ -228,6 +234,25 @@ const handler = async (req: Request): Promise<Response> => {
                 
                 <div class="footer">
                   <p>Este é um email automático, por favor não responda.</p>
+                </div>
+                
+                <!-- Rodapé Padrão -->
+                <div class="company-footer">
+                  <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+                    <strong>Encontre Meu Lugar</strong> - Gestão Inteligente de Eventos
+                  </p>
+                  <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+                    <a href="https://encontremeulugar.com.br" style="color: #667eea; text-decoration: none;">encontremeulugar.com.br</a>
+                  </p>
+                  <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+                    📧 <a href="mailto:contato@encontremeulugar.com.br" style="color: #6b7280; text-decoration: none;">contato@encontremeulugar.com.br</a>
+                  </p>
+                  <p style="margin: 15px 0 0 0; font-size: 11px; color: #9ca3af;">
+                    © ${new Date().getFullYear()} Encontre Meu Lugar. Todos os direitos reservados.
+                  </p>
+                  <p style="margin: 5px 0 0 0; font-size: 10px; color: #d1d5db;">
+                    Você recebeu este convite porque foi adicionado à lista de convidados deste evento.
+                  </p>
                 </div>
               </div>
             </body>

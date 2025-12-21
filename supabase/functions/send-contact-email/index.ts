@@ -62,7 +62,7 @@ const handler = async (req: Request): Promise<Response> => {
       reply_to: email,
       subject: `Nova mensagem de contato - ${name}`,
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
           <div style="background-color: #2E5E3F; padding: 20px; border-radius: 8px 8px 0 0;">
             <h1 style="color: #E8E0D2; margin: 0; font-size: 24px;">Nova Mensagem de Contato</h1>
           </div>
@@ -74,9 +74,25 @@ const handler = async (req: Request): Promise<Response> => {
               <p style="margin: 0; white-space: pre-wrap;">${message}</p>
             </div>
           </div>
-          <p style="color: #888; font-size: 12px; margin-top: 20px;">
-            Este email foi enviado através do formulário de contato do site Encontre Meu Lugar.
-          </p>
+          
+          <!-- Rodapé Padrão -->
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+            <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+              <strong>Encontre Meu Lugar</strong> - Gestão Inteligente de Eventos
+            </p>
+            <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+              <a href="https://encontremeulugar.com.br" style="color: #2E5E3F; text-decoration: none;">encontremeulugar.com.br</a>
+            </p>
+            <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+              📧 <a href="mailto:contato@encontremeulugar.com.br" style="color: #6b7280; text-decoration: none;">contato@encontremeulugar.com.br</a>
+            </p>
+            <p style="margin: 15px 0 0 0; font-size: 11px; color: #9ca3af;">
+              © ${new Date().getFullYear()} Encontre Meu Lugar. Todos os direitos reservados.
+            </p>
+            <p style="margin: 5px 0 0 0; font-size: 10px; color: #d1d5db;">
+              Este email foi enviado através do formulário de contato do site.
+            </p>
+          </div>
         </div>
       `,
     });
@@ -100,7 +116,7 @@ const handler = async (req: Request): Promise<Response> => {
       to: [email],
       subject: "Recebemos sua mensagem - Encontre Meu Lugar",
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff;">
           <div style="background-color: #2E5E3F; padding: 20px; border-radius: 8px 8px 0 0;">
             <h1 style="color: #E8E0D2; margin: 0; font-size: 24px;">Recebemos sua mensagem!</h1>
           </div>
@@ -113,9 +129,25 @@ const handler = async (req: Request): Promise<Response> => {
             </div>
             <p style="margin: 20px 0 0;">Atenciosamente,<br><strong>Equipe Encontre Meu Lugar</strong></p>
           </div>
-          <p style="color: #888; font-size: 12px; margin-top: 20px; text-align: center;">
-            © 2025 Encontre Meu Lugar. Todos os direitos reservados.
-          </p>
+          
+          <!-- Rodapé Padrão -->
+          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+            <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+              <strong>Encontre Meu Lugar</strong> - Gestão Inteligente de Eventos
+            </p>
+            <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+              <a href="https://encontremeulugar.com.br" style="color: #2E5E3F; text-decoration: none;">encontremeulugar.com.br</a>
+            </p>
+            <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+              📧 <a href="mailto:contato@encontremeulugar.com.br" style="color: #6b7280; text-decoration: none;">contato@encontremeulugar.com.br</a>
+            </p>
+            <p style="margin: 15px 0 0 0; font-size: 11px; color: #9ca3af;">
+              © ${new Date().getFullYear()} Encontre Meu Lugar. Todos os direitos reservados.
+            </p>
+            <p style="margin: 5px 0 0 0; font-size: 10px; color: #d1d5db;">
+              Você recebeu este email porque entrou em contato conosco.
+            </p>
+          </div>
         </div>
       `,
     });
