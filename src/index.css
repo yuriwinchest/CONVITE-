@@ -9,39 +9,39 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --background: 38 32% 87%;
-    --foreground: 143 38% 10%;
+    --foreground: 143 38% 8%;
 
     --card: 38 32% 87%;
-    --card-foreground: 143 38% 12%;
+    --card-foreground: 143 38% 10%;
 
     --popover: 38 32% 87%;
-    --popover-foreground: 143 38% 12%;
+    --popover-foreground: 143 38% 10%;
 
-    --primary: 143 38% 10%;
+    --primary: 143 38% 8%;
     --primary-foreground: 38 32% 87%;
 
     --secondary: 38 20% 82%;
-    --secondary-foreground: 143 38% 12%;
+    --secondary-foreground: 143 38% 10%;
 
     --muted: 38 20% 80%;
-    --muted-foreground: 143 38% 25%;
+    --muted-foreground: 143 38% 20%;
 
     --accent: 38 20% 82%;
-    --accent-foreground: 143 38% 12%;
+    --accent-foreground: 143 38% 10%;
 
     --logo-text: 45 30% 68%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 38 32% 87%;
 
-    --border: 143 38% 10%;
-    --input: 143 38% 10%;
-    --ring: 143 38% 10%;
+    --border: 143 38% 8%;
+    --input: 143 38% 8%;
+    --ring: 143 38% 8%;
 
     --radius: 0.75rem;
 
-    --hero-gradient: linear-gradient(135deg, hsl(143 38% 10%) 0%, hsl(143 42% 6%) 100%);
-    --shadow-soft: 0 4px 20px -4px hsl(143 38% 10% / 0.15);
+    --hero-gradient: linear-gradient(135deg, hsl(143 38% 8%) 0%, hsl(143 42% 4%) 100%);
+    --shadow-soft: 0 4px 20px -4px hsl(143 38% 8% / 0.15);
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
