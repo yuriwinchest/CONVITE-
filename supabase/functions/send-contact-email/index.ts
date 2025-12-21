@@ -55,7 +55,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    // Send email to support (usando domínio de teste temporariamente)
+    // Send email to support (modo de teste do Resend)
     const emailResponse = await resend.emails.send({
       from: "Encontre Meu Lugar <onboarding@resend.dev>",
       to: ["suporte@encontremeulugar.com.br"],
@@ -83,7 +83,18 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("[send-contact-email] Email sent to support:", emailResponse);
 
-    // Send confirmation email to user (usando domínio de teste temporariamente)
+    if (emailResponse?.error) {
+      console.error("[send-contact-email] Support email failed:", emailResponse.error);
+      return new Response(
+        JSON.stringify({
+          error:
+            "Envio de email está em modo de teste e bloqueou o destinatário. Verifique um domínio no Resend e use um remetente do seu domínio (ex: contato@seudominio.com).",
+        }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Send confirmation email to user (modo de teste do Resend)
     const confirmationResponse = await resend.emails.send({
       from: "Encontre Meu Lugar <onboarding@resend.dev>",
       to: [email],
@@ -110,6 +121,17 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     console.log("[send-contact-email] Confirmation sent to user:", confirmationResponse);
+
+    if (confirmationResponse?.error) {
+      console.error("[send-contact-email] Confirmation email failed:", confirmationResponse.error);
+      return new Response(
+        JSON.stringify({
+          error:
+            "Envio de confirmação está em modo de teste e bloqueou o destinatário. Verifique um domínio no Resend e use um remetente do seu domínio.",
+        }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ success: true, message: "Mensagem enviada com sucesso!" }),
