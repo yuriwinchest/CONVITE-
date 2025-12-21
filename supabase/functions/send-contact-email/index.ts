@@ -58,7 +58,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email to support (modo de teste do Resend)
     const emailResponse = await resend.emails.send({
       from: "Encontre Meu Lugar <contato@encontremeulugar.com.br>",
-      to: ["suporte@encontremeulugar.com.br"],
+      to: ["Daniellebaida@gmail.com"],
       reply_to: email,
       subject: `Nova mensagem de contato - ${name}`,
       html: `
