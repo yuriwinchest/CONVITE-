@@ -28,7 +28,7 @@
     "premium": {
       "name": "Premium",
       "price": "R$ 149,00",
-      "period": "/ mês",
+      "period": "/ evento",
       "highlight": "🎉 02 eventos com convidados ilimitados",
       "badge": "Mais Popular",
       "features": [
@@ -40,7 +40,7 @@
         "Relatórios e exportação em PDF",
         "Horário de check-in dos convidados"
       ],
-      "cta": "Assinar"
+      "cta": "Comprar"
     }
   },
   "messages": {
