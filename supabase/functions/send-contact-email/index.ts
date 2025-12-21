@@ -57,7 +57,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to support (modo de teste do Resend)
     const emailResponse = await resend.emails.send({
-      from: "Encontre Meu Lugar <onboarding@resend.dev>",
+      from: "Encontre Meu Lugar <contato@encontremeulugar.com.br>",
       to: ["suporte@encontremeulugar.com.br"],
       reply_to: email,
       subject: `Nova mensagem de contato - ${name}`,
@@ -96,7 +96,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation email to user (modo de teste do Resend)
     const confirmationResponse = await resend.emails.send({
-      from: "Encontre Meu Lugar <onboarding@resend.dev>",
+      from: "Encontre Meu Lugar <contato@encontremeulugar.com.br>",
       to: [email],
       subject: "Recebemos sua mensagem - Encontre Meu Lugar",
       html: `

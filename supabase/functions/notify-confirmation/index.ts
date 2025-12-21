@@ -180,7 +180,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "Eventos <onboarding@resend.dev>",
+      from: "Encontre Meu Lugar <noreply@encontremeulugar.com.br>",
       to: [creatorEmail],
       subject: `✅ ${guestName} confirmou presença - ${eventName}`,
       html: emailHtml,

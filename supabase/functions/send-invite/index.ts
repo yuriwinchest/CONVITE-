@@ -235,7 +235,7 @@ const handler = async (req: Request): Promise<Response> => {
         `;
 
         const emailResponse = await resend.emails.send({
-          from: "Eventos <onboarding@resend.dev>",
+          from: "Encontre Meu Lugar <convites@encontremeulugar.com.br>",
           to: [guest.email],
           subject: `🎉 Convite: ${event.name}`,
           html: emailHtml,

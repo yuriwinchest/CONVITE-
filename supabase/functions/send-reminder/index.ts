@@ -90,7 +90,7 @@ const handler = async (req: Request): Promise<Response> => {
 
         try {
           await resend.emails.send({
-            from: "Encontre Meu Lugar <onboarding@resend.dev>",
+            from: "Encontre Meu Lugar <lembretes@encontremeulugar.com.br>",
             to: [guest.email],
             subject: `⏰ Lembrete: ${event.name} - Não esqueça o check-in!`,
             html: `
@@ -239,7 +239,7 @@ const handler = async (req: Request): Promise<Response> => {
     const confirmationUrl = `${frontendUrl}/confirm/${eventId}`;
 
     const emailResponse = await resend.emails.send({
-      from: "Encontre Meu Lugar <onboarding@resend.dev>",
+      from: "Encontre Meu Lugar <lembretes@encontremeulugar.com.br>",
       to: [guest.email],
       subject: `⏰ Lembrete: ${event.name} - Não esqueça o check-in!`,
       html: `
