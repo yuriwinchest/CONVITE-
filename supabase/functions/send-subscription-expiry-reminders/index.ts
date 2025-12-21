@@ -99,7 +99,7 @@ serve(async (req) => {
             to: [userEmail],
             subject: "⏰ Sua assinatura vence em 5 dias!",
             html: `
-              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
                 <h2 style="color: #333;">Olá ${subscription.profiles.full_name}!</h2>
                 
                 <p style="font-size: 16px; line-height: 1.6;">
@@ -121,6 +121,25 @@ serve(async (req) => {
                   Atenciosamente,<br>
                   Equipe Encontre Meu Lugar
                 </p>
+                
+                <!-- Rodapé Padrão -->
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+                  <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+                    <strong>Encontre Meu Lugar</strong> - Gestão Inteligente de Eventos
+                  </p>
+                  <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+                    <a href="https://encontremeulugar.com.br" style="color: #2E5E3F; text-decoration: none;">encontremeulugar.com.br</a>
+                  </p>
+                  <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+                    📧 <a href="mailto:contato@encontremeulugar.com.br" style="color: #6b7280; text-decoration: none;">contato@encontremeulugar.com.br</a>
+                  </p>
+                  <p style="margin: 15px 0 0 0; font-size: 11px; color: #9ca3af;">
+                    © ${new Date().getFullYear()} Encontre Meu Lugar. Todos os direitos reservados.
+                  </p>
+                  <p style="margin: 5px 0 0 0; font-size: 10px; color: #d1d5db;">
+                    Você recebeu este email porque possui uma assinatura ativa em nossa plataforma.
+                  </p>
+                </div>
               </div>
             `,
           }),

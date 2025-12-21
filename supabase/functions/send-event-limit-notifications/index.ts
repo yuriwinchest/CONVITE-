@@ -124,35 +124,77 @@ const handler = async (req: Request): Promise<Response> => {
         if (user.plan === "FREE") {
           subject = "Você atingiu seu limite de eventos gratuitos";
           message = `
-            <h2>Olá!</h2>
-            <p>Você utilizou seu <strong>1 evento gratuito</strong> deste mês.</p>
-            <p>Para criar mais eventos, você tem duas opções:</p>
-            <ul>
-              <li><strong>Plano Essencial:</strong> R$ 79 por evento (até 200 convidados)</li>
-              <li><strong>Plano Premium:</strong> R$ 149/mês para até 5 eventos com convidados ilimitados</li>
-            </ul>
-            <p>💡 <em>Dica: Se você precisa criar mais de 1 evento por mês, o plano Premium é mais vantajoso!</em></p>
-            <p><a href="${Deno.env.get("SUPABASE_URL")?.replace("https://", "https://")}/dashboard" style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Fazer Upgrade</a></p>
-            <p>Atenciosamente,<br>Equipe Encontre Meu Lugar</p>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
+              <h2>Olá!</h2>
+              <p>Você utilizou seu <strong>1 evento gratuito</strong> deste mês.</p>
+              <p>Para criar mais eventos, você tem duas opções:</p>
+              <ul>
+                <li><strong>Plano Essencial:</strong> R$ 79 por evento (até 200 convidados)</li>
+                <li><strong>Plano Premium:</strong> R$ 149/mês para até 5 eventos com convidados ilimitados</li>
+              </ul>
+              <p>💡 <em>Dica: Se você precisa criar mais de 1 evento por mês, o plano Premium é mais vantajoso!</em></p>
+              <p><a href="${Deno.env.get("SUPABASE_URL")?.replace("https://", "https://")}/dashboard" style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Fazer Upgrade</a></p>
+              <p>Atenciosamente,<br>Equipe Encontre Meu Lugar</p>
+              
+              <!-- Rodapé Padrão -->
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+                <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+                  <strong>Encontre Meu Lugar</strong> - Gestão Inteligente de Eventos
+                </p>
+                <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+                  <a href="https://encontremeulugar.com.br" style="color: #2E5E3F; text-decoration: none;">encontremeulugar.com.br</a>
+                </p>
+                <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+                  📧 <a href="mailto:contato@encontremeulugar.com.br" style="color: #6b7280; text-decoration: none;">contato@encontremeulugar.com.br</a>
+                </p>
+                <p style="margin: 15px 0 0 0; font-size: 11px; color: #9ca3af;">
+                  © ${new Date().getFullYear()} Encontre Meu Lugar. Todos os direitos reservados.
+                </p>
+                <p style="margin: 5px 0 0 0; font-size: 10px; color: #d1d5db;">
+                  Você recebeu este email porque possui uma conta em nossa plataforma.
+                </p>
+              </div>
+            </div>
           `;
         } else if (user.plan === "PREMIUM") {
           const remaining = user.limit - user.events_count;
           subject = `Você está próximo do limite de eventos (${user.events_count}/${user.limit})`;
           message = `
-            <h2>Olá!</h2>
-            <p>Você já criou <strong>${user.events_count} de ${user.limit} eventos</strong> este mês no seu plano Premium.</p>
-            ${remaining > 0 
-              ? `<p>Você ainda tem <strong>${remaining} evento(s)</strong> disponível(is) até o final do mês.</p>` 
-              : `<p>Você atingiu o limite de eventos deste mês. Aguarde o próximo mês para criar novos eventos.</p>`
-            }
-            <p>📊 Estatísticas do seu plano:</p>
-            <ul>
-              <li>Eventos usados: ${user.events_count}/${user.limit}</li>
-              <li>Convidados: Ilimitados ✓</li>
-              <li>Recursos Premium: Ativos ✓</li>
-            </ul>
-            <p><a href="${Deno.env.get("SUPABASE_URL")?.replace("https://", "https://")}/dashboard" style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Ver Meu Painel</a></p>
-            <p>Atenciosamente,<br>Equipe Encontre Meu Lugar</p>
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px;">
+              <h2>Olá!</h2>
+              <p>Você já criou <strong>${user.events_count} de ${user.limit} eventos</strong> este mês no seu plano Premium.</p>
+              ${remaining > 0 
+                ? `<p>Você ainda tem <strong>${remaining} evento(s)</strong> disponível(is) até o final do mês.</p>` 
+                : `<p>Você atingiu o limite de eventos deste mês. Aguarde o próximo mês para criar novos eventos.</p>`
+              }
+              <p>📊 Estatísticas do seu plano:</p>
+              <ul>
+                <li>Eventos usados: ${user.events_count}/${user.limit}</li>
+                <li>Convidados: Ilimitados ✓</li>
+                <li>Recursos Premium: Ativos ✓</li>
+              </ul>
+              <p><a href="${Deno.env.get("SUPABASE_URL")?.replace("https://", "https://")}/dashboard" style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin-top: 16px;">Ver Meu Painel</a></p>
+              <p>Atenciosamente,<br>Equipe Encontre Meu Lugar</p>
+              
+              <!-- Rodapé Padrão -->
+              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+                <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+                  <strong>Encontre Meu Lugar</strong> - Gestão Inteligente de Eventos
+                </p>
+                <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+                  <a href="https://encontremeulugar.com.br" style="color: #2E5E3F; text-decoration: none;">encontremeulugar.com.br</a>
+                </p>
+                <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+                  📧 <a href="mailto:contato@encontremeulugar.com.br" style="color: #6b7280; text-decoration: none;">contato@encontremeulugar.com.br</a>
+                </p>
+                <p style="margin: 15px 0 0 0; font-size: 11px; color: #9ca3af;">
+                  © ${new Date().getFullYear()} Encontre Meu Lugar. Todos os direitos reservados.
+                </p>
+                <p style="margin: 5px 0 0 0; font-size: 10px; color: #d1d5db;">
+                  Você recebeu este email porque possui uma conta em nossa plataforma.
+                </p>
+              </div>
+            </div>
           `;
         }
 

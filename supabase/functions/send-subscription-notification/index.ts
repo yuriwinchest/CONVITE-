@@ -24,12 +24,34 @@ const supabase = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
 );
 
+const getEmailFooter = () => `
+  <!-- Rodapé Padrão -->
+  <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center;">
+    <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
+      <strong>Encontre Meu Lugar</strong> - Gestão Inteligente de Eventos
+    </p>
+    <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+      <a href="https://encontremeulugar.com.br" style="color: #2E5E3F; text-decoration: none;">encontremeulugar.com.br</a>
+    </p>
+    <p style="margin: 0 0 10px; font-size: 12px; color: #9ca3af;">
+      📧 <a href="mailto:contato@encontremeulugar.com.br" style="color: #6b7280; text-decoration: none;">contato@encontremeulugar.com.br</a>
+    </p>
+    <p style="margin: 15px 0 0 0; font-size: 11px; color: #9ca3af;">
+      © ${new Date().getFullYear()} Encontre Meu Lugar. Todos os direitos reservados.
+    </p>
+    <p style="margin: 5px 0 0 0; font-size: 10px; color: #d1d5db;">
+      Você recebeu este email porque possui uma conta em nossa plataforma.
+    </p>
+  </div>
+`;
+
 const getEmailTemplate = (type: string, data: any) => {
   const baseStyle = `
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
     max-width: 600px;
     margin: 0 auto;
     padding: 20px;
+    background-color: #ffffff;
   `;
 
   switch (type) {
@@ -74,6 +96,7 @@ const getEmailTemplate = (type: string, data: any) => {
           <p style="font-size: 14px; color: #888; margin-top: 40px; text-align: center;">
             Obrigado por fazer upgrade! Estamos aqui para tornar seu evento inesquecível. 🎊
           </p>
+          ${getEmailFooter()}
         </div>
       `;
     
@@ -90,6 +113,7 @@ const getEmailTemplate = (type: string, data: any) => {
           <p style="font-size: 14px; color: #888; margin-top: 30px;">
             Se você deseja fazer alterações na sua assinatura, acesse seu painel de controle.
           </p>
+          ${getEmailFooter()}
         </div>
       `;
     
@@ -106,6 +130,7 @@ const getEmailTemplate = (type: string, data: any) => {
           <p style="font-size: 14px; color: #888; margin-top: 30px;">
             Obrigado por continuar conosco! 🎉
           </p>
+          ${getEmailFooter()}
         </div>
       `;
     
@@ -122,11 +147,12 @@ const getEmailTemplate = (type: string, data: any) => {
           <p style="font-size: 14px; color: #888; margin-top: 30px;">
             Sentiremos sua falta. Se você quiser voltar, estaremos sempre aqui! ❤️
           </p>
+          ${getEmailFooter()}
         </div>
       `;
     
     default:
-      return `<p>Notificação de assinatura</p>`;
+      return `<p>Notificação de assinatura</p>${getEmailFooter()}`;
   }
 };
 
