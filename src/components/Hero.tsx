@@ -23,7 +23,7 @@ const Hero = () => {
   const [contactOpen, setContactOpen] = useState(false);
 
   // Brand colors using design system tokens
-  const brandGreen = 'hsl(143 38% 8%)';
+  const brandGreen = 'hsl(143 38% 15%)';
   const brandCream = 'hsl(38 32% 87%)';
 
   // Animation variants
