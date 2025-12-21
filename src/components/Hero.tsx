@@ -11,7 +11,7 @@ import {
   Heart,
   Sparkles,
   Star,
-  MessageCircle,
+  Mail,
   Instagram
 } from "lucide-react";
 
@@ -182,13 +182,13 @@ const Hero = () => {
           >
             <Card className="shadow-2xl" style={{ backgroundColor: '#35463D', borderColor: 'rgba(232, 224, 210, 0.2)' }}>
               <CardContent className="p-6 sm:p-8 md:p-12">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-4 sm:mb-6">
+                <div className="flex items-center gap-3 mb-4 sm:mb-6">
                   <Heart className="w-8 sm:w-10 h-8 sm:h-10 flex-shrink-0" style={{ color: '#E8E0D2' }} />
                   <h2 className="text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: '#E8E0D2' }}>
                     {t('home:forWhom.title')}
                   </h2>
                 </div>
-                <p className="text-base sm:text-lg leading-relaxed" style={{ color: '#E8E0D2', opacity: 0.9 }}>
+                <p className="text-base sm:text-lg leading-relaxed pl-11 sm:pl-[52px]" style={{ color: '#E8E0D2', opacity: 0.9 }}>
                   {t('home:forWhom.description')}
                 </p>
               </CardContent>
@@ -311,17 +311,17 @@ const Hero = () => {
                   <Button
                     size="lg"
                     className="gap-2"
-                    style={{ backgroundColor: '#25D366', color: '#fff' }}
-                    onClick={() => window.open("https://wa.me/5511999999999", "_blank")}
+                    style={{ backgroundColor: '#E8E0D2', color: '#35463D' }}
+                    onClick={() => window.location.href = "mailto:suporte@encontremeulugar.com.br"}
                   >
-                    <MessageCircle className="w-5 h-5" />
-                    WhatsApp Business
+                    <Mail className="w-5 h-5" />
+                    suporte@encontremeulugar.com.br
                   </Button>
                   <Button
                     size="lg"
                     variant="outline"
                     className="gap-2"
-                    style={{ borderColor: '#35463D', color: '#35463D', borderWidth: '2px' }}
+                    style={{ borderColor: '#E8E0D2', color: '#E8E0D2', borderWidth: '2px' }}
                     onClick={() => window.open("https://instagram.com/encontremeulugar", "_blank")}
                   >
                     <Instagram className="w-5 h-5" />
