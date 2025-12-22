@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sheet";
 import Logo from "@/components/Logo";
 import LanguageSelector from "@/components/LanguageSelector";
+import InstallPWAButton from "@/components/InstallPWAButton";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -33,6 +34,7 @@ const Header = () => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-3">
           <LanguageSelector />
+          <InstallPWAButton />
           <Button
             variant="headerGhost"
             onClick={() => navigate("/about")}
@@ -53,8 +55,8 @@ const Header = () => {
           </Button>
         </div>
 
-        {/* Mobile Navigation */}
         <div className="flex items-center gap-2 md:hidden">
+          <InstallPWAButton />
           <LanguageSelector />
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
