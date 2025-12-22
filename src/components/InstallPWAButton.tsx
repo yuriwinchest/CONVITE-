@@ -55,8 +55,8 @@ const InstallPWAButton = () => {
         setIsInstallable(false);
         setDeferredPrompt(null);
       }
-    } else if (isIOS) {
-      // For iOS, navigate to install page with instructions
+    } else {
+      // For iOS or when prompt not available, navigate to install page
       navigate("/install");
     }
   };
@@ -66,17 +66,13 @@ const InstallPWAButton = () => {
     return null;
   }
 
-  // Show button for installable browsers or iOS
-  if (!isInstallable && !isIOS) {
-    return null;
-  }
-
+  // Always show button - either for direct install or to go to instructions page
   return (
     <Button
       variant="headerOutline"
       size="sm"
       onClick={handleInstallClick}
-      className="gap-2 animate-pulse hover:animate-none"
+      className="gap-2"
     >
       {isIOS ? (
         <Smartphone className="h-4 w-4" />
