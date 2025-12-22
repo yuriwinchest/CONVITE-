@@ -88,24 +88,35 @@ const Install = () => {
             </p>
           </div>
 
-          {/* Direct install button for supported browsers */}
-          {isInstallable && (
-            <Card className="mb-8 border-primary/20 bg-primary/5">
-              <CardContent className="p-6 text-center">
-                <Button 
-                  size="lg" 
-                  onClick={handleInstall}
-                  className="gap-2"
-                >
-                  <Download className="h-5 w-5" />
-                  {t('pwa.installNow')}
-                </Button>
-                <p className="text-sm text-muted-foreground mt-3">
+          {/* Direct install button - always visible and prominent */}
+          <Card className="mb-8 border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg">
+            <CardContent className="p-8 text-center">
+              <div className="mx-auto w-20 h-20 bg-primary rounded-full flex items-center justify-center mb-6 shadow-xl animate-pulse">
+                <Download className="h-10 w-10 text-primary-foreground" />
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-4">
+                {t('pwa.readyToInstall')}
+              </h2>
+              <Button 
+                size="lg" 
+                onClick={handleInstall}
+                disabled={!isInstallable}
+                className="gap-3 text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all"
+              >
+                <Download className="h-6 w-6" />
+                {t('pwa.installNow')}
+              </Button>
+              {isInstallable ? (
+                <p className="text-sm text-muted-foreground mt-4">
                   {t('pwa.clickToInstall')}
                 </p>
-              </CardContent>
-            </Card>
-          )}
+              ) : (
+                <p className="text-sm text-muted-foreground mt-4">
+                  {t('pwa.followInstructions')}
+                </p>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Installation instructions by platform */}
           <Tabs defaultValue="android" className="w-full">
