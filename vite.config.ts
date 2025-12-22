@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => ({
         short_name: "EncontreMeuLugar",
         description: "Gestão Inteligente de Eventos com QR Code, controle de convidados e organização sofisticada",
         theme_color: "#1f3d28",
-        background_color: "#ddd5c7",
+        background_color: "#1f3d28",
         display: "standalone",
         orientation: "portrait",
         scope: "/",
@@ -40,7 +40,7 @@ export default defineConfig(({ mode }) => ({
             purpose: "any"
           },
           {
-            src: "/pwa-icon-512.png",
+            src: "/pwa-icon-maskable-512.png",
             sizes: "512x512",
             type: "image/png",
             purpose: "maskable"
