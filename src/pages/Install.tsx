@@ -120,18 +120,18 @@ const Install = () => {
 
           {/* Installation instructions by platform */}
           <Tabs defaultValue="android" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="android" className="gap-2">
+            <TabsList className="grid w-full grid-cols-3 h-auto">
+              <TabsTrigger value="android" className="flex flex-col sm:flex-row gap-1 sm:gap-2 py-3">
                 <Smartphone className="h-4 w-4" />
-                <span className="hidden sm:inline">Android</span>
+                <span className="text-xs sm:text-sm">Android</span>
               </TabsTrigger>
-              <TabsTrigger value="ios" className="gap-2">
+              <TabsTrigger value="ios" className="flex flex-col sm:flex-row gap-1 sm:gap-2 py-3">
                 <Smartphone className="h-4 w-4" />
-                <span className="hidden sm:inline">iOS</span>
+                <span className="text-xs sm:text-sm">iOS</span>
               </TabsTrigger>
-              <TabsTrigger value="desktop" className="gap-2">
+              <TabsTrigger value="desktop" className="flex flex-col sm:flex-row gap-1 sm:gap-2 py-3">
                 <Monitor className="h-4 w-4" />
-                <span className="hidden sm:inline">Desktop</span>
+                <span className="text-xs sm:text-sm">Desktop</span>
               </TabsTrigger>
             </TabsList>
 
