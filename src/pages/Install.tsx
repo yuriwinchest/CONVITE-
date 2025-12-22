@@ -88,39 +88,9 @@ const Install = () => {
             </p>
           </div>
 
-          {/* Direct install button - always visible and prominent */}
-          <Card className="mb-8 border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg">
-            <CardContent className="p-8 text-center">
-              <div className="mx-auto w-20 h-20 bg-primary rounded-full flex items-center justify-center mb-6 shadow-xl animate-pulse">
-                <Download className="h-10 w-10 text-primary-foreground" />
-              </div>
-              <h2 className="text-2xl font-bold text-foreground mb-4">
-                {t('pwa.readyToInstall')}
-              </h2>
-              <Button 
-                size="lg" 
-                onClick={handleInstall}
-                disabled={!isInstallable}
-                className="gap-3 text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all"
-              >
-                <Download className="h-6 w-6" />
-                {t('pwa.installNow')}
-              </Button>
-              {isInstallable ? (
-                <p className="text-sm text-muted-foreground mt-4">
-                  {t('pwa.clickToInstall')}
-                </p>
-              ) : (
-                <p className="text-sm text-muted-foreground mt-4">
-                  {t('pwa.followInstructions')}
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Installation instructions by platform */}
+          {/* Platform selection tabs with instructions */}
           <Tabs defaultValue="android" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 h-auto">
+            <TabsList className="grid w-full grid-cols-3 h-auto mb-6">
               <TabsTrigger value="android" className="flex flex-col sm:flex-row gap-1 sm:gap-2 py-3">
                 <Smartphone className="h-4 w-4" />
                 <span className="text-xs sm:text-sm">Android</span>
@@ -135,7 +105,32 @@ const Install = () => {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="android" className="mt-6">
+            <TabsContent value="android" className="space-y-6">
+              {/* Install button for Android */}
+              {isInstallable && (
+                <Card className="border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg">
+                  <CardContent className="p-6 text-center">
+                    <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4 shadow-xl">
+                      <Download className="h-8 w-8 text-primary-foreground" />
+                    </div>
+                    <h2 className="text-xl font-bold text-foreground mb-3">
+                      {t('pwa.readyToInstall')}
+                    </h2>
+                    <Button 
+                      size="lg" 
+                      onClick={handleInstall}
+                      className="gap-3 text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all"
+                    >
+                      <Download className="h-6 w-6" />
+                      {t('pwa.installNow')}
+                    </Button>
+                    <p className="text-sm text-muted-foreground mt-3">
+                      {t('pwa.clickToInstall')}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -182,7 +177,7 @@ const Install = () => {
               </Card>
             </TabsContent>
 
-            <TabsContent value="ios" className="mt-6">
+            <TabsContent value="ios" className="space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -227,9 +222,42 @@ const Install = () => {
                   </div>
                 </CardContent>
               </Card>
+              
+              <Card className="border-amber-500/50 bg-amber-50 dark:bg-amber-950/20">
+                <CardContent className="p-4">
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    <strong>Importante:</strong> No iPhone, você precisa usar o Safari para instalar o app. Outros navegadores não suportam esta funcionalidade.
+                  </p>
+                </CardContent>
+              </Card>
             </TabsContent>
 
-            <TabsContent value="desktop" className="mt-6">
+            <TabsContent value="desktop" className="space-y-6">
+              {/* Install button for Desktop */}
+              {isInstallable && (
+                <Card className="border-2 border-primary bg-gradient-to-br from-primary/10 to-primary/5 shadow-lg">
+                  <CardContent className="p-6 text-center">
+                    <div className="mx-auto w-16 h-16 bg-primary rounded-full flex items-center justify-center mb-4 shadow-xl">
+                      <Download className="h-8 w-8 text-primary-foreground" />
+                    </div>
+                    <h2 className="text-xl font-bold text-foreground mb-3">
+                      {t('pwa.readyToInstall')}
+                    </h2>
+                    <Button 
+                      size="lg" 
+                      onClick={handleInstall}
+                      className="gap-3 text-lg px-8 py-6 shadow-lg hover:shadow-xl transition-all"
+                    >
+                      <Download className="h-6 w-6" />
+                      {t('pwa.installNow')}
+                    </Button>
+                    <p className="text-sm text-muted-foreground mt-3">
+                      {t('pwa.clickToInstall')}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
