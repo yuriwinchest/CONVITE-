@@ -16,6 +16,7 @@ import EventPhotos from "./pages/EventPhotos";
 import GuestPhotoGallery from "./pages/GuestPhotoGallery";
 import Subscription from "./pages/Subscription";
 import About from "./pages/About";
+import Install from "./pages/Install";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/payment-success" element={<PaymentSuccess />} />
           <Route path="/subscription" element={<Subscription />} />
           <Route path="/about" element={<About />} />
+          <Route path="/install" element={<Install />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
