@@ -47,18 +47,9 @@ const InstallPWAButton = () => {
     };
   }, []);
 
-  const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") {
-        setIsInstallable(false);
-        setDeferredPrompt(null);
-      }
-    } else {
-      // For iOS or when prompt not available, navigate to install page
-      navigate("/install");
-    }
+  const handleInstallClick = () => {
+    // Always navigate to install page so user can choose their device
+    navigate("/install");
   };
 
   // Don't show if already installed
