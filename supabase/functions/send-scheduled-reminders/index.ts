@@ -7,12 +7,29 @@ const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-cron-secret",
 };
+
+// Chave secreta para validar chamadas do cron job
+const CRON_SECRET = Deno.env.get("CRON_SECRET") || "internal-cron-key";
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // Verificar se a chamada vem de fonte autorizada (cron job interno ou admin)
+  const authHeader = req.headers.get("authorization") || "";
+  const cronSecret = req.headers.get("x-cron-secret") || "";
+  const isInternalCall = cronSecret === CRON_SECRET;
+  const hasServiceKey = authHeader.includes(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "INVALID");
+  
+  if (!isInternalCall && !hasServiceKey) {
+    console.log("🚫 Unauthorized call to send-scheduled-reminders");
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 
   try {
