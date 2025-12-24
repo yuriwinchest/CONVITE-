@@ -6,6 +6,34 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting por guest_id
+const uploadRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const UPLOAD_RATE_LIMIT_MAX = 10; // máximo 10 uploads por guest em 10 minutos
+const UPLOAD_RATE_LIMIT_WINDOW = 10 * 60 * 1000; // 10 minutos
+
+function checkUploadRateLimit(guestId: string): { allowed: boolean; remaining: number } {
+  const now = Date.now();
+  const entry = uploadRateLimitMap.get(guestId);
+  
+  if (!entry || now > entry.resetAt) {
+    uploadRateLimitMap.set(guestId, { count: 1, resetAt: now + UPLOAD_RATE_LIMIT_WINDOW });
+    return { allowed: true, remaining: UPLOAD_RATE_LIMIT_MAX - 1 };
+  }
+  
+  if (entry.count >= UPLOAD_RATE_LIMIT_MAX) {
+    return { allowed: false, remaining: 0 };
+  }
+  
+  entry.count++;
+  return { allowed: true, remaining: UPLOAD_RATE_LIMIT_MAX - entry.count };
+}
+
+// Validação de UUID
+function isValidUUID(str: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -20,7 +48,7 @@ serve(async (req) => {
 
     console.log('Upload request received:', {
       eventIdFromForm,
-      guestId,
+      guestId: guestId?.substring(0, 8) + '***',
       fileName: file?.name,
       fileType: file?.type,
       fileSize: file?.size,
@@ -28,10 +56,29 @@ serve(async (req) => {
 
     // Validações básicas
     if (!file || !eventIdFromForm || !guestId) {
-      console.error('Missing required fields', { hasFile: !!file, eventIdFromForm, guestId });
+      console.error('Missing required fields', { hasFile: !!file, eventIdFromForm, guestId: !!guestId });
       return new Response(
         JSON.stringify({ error: 'Missing required fields' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // Validar formato UUID
+    if (!isValidUUID(eventIdFromForm) || !isValidUUID(guestId)) {
+      console.error('Invalid UUID format', { eventIdFromForm, guestId });
+      return new Response(
+        JSON.stringify({ error: 'Invalid ID format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // Verificar rate limit por guest
+    const rateCheck = checkUploadRateLimit(guestId);
+    if (!rateCheck.allowed) {
+      console.error('Upload rate limit exceeded for guest:', guestId);
+      return new Response(
+        JSON.stringify({ error: 'Too many uploads. Please wait before uploading more photos.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '600' } },
       );
     }
 
@@ -51,6 +98,16 @@ serve(async (req) => {
       console.error('File too large:', file.size);
       return new Response(
         JSON.stringify({ error: 'File too large (max 10MB)' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // Validar nome do arquivo (prevenir path traversal)
+    const safeFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_').substring(0, 100);
+    if (safeFileName.includes('..') || safeFileName.startsWith('/')) {
+      console.error('Invalid file name:', file.name);
+      return new Response(
+        JSON.stringify({ error: 'Invalid file name' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
