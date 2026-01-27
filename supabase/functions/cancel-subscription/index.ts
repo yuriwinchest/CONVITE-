@@ -73,9 +73,10 @@ serve(async (req) => {
       { cancel_at_period_end: true }
     );
 
+    const periodEnd = canceledSubscription.current_period_end;
     logStep("Subscription set to cancel at period end", { 
       cancelAtPeriodEnd: canceledSubscription.cancel_at_period_end,
-      currentPeriodEnd: canceledSubscription.current_period_end
+      currentPeriodEnd: periodEnd
     });
 
     // Atualizar status no banco de dados
@@ -89,11 +90,16 @@ serve(async (req) => {
 
     logStep("Database updated successfully");
 
+    // Calcular data de cancelamento com segurança
+    const cancelAtDate = periodEnd 
+      ? new Date(periodEnd * 1000).toISOString() 
+      : null;
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: "Assinatura será cancelada ao final do período atual.",
-        cancel_at: new Date(canceledSubscription.current_period_end * 1000).toISOString()
+        cancel_at: cancelAtDate
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
