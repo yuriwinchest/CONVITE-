@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CreditCard, Calendar, Download, ExternalLink, Loader2, Crown, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CreditCard, Calendar, Download, ExternalLink, Loader2, Crown, CheckCircle2, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { toast } from "@/hooks/use-toast";
@@ -12,11 +12,24 @@ import { useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function Subscription() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { plan, subscription } = useSubscription();
   const [isManaging, setIsManaging] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
 
   // Buscar usuário atual
   const { data: userData } = useQuery({
@@ -77,6 +90,36 @@ export default function Subscription() {
       });
     } finally {
       setIsManaging(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    setIsCanceling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("cancel-subscription");
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast({
+          title: "✅ Assinatura cancelada",
+          description: "Sua assinatura será cancelada ao final do período atual. Você não será mais cobrado.",
+          duration: 5000,
+        });
+        
+        // Recarregar dados
+        queryClient.invalidateQueries({ queryKey: ["payment-history"] });
+        queryClient.invalidateQueries({ queryKey: ["user-subscription"] });
+      }
+    } catch (error) {
+      console.error("Error canceling subscription:", error);
+      toast({
+        title: "❌ Erro",
+        description: error instanceof Error ? error.message : "Não foi possível cancelar a assinatura.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCanceling(false);
     }
   };
 
@@ -260,41 +303,88 @@ export default function Subscription() {
               )}
 
               {/* Botões de Ação */}
-              <div className="flex gap-3 pt-4">
-                {plan === "PREMIUM" ? (
-                  isAdminUser ? (
-                    <Button
-                      onClick={handleManageSubscription}
-                      disabled={isManaging}
-                      className="flex-1"
-                    >
-                      {isManaging ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Abrindo...
-                        </>
-                      ) : (
-                        <>
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          Gerenciar no Stripe
-                        </>
-                      )}
-                    </Button>
+              <div className="flex flex-col gap-3 pt-4">
+                <div className="flex gap-3">
+                  {plan === "PREMIUM" ? (
+                    isAdminUser ? (
+                      <Button
+                        onClick={handleManageSubscription}
+                        disabled={isManaging}
+                        className="flex-1"
+                      >
+                        {isManaging ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Abrindo...
+                          </>
+                        ) : (
+                          <>
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Gerenciar no Stripe
+                          </>
+                        )}
+                      </Button>
+                    ) : null
                   ) : (
-                    <div className="flex-1 p-4 bg-muted/50 rounded-lg text-center">
-                      <p className="text-sm text-muted-foreground">
-                        💡 Para gerenciar sua assinatura, entre em contato com o suporte
-                      </p>
-                    </div>
-                  )
-                ) : (
-                  <Button
-                    onClick={handleUpgrade}
-                    className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
-                  >
-                    <Crown className="w-4 h-4 mr-2" />
-                    Fazer Upgrade para Premium
-                  </Button>
+                    <Button
+                      onClick={handleUpgrade}
+                      className="flex-1 bg-gradient-to-r from-primary to-primary/80 hover:opacity-90"
+                    >
+                      <Crown className="w-4 h-4 mr-2" />
+                      Fazer Upgrade para Premium
+                    </Button>
+                  )}
+                </div>
+
+                {/* Botão de Cancelar Assinatura - Disponível para usuários PREMIUM */}
+                {plan === "PREMIUM" && subscription?.stripe_subscription_id && !paymentData?.subscription?.cancel_at_period_end && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                      >
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Cancelar Assinatura
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Cancelar Assinatura Premium?</AlertDialogTitle>
+                        <AlertDialogDescription className="space-y-2">
+                          <p>
+                            Tem certeza que deseja cancelar sua assinatura Premium?
+                          </p>
+                          <p>
+                            • Você continuará com acesso até o final do período pago
+                          </p>
+                          <p>
+                            • Não haverá mais cobranças após o cancelamento
+                          </p>
+                          <p>
+                            • Após o período, seu plano voltará para Gratuito
+                          </p>
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Manter Assinatura</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={handleCancelSubscription}
+                          disabled={isCanceling}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          {isCanceling ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Cancelando...
+                            </>
+                          ) : (
+                            "Sim, Cancelar Assinatura"
+                          )}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 )}
               </div>
             </CardContent>
