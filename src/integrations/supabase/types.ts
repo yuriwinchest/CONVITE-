@@ -420,6 +420,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      search_guest_across_events: {
+        Args: { p_limit?: number; p_name: string }
+        Returns: {
+          confirmed: boolean
+          event_date: string
+          event_id: string
+          event_location: string
+          event_name: string
+          guest_id: string
+          guest_name: string
+          table_number: number
+        }[]
+      }
       search_guest_by_name: {
         Args: { p_event_id: string; p_name: string }
         Returns: {
