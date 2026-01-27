@@ -43,7 +43,17 @@ serve(async (req) => {
       throw new Error("Unauthorized");
     }
 
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    const userEmail = user.email;
+    logStep("User authenticated", { userId: user.id, email: userEmail });
+
+    // Buscar nome do usuário
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("user_id", user.id)
+      .single();
+
+    const userName = profile?.full_name || "";
 
     // Buscar assinatura do usuário
     const { data: subscription, error: subError } = await supabase
@@ -94,6 +104,26 @@ serve(async (req) => {
     const cancelAtDate = periodEnd 
       ? new Date(periodEnd * 1000).toISOString() 
       : null;
+
+    // Enviar email de confirmação de cancelamento
+    try {
+      await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-cancellation-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+        },
+        body: JSON.stringify({
+          email: userEmail,
+          userName: userName,
+          cancelAt: cancelAtDate,
+        }),
+      });
+      logStep("Cancellation email sent");
+    } catch (emailError) {
+      logStep("Failed to send cancellation email", { error: emailError });
+      // Não falhar a operação por causa do email
+    }
 
     return new Response(
       JSON.stringify({ 
