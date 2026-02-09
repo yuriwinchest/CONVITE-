@@ -235,7 +235,7 @@ export const UserProfilePanel = () => {
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
                     {eventsUsed === 0
-                      ? "Você tem 1 evento gratuito disponível este mês (até 50 convidados)"
+                      ? "Você tem 1 evento gratuito disponível este mês (até 200 convidados)"
                       : "Você já usou seu evento gratuito deste mês"}
                   </p>
 

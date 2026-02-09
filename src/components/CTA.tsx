@@ -10,7 +10,7 @@ const CTA = () => {
             Cadastre-se agora e crie seu primeiro evento sem custo
           </h2>
           <p className="text-lg mb-8 text-primary-foreground/90">
-            Experimente a sofisticação de uma recepção impecável — grátis para até 50 convidados.
+            Experimente a sofisticação de uma recepção impecável — grátis para até 200 convidados.
           </p>
           <Button 
             size="lg" 
