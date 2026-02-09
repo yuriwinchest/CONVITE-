@@ -68,6 +68,10 @@ serve(async (req) => {
 
     const plan = subscription?.plan || "FREE";
 
+    // Check for promo code in user metadata
+    const promoCode = user.user_metadata?.promo_code;
+    const hasPromo = promoCode === "ESPECIAL" || promoCode === "VIP" || !!promoCode;
+
     if (action === "create_event") {
       if (plan === "FREE") {
         const { count } = await supabase
@@ -75,11 +79,16 @@ serve(async (req) => {
           .select("*", { count: "exact", head: true })
           .eq("user_id", user.id);
 
-        if ((count || 0) >= 1) {
+        // Promo users get 2 events total, regular users get 1
+        const limit = hasPromo ? 2 : 1;
+
+        if ((count || 0) >= limit) {
           return new Response(
             JSON.stringify({
               allowed: false,
-              message: "Plano gratuito permite apenas 1 evento",
+              message: hasPromo
+                ? `Limite promocional de ${limit} eventos atingido`
+                : "Plano gratuito permite apenas 1 evento",
             }),
             {
               headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -125,10 +134,17 @@ serve(async (req) => {
         .single();
 
       const eventPlan = purchase?.plan || plan;
+
+      // Default limits
       let limit = 50;
 
       if (eventPlan === "ESSENTIAL") limit = 200;
       if (eventPlan === "PREMIUM") limit = Infinity;
+
+      // Promo users override FREE limit to Infinity (Premium benefits)
+      if (hasPromo && (!eventPlan || eventPlan === "FREE")) {
+        limit = Infinity;
+      }
 
       if (limit !== Infinity && guestCount > limit) {
         return new Response(
