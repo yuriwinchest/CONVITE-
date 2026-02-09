@@ -136,7 +136,7 @@ serve(async (req) => {
       const eventPlan = purchase?.plan || plan;
 
       // Default limits
-      let limit = 50;
+      let limit = 200;
 
       if (eventPlan === "ESSENTIAL") limit = 200;
       if (eventPlan === "PREMIUM") limit = Infinity;

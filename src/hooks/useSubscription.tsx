@@ -74,11 +74,11 @@ export const useSubscription = () => {
   const getGuestLimit = (eventPlan?: SubscriptionPlan): number => {
     const activePlan = eventPlan || plan;
 
-    if (activePlan === "FREE") return 50;
+    if (activePlan === "FREE") return 200;
     if (activePlan === "ESSENTIAL") return 200;
     if (activePlan === "PREMIUM") return Infinity;
 
-    return 50;
+    return 200;
   };
 
   const canCreateEvent = async (): Promise<{ allowed: boolean; message?: string }> => {
