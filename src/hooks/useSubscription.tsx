@@ -226,7 +226,7 @@ export const useSubscription = () => {
       const promoCode = user.user_metadata?.promo_code;
       const hasPromo = promoCode === "ESPECIAL" || promoCode === "VIP" || !!promoCode; // Accept any code for now or specific ones
 
-      const limit = hasPromo ? 3 : 1; // 1 Free + 2 Promo = 3 events total
+      const limit = hasPromo ? 2 : 1; // 2 Promo events total (Premium features)
 
       if (eventsUsed >= limit) {
         return {
