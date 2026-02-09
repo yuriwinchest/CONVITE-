@@ -231,15 +231,15 @@ export const UserProfilePanel = () => {
                 <div className="p-4 bg-muted/30 rounded-lg">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-semibold">Plano Gratuito</h3>
-                    <Badge variant="secondary">{eventsUsed} / 1 evento usado</Badge>
+                    <Badge variant="secondary">{eventsUsed} / {eventsLimit} evento{eventsLimit > 1 ? "s" : ""} usado{eventsLimit > 1 ? "s" : ""}</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground mb-3">
-                    {eventsUsed === 0
-                      ? "Você tem 1 evento gratuito disponível este mês (até 200 convidados)"
-                      : "Você já usou seu evento gratuito deste mês"}
+                    {eventsUsed < eventsLimit
+                      ? `Você tem ${eventsLimit - eventsUsed} evento${(eventsLimit - eventsUsed) > 1 ? "s" : ""} gratuito${(eventsLimit - eventsUsed) > 1 ? "s" : ""} disponíve${(eventsLimit - eventsUsed) > 1 ? "is" : "l"} este mês (até 200 convidados)`
+                      : `Você já usou ${eventsLimit === 1 ? "seu evento gratuito" : "seus eventos gratuitos"} deste mês`}
                   </p>
 
-                  {eventsUsed >= 1 && (
+                  {eventsUsed >= eventsLimit && (
                     <>
                       <Button
                         onClick={handleOpenCart}
