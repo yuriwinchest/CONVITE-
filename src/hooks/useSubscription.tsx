@@ -35,17 +35,7 @@ export const useSubscription = () => {
   const plan = subscription?.plan || "FREE";
 
   const getEventLimit = (): number => {
-    if (plan === "PREMIUM") return 5; // 5 eventos por mês com assinatura
-
-    // Check for promo code in user metadata via the current session/user
-    // Note: This requires the user object to be available. 
-    // We'll rely on a check inside canCreateEvent for the definitive answer, 
-    // but for UI display purposes we might need to fetch the user here or assume standard limits unless verified.
-    // However, to keep it simple and consistent with the hook structure:
-    return Infinity; // Lets handle the strict limit in canCreateEvent to be safe, or return basic limit here and override later.
-    // Actually, let's keep the standard limit here for display ("1 Free Event"), 
-    // but allow creation in canCreateEvent if promo exists.
-    // OR, better:
+    if (plan === "PREMIUM") return 2;
     if (plan === "FREE") return 1;
     return Infinity;
   };
