@@ -17,6 +17,7 @@ import GuestPhotoGallery from "./pages/GuestPhotoGallery";
 import Subscription from "./pages/Subscription";
 import About from "./pages/About";
 import Install from "./pages/Install";
+import PromoLanding from "./pages/PromoLanding";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,9 @@ const App = () => (
           <Route path="/subscription" element={<Subscription />} />
           <Route path="/about" element={<About />} />
           <Route path="/install" element={<Install />} />
+          <Route path="/promo/:code" element={<PromoLanding />} />
+          {/* Add a direct route for simple access without code if needed, or redirect */}
+          <Route path="/convite-especial" element={<PromoLanding />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

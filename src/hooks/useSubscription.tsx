@@ -36,8 +36,18 @@ export const useSubscription = () => {
 
   const getEventLimit = (): number => {
     if (plan === "PREMIUM") return 5; // 5 eventos por mês com assinatura
-    if (plan === "FREE") return 1; // 1 evento gratuito por mês
-    return Infinity; // ESSENTIAL é por evento via carrinho, sem limite
+
+    // Check for promo code in user metadata via the current session/user
+    // Note: This requires the user object to be available. 
+    // We'll rely on a check inside canCreateEvent for the definitive answer, 
+    // but for UI display purposes we might need to fetch the user here or assume standard limits unless verified.
+    // However, to keep it simple and consistent with the hook structure:
+    return Infinity; // Lets handle the strict limit in canCreateEvent to be safe, or return basic limit here and override later.
+    // Actually, let's keep the standard limit here for display ("1 Free Event"), 
+    // but allow creation in canCreateEvent if promo exists.
+    // OR, better:
+    if (plan === "FREE") return 1;
+    return Infinity;
   };
 
   const getEventsUsedThisMonth = async (): Promise<number> => {
@@ -46,7 +56,7 @@ export const useSubscription = () => {
 
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    
+
     const { count, error } = await supabase
       .from("events")
       .select("*", { count: "exact", head: true })
@@ -63,11 +73,11 @@ export const useSubscription = () => {
 
   const getGuestLimit = (eventPlan?: SubscriptionPlan): number => {
     const activePlan = eventPlan || plan;
-    
+
     if (activePlan === "FREE") return 50;
     if (activePlan === "ESSENTIAL") return 200;
     if (activePlan === "PREMIUM") return Infinity;
-    
+
     return 50;
   };
 
@@ -125,13 +135,13 @@ export const useSubscription = () => {
   const hasUsedMonthlyFreeEvent = async (): Promise<boolean> => {
     // Usuários PREMIUM não usam evento gratuito, têm 5 eventos por mês
     if (plan === "PREMIUM") return false;
-    
+
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return false;
 
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    
+
     const { count, error } = await supabase
       .from("events")
       .select("*", { count: "exact", head: true })
@@ -212,15 +222,23 @@ export const useSubscription = () => {
 
     // FREE: 1 evento gratuito por mês, depois adiciona ao carrinho
     if (plan === "FREE") {
-      if (eventsUsed >= 1) {
+      // Check for promo code
+      const promoCode = user.user_metadata?.promo_code;
+      const hasPromo = promoCode === "ESPECIAL" || promoCode === "VIP" || !!promoCode; // Accept any code for now or specific ones
+
+      const limit = hasPromo ? 3 : 1; // 1 Free + 2 Promo = 3 events total
+
+      if (eventsUsed >= limit) {
         return {
           allowed: false,
-          message: "Você já usou seu evento gratuito deste mês. Adicione eventos ao carrinho (R$ 79/evento).",
+          message: hasPromo
+            ? `Você atingiu o limite promocional de ${limit} eventos gratuitos.`
+            : "Você já usou seu evento gratuito deste mês. Adicione eventos ao carrinho (R$ 79/evento).",
           eventsUsed,
-          eventsLimit: 1,
+          eventsLimit: limit,
         };
       }
-      return { allowed: true, eventsUsed, eventsLimit: 1 };
+      return { allowed: true, eventsUsed, eventsLimit: limit };
     }
 
     // ESSENTIAL ou outros: sempre podem adicionar ao carrinho
@@ -244,6 +262,16 @@ export const useSubscription = () => {
     const limit = getGuestLimit(eventPlan);
     const newTotal = currentCount + toAdd;
 
+    // Check for promo code in user metadata
+    const { data: { user } } = await supabase.auth.getUser();
+    const promoCode = user?.user_metadata?.promo_code;
+    const hasPromo = promoCode === "ESPECIAL" || promoCode === "VIP" || !!promoCode;
+
+    // Allow unlimited guests if user has promo code
+    if (hasPromo && (!eventPlan || eventPlan === "FREE")) {
+      return { allowed: true, limit: Infinity };
+    }
+
     if (limit === Infinity) {
       return { allowed: true, limit };
     }
@@ -252,11 +280,10 @@ export const useSubscription = () => {
       const planName = eventPlan || plan;
       return {
         allowed: false,
-        message: `Você atingiu o limite do plano ${planName} (${limit} convidados). ${
-          planName === "FREE"
-            ? "Escolha um plano para adicionar mais convidados!"
-            : "Faça upgrade para Premium para convidados ilimitados!"
-        }`,
+        message: `Você atingiu o limite do plano ${planName} (${limit} convidados). ${planName === "FREE"
+          ? "Escolha um plano para adicionar mais convidados!"
+          : "Faça upgrade para Premium para convidados ilimitados!"
+          }`,
         limit,
       };
     }

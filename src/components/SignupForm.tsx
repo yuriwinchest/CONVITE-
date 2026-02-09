@@ -44,7 +44,10 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
     setIsLoading(true);
     try {
       const redirectUrl = `${window.location.origin}/dashboard`;
-      
+
+      const searchParams = new URLSearchParams(window.location.search);
+      const promoCode = searchParams.get("promo");
+
       const { error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -52,6 +55,7 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
           emailRedirectTo: redirectUrl,
           data: {
             full_name: data.fullName,
+            promo_code: promoCode, // Save promo code if present
           },
         },
       });
@@ -69,7 +73,7 @@ const SignupForm = ({ onToggleForm }: SignupFormProps) => {
         title: t('messages.signupSuccess'),
         description: "",
       });
-      
+
       navigate("/dashboard");
     } catch (error) {
       toast({
